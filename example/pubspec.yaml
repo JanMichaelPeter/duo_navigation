@@ -1,0 +1,23 @@
+name: nav_dock_example
+description: Demo of nav_dock.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  nav_dock:
+    path: ../
+
+flutter:
+  uses-material-design: true
+
+dev_dependencies:
+  # Tests fake the plugin's platform side.
+  window_placement: ^0.0.1
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter

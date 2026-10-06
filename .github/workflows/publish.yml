@@ -1,0 +1,41 @@
+name: Publish to pub.dev
+
+# Runs when a version tag like v0.1.0 is pushed. The job waits for approval
+# in the pub.dev environment, and pub.dev only accepts uploads from this
+# repository's tags through that environment.
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: 3.38.1
+
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    environment: pub.dev
+    permissions:
+      contents: read
+      id-token: write # pub.dev authenticates the upload with a GitHub OIDC token
+    steps:
+      - uses: actions/checkout@v4
+      # Sets up the OIDC credentials that `flutter pub publish` uses.
+      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      - name: Check tag and version files
+        run: tool/release.sh check "$GITHUB_REF_NAME"
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - run: flutter pub publish --dry-run
+      - run: flutter pub publish --force

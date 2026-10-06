@@ -1,0 +1,40 @@
+name: nav_dock
+description: >-
+  Thumb-friendly navigation for phones, foldables and tablets: a tab bar on
+  phones, one column of tabs and actions at the screen edge on wide screens.
+version: 0.1.0
+
+topics:
+  - navigation
+  - tablet
+  - responsive
+  - foldable
+  - ui
+
+screenshots:
+  - description: >-
+      One app on a phone, an unfolded foldable and in split screen: navigation
+      moves to the screen edge.
+    path: screenshots/nav_dock_demo.gif
+
+environment:
+  # window_placement needs Dart 3.10 (Flutter 3.38).
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.38.0"
+
+# iOS, iPadOS (ios) and Android only. Window-edge detection uses the
+# window_placement plugin, which has no other implementations.
+platforms:
+  android:
+  ios:
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Detects which display edges the window touches (split screen).
+  window_placement: ^0.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
