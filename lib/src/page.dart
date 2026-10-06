@@ -145,8 +145,9 @@ class _DockPageContentState extends State<_DockPageContent> {
     ];
     registration.update(
       actions: hoisted,
-      active:
-          (route?.isCurrent ?? true) && TickerMode.valuesOf(context).enabled,
+      // TickerMode.valuesOf needs Flutter 3.41; keep .of while supporting 3.38.
+      // ignore: deprecated_member_use
+      active: (route?.isCurrent ?? true) && TickerMode.of(context),
       route: route,
     );
 
