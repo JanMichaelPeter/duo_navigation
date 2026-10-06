@@ -2,7 +2,7 @@ name: nav_dock
 description: >-
   Thumb-friendly navigation for phones, foldables and tablets: a tab bar on
   phones, one column of tabs and actions at the screen edge on wide screens.
-version: 0.1.0
+version: 0.0.1
 repository: https://github.com/JanMichaelPeter/nav_dock
 
 topics:
