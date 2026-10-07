@@ -84,4 +84,15 @@ void main() {
       }
     }
   });
+
+  test('no library file depends on flutter_test', () {
+    for (final file in Directory('lib').listSync(recursive: true)) {
+      if (file is! File || !file.path.endsWith('.dart')) continue;
+      expect(
+        file.readAsStringSync(),
+        isNot(contains('package:flutter_test/')),
+        reason: '${file.path}: testing.dart must not add a test dependency.',
+      );
+    }
+  });
 }

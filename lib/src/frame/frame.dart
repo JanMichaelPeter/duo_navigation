@@ -11,6 +11,7 @@ import '../geometry/layout_mode.dart';
 import '../geometry/side.dart';
 import '../models/tab.dart';
 import '../models/tabs_data.dart';
+import '../keys.dart';
 import 'body_scope.dart';
 import 'render_frame.dart';
 import 'side_column.dart';
@@ -91,7 +92,7 @@ class _DockFrameState extends State<DockFrame> {
   @override
   Widget build(BuildContext context) {
     final config = DockNavigation.of(context);
-    _host.tapCooldown = config.tapCooldown;
+    _host.tapGuard = config.tapGuard;
     final padding = MediaQuery.paddingOf(context);
     final window = MediaQuery.sizeOf(context);
     final ltr = Directionality.of(context) == TextDirection.ltr;
@@ -128,8 +129,14 @@ class _DockFrameState extends State<DockFrame> {
             // The body keeps its slot in every mode, so switching modes
             // (rotation, split view) keeps its State.
             body: DockBodyScope(child: widget.child),
-            bar: tabs == null ? null : config.tabBarBuilder(context, tabs),
+            bar: tabs == null
+                ? null
+                : KeyedSubtree(
+                    key: DockKeys.bar,
+                    child: config.tabBarBuilder(context, tabs),
+                  ),
             column: SideColumn(
+              key: DockKeys.column,
               host: _host,
               tabs: tabs,
               columnOnRight: columnOnRight,

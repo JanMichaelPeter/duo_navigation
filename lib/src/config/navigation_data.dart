@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../defaults.dart';
+import '../actions/tap_guard.dart';
 import '../geometry/body_mode.dart';
 import '../geometry/layout_policy.dart';
 import '../geometry/side.dart';
@@ -33,7 +34,7 @@ class DockNavigationData {
     this.actionSpacing = 8,
     this.actionAnimationDuration = const Duration(milliseconds: 250),
     this.actionAnimationCurve = Curves.easeOutCubic,
-    this.tapCooldown = const Duration(milliseconds: 350),
+    this.tapGuard = const DockTapGuard(),
     this.tabBarBuilder = DockDefaults.tabBar,
     this.railBuilder = DockDefaults.rail,
     this.actionBuilder = DockDefaults.action,
@@ -83,10 +84,9 @@ class DockNavigationData {
   /// Curve of chip in/out animations (flipped when animating out).
   final Curve actionAnimationCurve;
 
-  /// After an action fires, further action taps from the same frame (shell or
-  /// modal) are ignored for this long. Taps are also ignored while a route
-  /// transition is running.
-  final Duration tapCooldown;
+  /// Guards action taps against double taps and taps during route
+  /// transitions. [DockTapGuard.disabled] lets every tap through.
+  final DockTapGuard tapGuard;
 
   /// Bottom tab bar in compact mode.
   final DockTabsBuilder tabBarBuilder;
@@ -118,7 +118,7 @@ class DockNavigationData {
     double? actionSpacing,
     Duration? actionAnimationDuration,
     Curve? actionAnimationCurve,
-    Duration? tapCooldown,
+    DockTapGuard? tapGuard,
     DockTabsBuilder? tabBarBuilder,
     DockTabsBuilder? railBuilder,
     DockActionBuilder? actionBuilder,
@@ -139,7 +139,7 @@ class DockNavigationData {
       actionAnimationDuration:
           actionAnimationDuration ?? this.actionAnimationDuration,
       actionAnimationCurve: actionAnimationCurve ?? this.actionAnimationCurve,
-      tapCooldown: tapCooldown ?? this.tapCooldown,
+      tapGuard: tapGuard ?? this.tapGuard,
       tabBarBuilder: tabBarBuilder ?? this.tabBarBuilder,
       railBuilder: railBuilder ?? this.railBuilder,
       actionBuilder: actionBuilder ?? this.actionBuilder,
@@ -162,7 +162,7 @@ class DockNavigationData {
       other.actionSpacing == actionSpacing &&
       other.actionAnimationDuration == actionAnimationDuration &&
       other.actionAnimationCurve == actionAnimationCurve &&
-      other.tapCooldown == tapCooldown &&
+      other.tapGuard == tapGuard &&
       other.tabBarBuilder == tabBarBuilder &&
       other.railBuilder == railBuilder &&
       other.actionBuilder == actionBuilder &&
@@ -181,7 +181,7 @@ class DockNavigationData {
     actionSpacing,
     actionAnimationDuration,
     actionAnimationCurve,
-    tapCooldown,
+    tapGuard,
     tabBarBuilder,
     railBuilder,
     actionBuilder,

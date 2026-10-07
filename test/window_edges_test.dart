@@ -1,29 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nav_dock/nav_dock.dart';
+import 'package:nav_dock/testing.dart';
 
 const _leftOnly = DockWindowEdges(left: true, right: false);
 const _fullscreen = DockWindowEdges(left: true, right: true);
-
-/// A source whose edges the test changes over time.
-class _FakeSource implements DockWindowEdgesSource {
-  _FakeSource(this.value);
-
-  @override
-  DockWindowEdges? value;
-
-  final _changes = StreamController<DockWindowEdges?>.broadcast();
-
-  @override
-  Stream<DockWindowEdges?> get changes => _changes.stream;
-
-  void push(DockWindowEdges? edges) {
-    value = edges;
-    _changes.add(edges);
-  }
-}
 
 Widget _app(DockNavigationData data) {
   return MaterialApp(
@@ -70,7 +51,7 @@ void main() {
   });
 
   testWidgets('the column follows the source over time', (tester) async {
-    final source = _FakeSource(null);
+    final source = FakeWindowEdgesSource();
     await pumpWide(tester, DockNavigationData(windowEdgesSource: source));
     expect(railX(tester), greaterThan(900));
 
@@ -88,11 +69,11 @@ void main() {
   });
 
   testWidgets('replacing the source starts from its value', (tester) async {
-    final first = _FakeSource(_leftOnly);
+    final first = FakeWindowEdgesSource(_leftOnly);
     await pumpWide(tester, DockNavigationData(windowEdgesSource: first));
     expect(railX(tester), lessThan(100));
 
-    final second = _FakeSource(_fullscreen);
+    final second = FakeWindowEdgesSource(_fullscreen);
     await tester.pumpWidget(
       _app(DockNavigationData(windowEdgesSource: second)),
     );
@@ -102,7 +83,7 @@ void main() {
     first.push(_leftOnly); // the old source no longer counts
     await tester.pumpAndSettle();
     expect(railX(tester), greaterThan(900));
-    expect(first._changes.hasListener, isFalse);
+    expect(first.hasListener, isFalse);
   });
 
   testWidgets('removing the source goes back to the preferred side', (

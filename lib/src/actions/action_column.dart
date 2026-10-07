@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import '../config/navigation.dart';
 import '../models/action.dart';
 import '../models/enums.dart';
+import '../keys.dart';
 import 'action_host.dart';
 import 'action_presence.dart';
 import 'merge_order.dart';
@@ -146,10 +147,13 @@ class _DockActionColumnState extends State<DockActionColumn> {
                   // Centered on the column axis, like the rail, whatever the
                   // transition does horizontally.
                   child: Center(
-                    child: config.actionBuilder(
-                      context,
-                      item.owner.guarded(item.action),
-                      DockActionPlacement.sideColumn,
+                    child: KeyedSubtree(
+                      key: DockKeys.action(item.action.id),
+                      child: config.actionBuilder(
+                        context,
+                        item.owner.guarded(item.action),
+                        DockActionPlacement.sideColumn,
+                      ),
                     ),
                   ),
                 ),

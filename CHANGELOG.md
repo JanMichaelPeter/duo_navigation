@@ -24,6 +24,15 @@ Unreleased. A redesign; see the
 * New `DockGeometry.of(context)`: the frame's mode, side and chrome per edge,
   with aspects so widgets rebuild only for what they read.
 * A debug error reports a tab bar that is shorter than the bottom safe area.
+* **BREAKING** `DockNavigationData.tapCooldown` is replaced by
+  `tapGuard: DockTapGuard(enabled:, cooldown:, clock:)`. The guard's time
+  comes from a `DockClock`; `DockTapGuard.disabled` lets every tap through.
+* New `package:nav_dock/testing.dart`: `DockTestHarness` pins layout mode,
+  side, window edges, text direction and the tap guard's clock in one widget;
+  `FakeWindowEdgesSource` and `FakeDockClock`. It does not depend on
+  `flutter_test`.
+* New `DockKeys` (`bar`, `column`, `rail`, `action(id)`), applied by the
+  package around the builders' output.
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work
