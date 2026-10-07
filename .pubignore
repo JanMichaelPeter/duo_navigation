@@ -44,3 +44,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 tool/
+
+# Workspace members and design notes are not part of the nav_dock package
+packages/
+doc/design/
+
+# Only these root-level Markdown files belong in the package
+/*.md
+!/README.md
+!/CHANGELOG.md

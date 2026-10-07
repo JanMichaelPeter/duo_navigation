@@ -1,3 +1,6 @@
+// 0.0.1 code that the 0.1.0 redesign replaces (#42).
+// ignore_for_file: public_member_api_docs
+
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';

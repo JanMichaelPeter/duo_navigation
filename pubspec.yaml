@@ -29,6 +29,10 @@ platforms:
   android:
   ios:
 
+workspace:
+  - example
+  - packages/nav_dock_window_placement
+
 dependencies:
   flutter:
     sdk: flutter

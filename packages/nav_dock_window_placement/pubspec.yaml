@@ -1,0 +1,24 @@
+name: nav_dock_window_placement
+description: >-
+  Window-edge source for nav_dock backed by the window_placement plugin, so the
+  side column follows the window to the screen edge in split screen.
+version: 0.0.1
+repository: https://github.com/JanMichaelPeter/nav_dock/tree/main/packages/nav_dock_window_placement
+# Published from 0.1.0 on, once the adapter exists (#5).
+publish_to: none
+
+environment:
+  sdk: ">=3.10.0 <4.0.0"
+  flutter: ">=3.38.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  nav_dock: ">=0.0.1 <0.2.0"
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
