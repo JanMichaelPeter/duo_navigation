@@ -1,12 +1,10 @@
 import 'package:flutter/widgets.dart';
 
-import '../defaults.dart';
 import '../actions/tap_guard.dart';
 import '../geometry/body_mode.dart';
 import '../geometry/layout_policy.dart';
 import '../geometry/side.dart';
 import '../geometry/window_edges_source.dart';
-import 'builders.dart';
 
 /// Marks a `copyWith` argument that was not passed, so a nullable field can be
 /// reset to null.
@@ -19,8 +17,7 @@ const Object _unset = Object();
 /// It has value equality, so rebuilding `DockNavigation` with equal data
 /// notifies no dependents.
 ///
-/// The visual builders ([tabBarBuilder] … [actionTransitionBuilder]) move to
-/// their own `DockBuilders` before 0.1.0 (#8).
+/// The visuals are not part of it: see `DockBuilders`.
 @immutable
 class DockNavigationData {
   /// Every argument is optional; the defaults are Material 3.
@@ -35,12 +32,6 @@ class DockNavigationData {
     this.actionAnimationDuration = const Duration(milliseconds: 250),
     this.actionAnimationCurve = Curves.easeOutCubic,
     this.tapGuard = const DockTapGuard(),
-    this.tabBarBuilder = DockDefaults.tabBar,
-    this.railBuilder = DockDefaults.rail,
-    this.actionBuilder = DockDefaults.action,
-    this.pageBuilder = DockDefaults.page,
-    this.sideColumnBuilder = DockDefaults.sideColumn,
-    this.actionTransitionBuilder = DockDefaults.actionTransition,
   });
 
   /// Decides between the compact and the wide layout. Default: wide from a
@@ -88,24 +79,6 @@ class DockNavigationData {
   /// transitions. [DockTapGuard.disabled] lets every tap through.
   final DockTapGuard tapGuard;
 
-  /// Bottom tab bar in compact mode.
-  final DockTabsBuilder tabBarBuilder;
-
-  /// Tab rail at the bottom of the side column in wide mode.
-  final DockTabsBuilder railBuilder;
-
-  /// Every action, in the title bar and as side-column chip.
-  final DockActionBuilder actionBuilder;
-
-  /// Title bar + body of each `DockPage` (not `DockPage.custom`).
-  final DockPageScaffoldBuilder pageBuilder;
-
-  /// Arrangement of action chips and rail inside the side column.
-  final DockSideColumnBuilder sideColumnBuilder;
-
-  /// How side-column chips appear and disappear.
-  final DockActionTransitionBuilder actionTransitionBuilder;
-
   /// A copy with the given fields replaced. Pass null for [windowEdgesSource]
   /// to remove it.
   DockNavigationData copyWith({
@@ -119,12 +92,6 @@ class DockNavigationData {
     Duration? actionAnimationDuration,
     Curve? actionAnimationCurve,
     DockTapGuard? tapGuard,
-    DockTabsBuilder? tabBarBuilder,
-    DockTabsBuilder? railBuilder,
-    DockActionBuilder? actionBuilder,
-    DockPageScaffoldBuilder? pageBuilder,
-    DockSideColumnBuilder? sideColumnBuilder,
-    DockActionTransitionBuilder? actionTransitionBuilder,
   }) {
     return DockNavigationData(
       layoutPolicy: layoutPolicy ?? this.layoutPolicy,
@@ -140,13 +107,6 @@ class DockNavigationData {
           actionAnimationDuration ?? this.actionAnimationDuration,
       actionAnimationCurve: actionAnimationCurve ?? this.actionAnimationCurve,
       tapGuard: tapGuard ?? this.tapGuard,
-      tabBarBuilder: tabBarBuilder ?? this.tabBarBuilder,
-      railBuilder: railBuilder ?? this.railBuilder,
-      actionBuilder: actionBuilder ?? this.actionBuilder,
-      pageBuilder: pageBuilder ?? this.pageBuilder,
-      sideColumnBuilder: sideColumnBuilder ?? this.sideColumnBuilder,
-      actionTransitionBuilder:
-          actionTransitionBuilder ?? this.actionTransitionBuilder,
     );
   }
 
@@ -162,13 +122,7 @@ class DockNavigationData {
       other.actionSpacing == actionSpacing &&
       other.actionAnimationDuration == actionAnimationDuration &&
       other.actionAnimationCurve == actionAnimationCurve &&
-      other.tapGuard == tapGuard &&
-      other.tabBarBuilder == tabBarBuilder &&
-      other.railBuilder == railBuilder &&
-      other.actionBuilder == actionBuilder &&
-      other.pageBuilder == pageBuilder &&
-      other.sideColumnBuilder == sideColumnBuilder &&
-      other.actionTransitionBuilder == actionTransitionBuilder;
+      other.tapGuard == tapGuard;
 
   @override
   int get hashCode => Object.hash(
@@ -182,11 +136,5 @@ class DockNavigationData {
     actionAnimationDuration,
     actionAnimationCurve,
     tapGuard,
-    tabBarBuilder,
-    railBuilder,
-    actionBuilder,
-    pageBuilder,
-    sideColumnBuilder,
-    actionTransitionBuilder,
   );
 }

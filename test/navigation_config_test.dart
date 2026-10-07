@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nav_dock/material.dart';
 import 'package:nav_dock/nav_dock.dart';
 import 'package:nav_dock/testing.dart';
 
@@ -70,8 +71,11 @@ void main() {
       final builds = <int>[];
       // The same instance every time, so only a notification rebuilds it.
       final probe = _Probe(DockNavigation.of, builds);
-      Widget app(DockNavigationData data) =>
-          DockNavigation(data: data, child: probe);
+      Widget app(DockNavigationData data) => DockNavigation(
+        builders: const DockMaterialBuilders(),
+        data: data,
+        child: probe,
+      );
 
       await tester.pumpWidget(app(const DockNavigationData()));
       // Equal but not identical (not const).
@@ -92,6 +96,7 @@ void main() {
         Directionality(
           textDirection: TextDirection.ltr,
           child: DockNavigation(
+            builders: const DockMaterialBuilders(),
             data: DockNavigationData(windowEdgesSource: source),
             child: Column(
               children: [
@@ -193,6 +198,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           builder: (context, child) => DockNavigation(
+            builders: const DockMaterialBuilders(),
             data: const DockNavigationData(
               layoutPolicy: DockLayoutPolicy.fixed(DockLayoutMode.compact),
             ),
@@ -227,6 +233,7 @@ void main() {
           child: Directionality(
             textDirection: direction,
             child: DockNavigation(
+              builders: const DockMaterialBuilders(),
               data: data,
               child: Builder(
                 builder: (c) {

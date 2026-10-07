@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nav_dock/material.dart';
 import 'package:nav_dock/nav_dock.dart';
 import 'package:nav_dock/testing.dart';
 
@@ -58,14 +59,22 @@ void main() {
     testWidgets('the mode, whatever the surface', (tester) async {
       await pump(
         tester,
-        (child) => DockTestHarness(mode: DockLayoutMode.compact, child: child),
+        (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
+          mode: DockLayoutMode.compact,
+          child: child,
+        ),
       );
       expect(find.byKey(DockKeys.bar), findsOneWidget);
       expect(find.byKey(DockKeys.column), findsNothing);
 
       await pump(
         tester,
-        (child) => DockTestHarness(mode: DockLayoutMode.wide, child: child),
+        (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
+          mode: DockLayoutMode.wide,
+          child: child,
+        ),
         size: const Size(400, 800),
       );
       expect(find.byKey(DockKeys.column), findsOneWidget);
@@ -76,14 +85,21 @@ void main() {
     testWidgets('the side and the text direction', (tester) async {
       await pump(
         tester,
-        (child) => DockTestHarness(side: DockSide.start, child: child),
+        (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
+          side: DockSide.start,
+          child: child,
+        ),
       );
       expect(columnX(tester), lessThan(100));
 
       await pump(
         tester,
-        (child) =>
-            DockTestHarness(textDirection: TextDirection.rtl, child: child),
+        (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
+          textDirection: TextDirection.rtl,
+          child: child,
+        ),
       );
       expect(columnX(tester), lessThan(100));
     });
@@ -92,6 +108,7 @@ void main() {
       await pump(
         tester,
         (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
           windowEdges: const DockWindowEdges(left: true, right: false),
           child: child,
         ),
@@ -103,7 +120,11 @@ void main() {
       final edges = FakeWindowEdgesSource();
       await pump(
         tester,
-        (child) => DockTestHarness(windowEdgesSource: edges, child: child),
+        (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
+          windowEdgesSource: edges,
+          child: child,
+        ),
       );
       expect(edges.hasListener, isTrue);
       expect(columnX(tester), greaterThan(900));
@@ -121,6 +142,7 @@ void main() {
       await pump(
         tester,
         (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
           data: const DockNavigationData(sideColumnWidth: 100),
           mode: DockLayoutMode.wide,
           child: child,
@@ -132,7 +154,13 @@ void main() {
 
   group('tap guard time', () {
     testWidgets('follows the frames in the harness', (tester) async {
-      final taps = await pump(tester, (child) => DockTestHarness(child: child));
+      final taps = await pump(
+        tester,
+        (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
+          child: child,
+        ),
+      );
       await tester.tap(share);
       await tester.tap(share); // same frame: within the cooldown
       expect(taps, hasLength(1));
@@ -147,6 +175,7 @@ void main() {
       final taps = await pump(
         tester,
         (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
           tapGuard: DockTapGuard(clock: clock),
           child: child,
         ),
@@ -164,8 +193,11 @@ void main() {
     testWidgets('a disabled guard lets every tap through', (tester) async {
       final taps = await pump(
         tester,
-        (child) =>
-            DockTestHarness(tapGuard: DockTapGuard.disabled, child: child),
+        (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
+          tapGuard: DockTapGuard.disabled,
+          child: child,
+        ),
       );
       await tester.tap(share);
       await tester.tap(share);
@@ -177,7 +209,11 @@ void main() {
     testWidgets('find an action in the bar and in the column', (tester) async {
       await pump(
         tester,
-        (child) => DockTestHarness(mode: DockLayoutMode.compact, child: child),
+        (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
+          mode: DockLayoutMode.compact,
+          child: child,
+        ),
       );
       expect(
         find.descendant(of: find.byType(AppBar), matching: share),
@@ -186,7 +222,11 @@ void main() {
 
       await pump(
         tester,
-        (child) => DockTestHarness(mode: DockLayoutMode.wide, child: child),
+        (child) => DockTestHarness(
+          builders: const DockMaterialBuilders(),
+          mode: DockLayoutMode.wide,
+          child: child,
+        ),
       );
       expect(
         find.descendant(of: find.byKey(DockKeys.column), matching: share),

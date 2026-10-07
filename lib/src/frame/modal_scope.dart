@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../builders/builders.dart';
 import '../geometry/body_mode.dart';
 import 'frame.dart';
 
@@ -12,16 +13,29 @@ import 'frame.dart';
 /// stays in place between steps.
 class DockModalScope extends StatelessWidget {
   /// Frames [child] as one modal with a shared side column.
-  const DockModalScope({super.key, this.bodyMode, required this.child});
+  const DockModalScope({
+    super.key,
+    this.bodyMode,
+    this.builders,
+    required this.child,
+  });
 
   /// Whether the body is laid out beside the column or under it. Null:
   /// `DockNavigationData.bodyMode`.
   final DockBodyMode? bodyMode;
 
+  /// Builders for this modal frame only, on top of the app's; null fields
+  /// fall back to them.
+  final DockBuilders? builders;
+
   /// The modal content, typically its own Navigator.
   final Widget child;
 
   @override
-  Widget build(BuildContext context) =>
-      DockFrame(isModal: true, bodyMode: bodyMode, child: child);
+  Widget build(BuildContext context) => DockFrame(
+    isModal: true,
+    bodyMode: bodyMode,
+    builders: builders,
+    child: child,
+  );
 }

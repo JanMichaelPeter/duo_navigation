@@ -34,8 +34,10 @@ class _ExampleAppState extends State<ExampleApp> {
           colorSchemeSeed: Colors.indigo, brightness: Brightness.dark),
       // Above the root Navigator, so root-level modals get the config too.
       builder: (context, child) => DockNavigation(
-        // CustomStyle is optional: plain DockNavigationData gives the
-        // Material defaults. See style/custom_style.dart.
+        // CustomStyle is optional: `builders: const DockMaterialBuilders()`
+        // (package:nav_dock/material.dart) gives the Material defaults. See
+        // style/custom_style.dart.
+        builders: CustomStyle.builders,
         data: CustomStyle.data(DockNavigationData(
           // 466 also gives foldables in their narrow unfolded posture the
           // wide layout.

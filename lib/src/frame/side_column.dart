@@ -5,7 +5,7 @@ import 'package:flutter/widgets.dart';
 
 import '../actions/action_column.dart';
 import '../actions/action_host.dart';
-import '../config/navigation.dart';
+import '../builders/builders.dart';
 import '../keys.dart';
 import '../models/tabs_data.dart';
 
@@ -23,12 +23,12 @@ class SideColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final config = DockNavigation.of(context);
+    final builders = DockBuilders.of(context);
     final rail = tabs == null
         ? null
         : KeyedSubtree(
             key: DockKeys.rail,
-            child: config.railBuilder(context, tabs!),
+            child: builders.buildRail(context, tabs!),
           );
     // The column's slot includes the system inset on its own edge (cutout,
     // gesture strip); the content stays clear of it and of the status bar and
@@ -38,7 +38,7 @@ class SideColumn extends StatelessWidget {
       right: columnOnRight,
       child: ListenableBuilder(
         listenable: host,
-        builder: (context, _) => config.sideColumnBuilder(
+        builder: (context, _) => builders.buildSideColumn(
           context,
           DockActionColumn(host: host),
           rail,

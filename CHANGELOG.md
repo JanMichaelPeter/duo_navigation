@@ -33,6 +33,18 @@ Unreleased. A redesign; see the
   `flutter_test`.
 * New `DockKeys` (`bar`, `column`, `rail`, `action(id)`), applied by the
   package around the builders' output.
+* **BREAKING** The visuals moved out of `DockNavigationData` into
+  `DockBuilders` (`tabBar`, `rail`, `action`, `page`, `sideColumn`,
+  `actionTransition`), passed as `DockNavigation(builders: ...)`.
+  `DockShell(builders:)`, `DockModalScope(builders:)` and `DockBuildersScope`
+  override them per frame or subtree, field by field. A builder that no scope
+  sets fails with an error naming it.
+* **BREAKING** The Material defaults moved to `package:nav_dock/material.dart`:
+  `DockMaterialBuilders()` sets every builder, and `DockDefaults` is now
+  `DockMaterial`. The core library depends on `package:flutter/widgets.dart`
+  only.
+* Each builder typedef documents its contract: constraints, safe area, keys,
+  semantics and animation.
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work

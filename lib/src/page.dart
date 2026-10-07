@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'actions/action_host.dart';
-import 'config/navigation.dart';
+import 'builders/builders.dart';
 import 'keys.dart';
 import 'frame/frame.dart';
 import 'frame/modal_scope.dart';
@@ -19,8 +19,8 @@ typedef DockPageBuilder =
 /// Use [DockPage.custom] to build the whole page yourself (slivers, large
 /// titles, floating bars...) from [DockBarData].
 class DockPage extends StatelessWidget {
-  /// A page whose title bar and body are built by the configured
-  /// `pageBuilder`.
+  /// A page whose title bar and body are built by the `page` builder
+  /// (`DockBuilders.page`).
   const DockPage({
     super.key,
     this.title,
@@ -116,7 +116,7 @@ class _DockPageContentState extends State<_DockPageContent> {
   @override
   Widget build(BuildContext context) {
     final scope = DockScope.maybeOf(context)!;
-    final config = DockNavigation.of(context);
+    final builders = DockBuilders.of(context);
     final page = widget.page;
 
     if (_registration?.host != scope.host) {
@@ -165,12 +165,12 @@ class _DockPageContentState extends State<_DockPageContent> {
       sideColumnSide: wide ? scope.side : null,
       buildAction: (a, placement) => KeyedSubtree(
         key: DockKeys.action(a.id),
-        child: config.actionBuilder(context, a, placement),
+        child: builders.buildAction(context, a, placement),
       ),
     );
 
     final builder = page.builder;
     if (builder != null) return builder(context, bar);
-    return config.pageBuilder(context, bar, page.body!);
+    return builders.buildPage(context, bar, page.body!);
   }
 }

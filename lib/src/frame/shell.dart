@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../builders/builders.dart';
 import '../geometry/body_mode.dart';
 import '../models/tab.dart';
 import 'frame.dart';
@@ -22,6 +23,7 @@ class DockShell extends StatelessWidget {
     required this.currentIndex,
     required this.onTabSelected,
     this.bodyMode,
+    this.builders,
     required this.child,
   });
 
@@ -39,6 +41,10 @@ class DockShell extends StatelessWidget {
   /// Null: `DockNavigationData.bodyMode`.
   final DockBodyMode? bodyMode;
 
+  /// Builders for this shell only (its bar, rail, column and pages), on top
+  /// of the app's; null fields fall back to them.
+  final DockBuilders? builders;
+
   /// The tab navigators, e.g. go_router's `StatefulNavigationShell`.
   final Widget child;
 
@@ -50,6 +56,7 @@ class DockShell extends StatelessWidget {
       currentIndex: currentIndex,
       onTabSelected: onTabSelected,
       bodyMode: bodyMode,
+      builders: builders,
       child: child,
     );
   }
