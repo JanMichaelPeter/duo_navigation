@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../builders/builders.dart';
 import '../config/navigation.dart';
+import '../frame/side_column_layout.dart';
+import '../tabs/tab_item.dart';
 import '../models/action.dart';
+import '../models/dock_badge.dart';
 import '../models/bar_data.dart';
 import '../models/enums.dart';
 import '../models/tabs_data.dart';
@@ -16,10 +19,13 @@ import '../models/tabs_data.dart';
 ///
 /// Replace single builders with [DockBuilders.merge]:
 /// `const DockMaterialBuilders().merge(DockBuilders(tabBar: myTabBar))`.
-class DockMaterialBuilders extends DockBuilders {
+/// [T] is the tabs' payload type; the defaults work for any, so a typed shell
+/// can use `DockMaterialBuilders<MyTab>()` as a base for typed overrides.
+class DockMaterialBuilders<T> extends DockBuilders<T> {
   /// The Material defaults.
   const DockMaterialBuilders()
     : super(
+        tabItem: DockMaterial.tabItem,
         tabBar: DockMaterial.tabBar,
         rail: DockMaterial.rail,
         action: DockMaterial.action,
@@ -35,70 +41,87 @@ class DockMaterialBuilders extends DockBuilders {
 abstract final class DockMaterial {
   static const double _railPadding = 4;
 
-  /// A Material 3 [NavigationBar] with one destination per tab.
-  static Widget tabBar(BuildContext context, DockTabsData data) {
-    return NavigationBar(
-      selectedIndex: data.currentIndex,
-      onDestinationSelected: data.onSelected,
-      destinations: [
-        for (final t in data.tabs)
-          NavigationDestination(
-            icon: t.icon,
-            selectedIcon: t.selectedIcon,
-            label: t.label ?? '',
-            tooltip: t.tooltip,
-          ),
-      ],
-    );
-  }
-
-  /// One vertical pill with an icon per tab, `sideItemExtent` wide.
-  static Widget rail(BuildContext context, DockTabsData data) {
+  /// A tab: a [NavigationDestination] in the tab bar, a selectable
+  /// [IconButton] in the rail. Badges are Material [Badge]s.
+  static Widget tabItem(BuildContext context, DockTabItemData<Object?> data) {
+    final tab = data.tab;
+    Widget icon(bool selected) =>
+        badge(tab.iconFor(selected: selected).toWidget(), tab.badge);
+    if (data.placement == DockTabPlacement.bar) {
+      return NavigationDestination(
+        icon: icon(false),
+        selectedIcon: icon(true),
+        label: tab.label ?? '',
+        tooltip: tab.tooltip,
+      );
+    }
     final scheme = Theme.of(context).colorScheme;
-    final itemExtent =
-        DockNavigation.of(context).sideItemExtent - 2 * _railPadding;
-    return Material(
-      color: scheme.surfaceContainerHigh,
-      elevation: 3,
-      shape: const StadiumBorder(),
-      child: Padding(
-        padding: const EdgeInsets.all(_railPadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var i = 0; i < data.tabs.length; i++)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: _railItem(scheme, data, i, itemExtent),
-              ),
-          ],
-        ),
+    final extent = DockNavigation.of(context).sideItemExtent - 2 * _railPadding;
+    return IconButton(
+      isSelected: data.selected,
+      icon: icon(false),
+      selectedIcon: icon(true),
+      tooltip: tab.tooltip ?? tab.label,
+      onPressed: data.onTap,
+      style: IconButton.styleFrom(
+        fixedSize: Size.square(extent),
+        backgroundColor: data.selected
+            ? scheme.secondaryContainer
+            : Colors.transparent,
+        foregroundColor: data.selected
+            ? scheme.onSecondaryContainer
+            : scheme.onSurfaceVariant,
       ),
     );
   }
 
-  static Widget _railItem(
-    ColorScheme scheme,
-    DockTabsData data,
-    int i,
-    double extent,
+  /// [icon] with a Material [Badge] for [badge]; [icon] itself without one.
+  static Widget badge(Widget icon, DockBadge? badge) {
+    if (badge == null) return icon;
+    final label = badge.label;
+    return Badge(label: label == null ? null : Text(label), child: icon);
+  }
+
+  /// A Material 3 [NavigationBar] of the items. It marks itself as a tab bar
+  /// for assistive technology.
+  static Widget tabBar(
+    BuildContext context,
+    DockTabsData<Object?> data,
+    List<Widget> items,
   ) {
-    final tab = data.tabs[i];
-    final selected = i == data.currentIndex;
-    return IconButton(
-      isSelected: selected,
-      icon: tab.icon,
-      selectedIcon: tab.selectedIcon ?? tab.icon,
-      tooltip: tab.tooltip ?? tab.label,
-      onPressed: () => data.onSelected(i),
-      style: IconButton.styleFrom(
-        fixedSize: Size.square(extent),
-        backgroundColor: selected
-            ? scheme.secondaryContainer
-            : Colors.transparent,
-        foregroundColor: selected
-            ? scheme.onSecondaryContainer
-            : scheme.onSurfaceVariant,
+    return NavigationBar(
+      selectedIndex: data.currentIndex,
+      onDestinationSelected: data.onSelected,
+      destinations: items,
+    );
+  }
+
+  /// One vertical pill of the items, `sideItemExtent` wide, marked as a tab
+  /// bar with [DockTabBarSemantics].
+  static Widget rail(
+    BuildContext context,
+    DockTabsData<Object?> data,
+    List<Widget> items,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: scheme.surfaceContainerHigh,
+      elevation: 3,
+      shape: const StadiumBorder(),
+      child: DockTabBarSemantics(
+        child: Padding(
+          padding: const EdgeInsets.all(_railPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final item in items)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: item,
+                ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -233,6 +256,7 @@ abstract final class DockMaterial {
   }
 
   /// Actions fill the top and anchor to the bottom, with the rail below them.
+  /// The rail gets its height first ([DockSideColumnLayout]).
   static Widget sideColumn(
     BuildContext context,
     Widget actions,
@@ -241,12 +265,7 @@ abstract final class DockMaterial {
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        children: [
-          Expanded(child: actions),
-          if (tabs != null) ...[const SizedBox(height: 12), tabs],
-        ],
-      ),
+      child: DockSideColumnLayout(actions: actions, rail: tabs),
     );
   }
 

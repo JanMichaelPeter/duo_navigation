@@ -4,8 +4,8 @@ import 'package:nav_dock/material.dart';
 import 'package:nav_dock/nav_dock.dart';
 
 const _tabs = [
-  DockTab(icon: Icon(Icons.home), label: 'Home'),
-  DockTab(icon: Icon(Icons.person), label: 'Me'),
+  DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
+  DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
 ];
 
 const _plain = Key('plain');
@@ -32,7 +32,7 @@ enum _Frame { shell, modal }
 
 Widget _app({
   DockNavigationData data = const DockNavigationData(),
-  DockBuilders? builders,
+  DockBuilders<Object?>? builders,
   EdgeInsets padding = EdgeInsets.zero,
   EdgeInsets viewInsets = EdgeInsets.zero,
   TextDirection direction = TextDirection.ltr,
@@ -50,7 +50,7 @@ Widget _app({
       child: Directionality(
         textDirection: direction,
         child: DockNavigation(
-          builders: const DockMaterialBuilders().merge(builders),
+          builders: const DockMaterialBuilders<Object?>().merge(builders),
           data: data,
           child: child!,
         ),
@@ -208,8 +208,8 @@ void main() {
       await pump(
         tester,
         _app(
-          builders: DockBuilders(
-            tabBar: (context, tabs) => ValueListenableBuilder(
+          builders: DockBuilders<Object?>(
+            tabBar: (context, tabs, items) => ValueListenableBuilder(
               valueListenable: tall,
               builder: (context, isTall, _) => AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -252,8 +252,8 @@ void main() {
         tester,
         _app(
           padding: const EdgeInsets.only(bottom: 34),
-          builders: DockBuilders(
-            tabBar: (context, tabs) => const SizedBox(height: 20),
+          builders: DockBuilders<Object?>(
+            tabBar: (context, tabs, items) => const SizedBox(height: 20),
           ),
         ),
         size: phone,
@@ -349,8 +349,8 @@ void main() {
     await pump(
       tester,
       _app(
-        builders: DockBuilders(
-          tabBar: (context, tabs) => ValueListenableBuilder(
+        builders: DockBuilders<Object?>(
+          tabBar: (context, tabs, items) => ValueListenableBuilder(
             valueListenable: tall,
             builder: (context, isTall, _) =>
                 SizedBox(height: isTall ? 120 : 60),

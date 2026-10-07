@@ -116,7 +116,7 @@ class _DockPageContentState extends State<_DockPageContent> {
   @override
   Widget build(BuildContext context) {
     final scope = DockScope.maybeOf(context)!;
-    final builders = DockBuilders.of(context);
+    final builders = DockBuilders.of<Object?>(context);
     final page = widget.page;
 
     if (_registration?.host != scope.host) {

@@ -19,13 +19,14 @@ enum ActionRole { primary }
 /// * [page]: wraps [DockMaterial.page] with a theme override.
 /// * [sideColumn]: rail separated from the actions by a short divider.
 /// * [actionTransition]: chips slide up and fade instead of scaling.
-/// * `DockTab.data` (an int) shows as a badge in bar and rail.
+/// * [tabItem]: one item for bar and rail; `DockTab.badge` shows as a badge.
 abstract final class CustomStyle {
   static const double _radius = 32;
   static const double _railPadding = 4;
 
   /// Every visual of the custom look.
   static const DockBuilders builders = DockBuilders(
+    tabItem: tabItem,
     tabBar: tabBar,
     rail: rail,
     action: action,
@@ -47,7 +48,8 @@ abstract final class CustomStyle {
 
   // ------------------------------------------------------------- tab bar ---
 
-  static Widget tabBar(BuildContext context, DockTabsData data) {
+  static Widget tabBar(
+      BuildContext context, DockTabsData<Object?> data, List<Widget> items) {
     final scheme = Theme.of(context).colorScheme;
     // The frame reports the bar's full height (margin included) to the body,
     // so lists end above the capsule while full-bleed content shows around it.
@@ -60,12 +62,11 @@ abstract final class CustomStyle {
         elevation: 6,
         child: Padding(
           padding: const EdgeInsets.all(6),
-          child: Row(
-            children: [
-              for (var i = 0; i < data.tabs.length; i++)
-                Expanded(
-                    child: _TabItem(data: data, index: i, showLabel: true)),
-            ],
+          // The items come with their semantics; this marks the tab bar.
+          child: DockTabBarSemantics(
+            child: Row(
+              children: [for (final item in items) Expanded(child: item)],
+            ),
           ),
         ),
       ),
@@ -74,7 +75,8 @@ abstract final class CustomStyle {
 
   // ---------------------------------------------------------------- rail ---
 
-  static Widget rail(BuildContext context, DockTabsData data) {
+  static Widget rail(
+      BuildContext context, DockTabsData<Object?> data, List<Widget> items) {
     final scheme = Theme.of(context).colorScheme;
     final extent = DockNavigation.of(context).sideItemExtent;
     return Material(
@@ -83,19 +85,25 @@ abstract final class CustomStyle {
       elevation: 6,
       child: Padding(
         padding: const EdgeInsets.all(_railPadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var i = 0; i < data.tabs.length; i++)
-              SizedBox.square(
-                dimension: extent - 2 * _railPadding,
-                child: _TabItem(data: data, index: i, showLabel: false),
-              ),
-          ],
+        child: DockTabBarSemantics(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final item in items)
+                SizedBox.square(
+                    dimension: extent - 2 * _railPadding, child: item),
+            ],
+          ),
         ),
       ),
     );
   }
+
+  // ------------------------------------------------------------- tab item ---
+
+  /// One look for both: icon and label in the bar, icon only in the rail.
+  static Widget tabItem(BuildContext context, DockTabItemData<Object?> data) =>
+      _TabItem(data: data, showLabel: data.placement == DockTabPlacement.bar);
 
   // ------------------------------------------------------------- actions ---
 
@@ -212,29 +220,22 @@ abstract final class CustomStyle {
 
 /// One tab in the capsule bar or the rail.
 class _TabItem extends StatelessWidget {
-  const _TabItem({
-    required this.data,
-    required this.index,
-    required this.showLabel,
-  });
+  const _TabItem({required this.data, required this.showLabel});
 
-  final DockTabsData data;
-  final int index;
+  final DockTabItemData<Object?> data;
   final bool showLabel;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final tab = data.tabs[index];
-    final selected = index == data.currentIndex;
+    final tab = data.tab;
+    final selected = data.selected;
     final foreground =
         selected ? scheme.onPrimaryContainer : scheme.onInverseSurface;
-    final badge = tab.data is int ? tab.data! as int : 0;
 
-    Widget icon = Badge.count(
-      count: badge,
-      isLabelVisible: badge > 0,
-      child: selected ? tab.selectedIcon ?? tab.icon : tab.icon,
+    Widget icon = DockMaterial.badge(
+      tab.iconFor(selected: selected).toWidget(),
+      tab.badge,
     );
     if (showLabel && tab.label != null) {
       icon = Column(
@@ -251,27 +252,24 @@ class _TabItem extends StatelessWidget {
       );
     }
 
-    return Semantics(
-      selected: selected,
-      button: true,
-      label: tab.label,
-      child: Tooltip(
-        message: tab.tooltip ?? tab.label ?? '',
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => data.onSelected(index),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            decoration: BoxDecoration(
-              color: selected ? scheme.primaryContainer : Colors.transparent,
-              borderRadius: BorderRadius.circular(32),
-            ),
-            child: IconTheme.merge(
-              data: IconThemeData(color: foreground),
-              child: Center(heightFactor: 1, child: icon),
-            ),
+    // No Semantics here: the package gives every tab item its semantics
+    // (selected, label, badge, tap).
+    return Tooltip(
+      message: tab.tooltip ?? tab.label ?? '',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: data.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: selected ? scheme.primaryContainer : Colors.transparent,
+            borderRadius: BorderRadius.circular(32),
+          ),
+          child: IconTheme.merge(
+            data: IconThemeData(color: foreground),
+            child: Center(heightFactor: 1, child: icon),
           ),
         ),
       ),

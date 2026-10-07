@@ -27,6 +27,7 @@ class DockNavigationData {
     this.windowEdgesSource,
     this.bodyMode = DockBodyMode.inset,
     this.sideColumnWidth = 72,
+    this.columnTextScaleLimit = 1.5,
     this.sideItemExtent = 56,
     this.actionSpacing = 8,
     this.actionAnimationDuration = const Duration(milliseconds: 250),
@@ -61,6 +62,10 @@ class DockNavigationData {
   /// inset (cutout, gesture strip), so it covers that inset plus this width.
   final double sideColumnWidth;
 
+  /// How far the column grows with the text scale: its width is
+  /// [sideColumnWidth] times the text scale, at most this factor.
+  final double columnTextScaleLimit;
+
   /// Outer width of the rail pill and the action chips in the side column.
   /// The default builders both read it, so they line up as one column; read
   /// it in your own rail and chip builders to stay aligned with the defaults.
@@ -87,6 +92,7 @@ class DockNavigationData {
     Object? windowEdgesSource = _unset,
     DockBodyMode? bodyMode,
     double? sideColumnWidth,
+    double? columnTextScaleLimit,
     double? sideItemExtent,
     double? actionSpacing,
     Duration? actionAnimationDuration,
@@ -101,6 +107,7 @@ class DockNavigationData {
           : windowEdgesSource as DockWindowEdgesSource?,
       bodyMode: bodyMode ?? this.bodyMode,
       sideColumnWidth: sideColumnWidth ?? this.sideColumnWidth,
+      columnTextScaleLimit: columnTextScaleLimit ?? this.columnTextScaleLimit,
       sideItemExtent: sideItemExtent ?? this.sideItemExtent,
       actionSpacing: actionSpacing ?? this.actionSpacing,
       actionAnimationDuration:
@@ -118,6 +125,7 @@ class DockNavigationData {
       other.windowEdgesSource == windowEdgesSource &&
       other.bodyMode == bodyMode &&
       other.sideColumnWidth == sideColumnWidth &&
+      other.columnTextScaleLimit == columnTextScaleLimit &&
       other.sideItemExtent == sideItemExtent &&
       other.actionSpacing == actionSpacing &&
       other.actionAnimationDuration == actionAnimationDuration &&
@@ -131,6 +139,7 @@ class DockNavigationData {
     windowEdgesSource,
     bodyMode,
     sideColumnWidth,
+    columnTextScaleLimit,
     sideItemExtent,
     actionSpacing,
     actionAnimationDuration,

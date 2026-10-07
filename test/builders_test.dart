@@ -5,18 +5,20 @@ import 'package:nav_dock/nav_dock.dart';
 import 'package:nav_dock/testing.dart';
 
 const _tabs = [
-  DockTab(icon: Icon(Icons.home), label: 'Home'),
-  DockTab(icon: Icon(Icons.person), label: 'Me'),
+  DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
+  DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
 ];
 
-Widget _shell({DockBuilders? builders, Widget child = const SizedBox()}) =>
-    DockShell(
-      tabs: _tabs,
-      currentIndex: 0,
-      onTabSelected: (_) {},
-      builders: builders,
-      child: child,
-    );
+Widget _shell({
+  DockBuilders<Object?>? builders,
+  Widget child = const SizedBox(),
+}) => DockShell(
+  tabs: _tabs,
+  currentIndex: 0,
+  onTabSelected: (_) {},
+  builders: builders,
+  child: child,
+);
 
 /// A page with one 'share' icon action.
 Widget _page() => Navigator(
@@ -49,7 +51,7 @@ void main() {
   Future<void> pump(
     WidgetTester tester,
     Widget home, {
-    DockBuilders? builders = const DockMaterialBuilders(),
+    DockBuilders<Object?>? builders = const DockMaterialBuilders(),
     DockLayoutMode mode = DockLayoutMode.compact,
   }) async {
     await tester.pumpWidget(
@@ -103,7 +105,7 @@ void main() {
           Expanded(
             child: _shell(
               builders: DockBuilders(
-                tabBar: (context, tabs) => const Text('custom bar'),
+                tabBar: (context, tabs, items) => const Text('custom bar'),
               ),
             ),
           ),
@@ -146,7 +148,7 @@ void main() {
         label: 'from around the shell',
         child: _shell(
           builders: DockBuilders(
-            tabBar: (context, tabs) => Text(
+            tabBar: (context, tabs, items) => Text(
               context.dependOnInheritedWidgetOfExactType<_Marker>()!.label,
             ),
           ),
@@ -173,24 +175,29 @@ void main() {
   });
 
   group('DockBuilders', () {
-    Widget bar(BuildContext context, DockTabsData data) => const SizedBox();
+    Widget bar(
+      BuildContext context,
+      DockTabsData<Object?> data,
+      List<Widget> items,
+    ) => const SizedBox();
 
     test('merge: the other side wins where it is set', () {
-      const material = DockMaterialBuilders();
+      const material = DockMaterialBuilders<Object?>();
       final merged = material.merge(DockBuilders(tabBar: bar));
       expect(merged.tabBar, bar);
       expect(merged.rail, material.rail);
       expect(merged.page, material.page);
       expect(material.merge(null), same(material));
-      expect(material.merge(const DockBuilders()), material);
+      expect(material.merge(const DockBuilders<Object?>()), material);
     });
 
     test('has value equality', () {
       expect(DockBuilders(tabBar: bar), DockBuilders(tabBar: bar));
-      expect(DockBuilders(tabBar: bar), isNot(const DockBuilders()));
+      expect(DockBuilders(tabBar: bar), isNot(const DockBuilders<Object?>()));
       expect(
-        const DockMaterialBuilders(),
-        const DockBuilders(
+        const DockMaterialBuilders<Object?>(),
+        const DockBuilders<Object?>(
+          tabItem: DockMaterial.tabItem,
           tabBar: DockMaterial.tabBar,
           rail: DockMaterial.rail,
           action: DockMaterial.action,

@@ -1,6 +1,8 @@
 // 0.0.1 code that the 0.1.0 redesign replaces (#42).
 // ignore_for_file: public_member_api_docs
 
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 
 import '../actions/action_host.dart';
@@ -10,9 +12,10 @@ import '../config/navigation_data.dart';
 import '../geometry/body_mode.dart';
 import '../geometry/layout_mode.dart';
 import '../geometry/side.dart';
+import '../keys.dart';
 import '../models/tab.dart';
 import '../models/tabs_data.dart';
-import '../keys.dart';
+import '../tabs/tab_item.dart';
 import 'body_scope.dart';
 import 'render_frame.dart';
 import 'side_column.dart';
@@ -56,8 +59,11 @@ class DockScope extends InheritedWidget {
       side != oldWidget.side;
 }
 
+/// Decides whether a tab may be selected; see `DockShell.canSelectTab`.
+typedef DockTabVeto = FutureOr<bool> Function(int index);
+
 /// Shared implementation of the shell and modal frames. Not exported.
-class DockFrame extends StatefulWidget {
+class DockFrame<T> extends StatefulWidget {
   const DockFrame({
     super.key,
     required this.isModal,
@@ -65,33 +71,60 @@ class DockFrame extends StatefulWidget {
     this.tabs,
     this.currentIndex = 0,
     this.onTabSelected,
+    this.onTabReselected,
+    this.canSelectTab,
     this.bodyMode,
     this.builders,
   });
 
   final bool isModal;
   final Widget child;
-  final List<DockTab>? tabs;
+  final List<DockTab<T>>? tabs;
   final int currentIndex;
   final ValueChanged<int>? onTabSelected;
+  final ValueChanged<int>? onTabReselected;
+  final DockTabVeto? canSelectTab;
 
   /// Null: [DockNavigationData.bodyMode].
   final DockBodyMode? bodyMode;
 
   /// Overrides on top of the builders above; null fields fall back to them.
-  final DockBuilders? builders;
+  final DockBuilders<T>? builders;
 
   @override
-  State<DockFrame> createState() => _DockFrameState();
+  State<DockFrame<T>> createState() => _DockFrameState<T>();
 }
 
-class _DockFrameState extends State<DockFrame> {
+class _DockFrameState<T> extends State<DockFrame<T>> {
   final DockActionHost _host = DockActionHost();
 
   @override
   void dispose() {
     _host.dispose();
     super.dispose();
+  }
+
+  /// Applies the shell's rules: a tap on the current tab re-selects it, a
+  /// tap on another tab asks the veto first.
+  void _select(int index) {
+    final widget = this.widget;
+    if (index == widget.currentIndex) {
+      (widget.onTabReselected ?? widget.onTabSelected)?.call(index);
+      return;
+    }
+    final veto = widget.canSelectTab;
+    if (veto == null) {
+      widget.onTabSelected?.call(index);
+      return;
+    }
+    final allowed = veto(index);
+    if (allowed is bool) {
+      if (allowed) widget.onTabSelected?.call(index);
+      return;
+    }
+    allowed.then((ok) {
+      if (ok && mounted) this.widget.onTabSelected?.call(index);
+    });
   }
 
   @override
@@ -104,14 +137,43 @@ class _DockFrameState extends State<DockFrame> {
     );
   }
 
+  List<Widget> _items(
+    BuildContext context,
+    DockBuilders<T> builders,
+    DockTabsData<T> data,
+  ) {
+    final count = data.tabs.length;
+    return [
+      for (var i = 0; i < count; i++)
+        Builder(
+          builder: (context) {
+            final item = DockTabItemData<T>(
+              tab: data.tabs[i],
+              index: i,
+              count: count,
+              selected: i == data.currentIndex,
+              placement: data.placement,
+              onTap: () => _select(i),
+            );
+            return DockTabItem<T>(
+              data: item,
+              child: builders.buildTabItem(context, item),
+            );
+          },
+        ),
+    ];
+  }
+
   Widget _build(BuildContext context) {
     final config = DockNavigation.of(context);
     _host.tapGuard = config.tapGuard;
     final padding = MediaQuery.paddingOf(context);
     final window = MediaQuery.sizeOf(context);
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
     final ltr = Directionality.of(context) == TextDirection.ltr;
     final columnOnRight = DockNavigation.sideOnRight(context);
     final side = columnOnRight == ltr ? DockSide.end : DockSide.start;
+    final builders = DockBuilders.of<T>(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -121,10 +183,10 @@ class _DockFrameState extends State<DockFrame> {
         );
         final tabs = widget.tabs == null
             ? null
-            : DockTabsData(
+            : DockTabsData<T>(
                 tabs: widget.tabs!,
                 currentIndex: widget.currentIndex,
-                onSelected: widget.onTabSelected ?? (_) {},
+                onSelected: _select,
                 mode: mode,
               );
 
@@ -137,22 +199,40 @@ class _DockFrameState extends State<DockFrame> {
             mode: mode,
             side: side,
             columnOnRight: columnOnRight,
-            columnWidth: config.sideColumnWidth,
+            columnWidth:
+                config.sideColumnWidth *
+                textScale.clamp(1.0, config.columnTextScaleLimit),
             bodyMode: widget.bodyMode ?? config.bodyMode,
             systemPadding: padding,
             // The body keeps its slot in every mode, so switching modes
             // (rotation, split view) keeps its State.
             body: DockBodyScope(child: widget.child),
-            bar: tabs == null
+            bar: tabs == null || mode != DockLayoutMode.compact
                 ? null
                 : KeyedSubtree(
                     key: DockKeys.bar,
-                    child: DockBuilders.of(context).buildTabBar(context, tabs),
+                    child: builders.buildTabBar(
+                      context,
+                      tabs,
+                      _items(context, builders, tabs),
+                    ),
                   ),
             column: SideColumn(
               key: DockKeys.column,
               host: _host,
-              tabs: tabs,
+              rail: tabs == null || mode != DockLayoutMode.wide
+                  ? null
+                  : KeyedSubtree(
+                      key: DockKeys.rail,
+                      // Scrolls when the tabs don't fit the column.
+                      child: SingleChildScrollView(
+                        child: builders.buildRail(
+                          context,
+                          tabs,
+                          _items(context, builders, tabs),
+                        ),
+                      ),
+                    ),
               columnOnRight: columnOnRight,
             ),
           ),
