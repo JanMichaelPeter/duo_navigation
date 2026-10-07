@@ -13,22 +13,23 @@ class SideColumn extends StatelessWidget {
     super.key,
     required this.host,
     required this.tabs,
-    required this.sideOnRight,
+    required this.columnOnRight,
   });
 
   final DockActionHost host;
   final DockTabsData? tabs;
-  final bool sideOnRight;
+  final bool columnOnRight;
 
   @override
   Widget build(BuildContext context) {
     final config = DockNavigation.of(context);
     final rail = tabs == null ? null : config.railBuilder(context, tabs!);
-    // Horizontal insets are ignored: the column lives in them (see
-    // sideExtent). Vertical ones still keep it off status bar / home indicator.
+    // The column's slot includes the system inset on its own edge (cutout,
+    // gesture strip); the content stays clear of it and of the status bar and
+    // home indicator. The opposite edge is not the column's concern.
     return SafeArea(
-      left: false,
-      right: false,
+      left: !columnOnRight,
+      right: columnOnRight,
       child: ListenableBuilder(
         listenable: host,
         builder: (context, _) => config.sideColumnBuilder(

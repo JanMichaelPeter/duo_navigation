@@ -79,11 +79,13 @@ void main() {
     expect(chip.width, moreOrLessEquals(rail.width));
   });
 
-  testWidgets('column sits inside the side safe-area strip', (tester) async {
+  testWidgets('column sits inside the safe area, after the side inset', (
+    tester,
+  ) async {
     await pumpWide(tester, padding: const EdgeInsets.only(right: 90));
     final rail = railRect(tester);
-    // Column = max(72, 90) = 90 wide at the right edge, rail centred in it.
-    expect(rail.center.dx, moreOrLessEquals(1000 - 45));
+    // The 72 wide column starts after the 90 inset: 838 .. 910.
+    expect(rail.center.dx, moreOrLessEquals(1000 - 90 - 36));
     expect(chipRect(tester).center.dx, moreOrLessEquals(rail.center.dx));
   });
 

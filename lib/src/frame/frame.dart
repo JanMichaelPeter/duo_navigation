@@ -1,19 +1,19 @@
 // 0.0.1 code that the 0.1.0 redesign replaces (#42).
 // ignore_for_file: public_member_api_docs
 
-import 'dart:math' as math;
-
 import 'package:flutter/widgets.dart';
 
 import '../actions/action_host.dart';
 import '../config/navigation.dart';
+import '../config/navigation_data.dart';
+import '../geometry/body_mode.dart';
+import '../geometry/layout_mode.dart';
+import '../geometry/side.dart';
 import '../models/tab.dart';
 import '../models/tabs_data.dart';
-import 'frame_layout.dart';
-import 'obstructed_body.dart';
+import 'body_scope.dart';
+import 'render_frame.dart';
 import 'side_column.dart';
-import '../geometry/side.dart';
-import '../geometry/layout_mode.dart';
 
 /// Exposes the current layout mode and action host to pages.
 class DockScope extends InheritedWidget {
@@ -63,6 +63,7 @@ class DockFrame extends StatefulWidget {
     this.tabs,
     this.currentIndex = 0,
     this.onTabSelected,
+    this.bodyMode,
   });
 
   final bool isModal;
@@ -70,6 +71,9 @@ class DockFrame extends StatefulWidget {
   final List<DockTab>? tabs;
   final int currentIndex;
   final ValueChanged<int>? onTabSelected;
+
+  /// Null: [DockNavigationData.bodyMode].
+  final DockBodyMode? bodyMode;
 
   @override
   State<DockFrame> createState() => _DockFrameState();
@@ -91,8 +95,8 @@ class _DockFrameState extends State<DockFrame> {
     final padding = MediaQuery.paddingOf(context);
     final window = MediaQuery.sizeOf(context);
     final ltr = Directionality.of(context) == TextDirection.ltr;
-    final sideOnRight = DockNavigation.sideOnRight(context);
-    final systemInset = sideOnRight ? padding.right : padding.left;
+    final columnOnRight = DockNavigation.sideOnRight(context);
+    final side = columnOnRight == ltr ? DockSide.end : DockSide.start;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -100,7 +104,6 @@ class _DockFrameState extends State<DockFrame> {
           window: window,
           frame: constraints.biggest,
         );
-        final wide = mode == DockLayoutMode.wide;
         final tabs = widget.tabs == null
             ? null
             : DockTabsData(
@@ -114,37 +117,23 @@ class _DockFrameState extends State<DockFrame> {
           mode: mode,
           host: _host,
           isModal: widget.isModal,
-          side: sideOnRight == ltr ? DockSide.end : DockSide.start,
-          child: CustomMultiChildLayout(
-            delegate: FrameLayout(
-              wide: wide,
-              // The column sits inside the system inset on its edge (notch,
-              // reserved side strip) rather than beside it.
-              sideExtent: math.max(config.sideColumnWidth, systemInset),
-              sideOnRight: sideOnRight,
+          side: side,
+          child: DockFrameLayout(
+            mode: mode,
+            side: side,
+            columnOnRight: columnOnRight,
+            columnWidth: config.sideColumnWidth,
+            bodyMode: widget.bodyMode ?? config.bodyMode,
+            systemPadding: padding,
+            // The body keeps its slot in every mode, so switching modes
+            // (rotation, split view) keeps its State.
+            body: DockBodyScope(child: widget.child),
+            bar: tabs == null ? null : config.tabBarBuilder(context, tabs),
+            column: SideColumn(
+              host: _host,
+              tabs: tabs,
+              columnOnRight: columnOnRight,
             ),
-            children: [
-              // Body is always the first child of the same type, so switching
-              // modes (rotation, split view) keeps its State.
-              LayoutId(
-                id: FrameSlot.body,
-                child: ObstructedBody(child: widget.child),
-              ),
-              if (!wide && tabs != null)
-                LayoutId(
-                  id: FrameSlot.bar,
-                  child: config.tabBarBuilder(context, tabs),
-                ),
-              if (wide)
-                LayoutId(
-                  id: FrameSlot.side,
-                  child: SideColumn(
-                    host: _host,
-                    tabs: tabs,
-                    sideOnRight: sideOnRight,
-                  ),
-                ),
-            ],
           ),
         );
       },
