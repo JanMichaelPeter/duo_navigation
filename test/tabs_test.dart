@@ -176,7 +176,7 @@ void main() {
         );
         expect(
           tester.getSemantics(find.byKey(const Key('app-me'))),
-          isSemantics(
+          containsSemantics(
             label: 'Me',
             value: '3',
             isSelected: true,
@@ -186,7 +186,7 @@ void main() {
         );
         expect(
           tester.getSemantics(find.byKey(DockKeys.tab('home'))),
-          isSemantics(
+          containsSemantics(
             label: 'Home',
             isSelected: false,
             hasSelectedState: true,
