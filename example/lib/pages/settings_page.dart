@@ -20,7 +20,7 @@ class _SettingsPageState extends State<SettingsPage> {
       trailing: [
         DockAction(
           id: 'help',
-          icon: const Icon(Icons.help_outline),
+          icon: const DockIcon(Icons.help_outline),
           tooltip: 'Help',
           onPressed: () => showToast(context, 'Help'),
         ),

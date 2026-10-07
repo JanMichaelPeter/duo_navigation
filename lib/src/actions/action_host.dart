@@ -24,7 +24,7 @@ class DockActionHost extends ChangeNotifier {
 
   final List<DockActionRegistration> _registrations = [];
   final DockClock _stopwatch = DockClock.stopwatch();
-  Duration? _lastInvoke;
+  final Map<Object, Duration> _lastInvoke = {};
   int _serial = 0;
   bool _notifyScheduled = false;
   bool _disposed = false;
@@ -58,20 +58,42 @@ class DockActionHost extends ChangeNotifier {
     binding.ensureVisualUpdate();
   }
 
-  bool _tryInvoke(DockActionRegistration r) {
-    if (!tapGuard.enabled) return true;
-    if (r._disposed || !identical(active, r)) return false;
-    if (!_isSettled(r._route)) return false;
+  bool _tryInvoke(DockActionRegistration r, DockAction<Object?> action) {
+    final reason = _rejection(r, action);
+    if (reason == null) return true;
+    assert(() {
+      debugPrint(
+        'nav_dock: tap on action ${action.id} dropped (${reason.name})',
+      );
+      return true;
+    }());
+    tapGuard.onRejected?.call(action, reason);
+    return false;
+  }
+
+  DockTapRejection? _rejection(
+    DockActionRegistration r,
+    DockAction<Object?> action,
+  ) {
+    final route = r._route;
+    if (r._disposed || !identical(active, r) || !(route?.isCurrent ?? true)) {
+      return DockTapRejection.notActive;
+    }
+    if (!_isSettled(route)) return DockTapRejection.transition;
     final now = (tapGuard.clock ?? _stopwatch).now();
-    final last = _lastInvoke;
-    if (last != null && now - last < tapGuard.cooldown) return false;
-    _lastInvoke = now;
-    return true;
+    // Same identity as in the column: shared actions across pages, all
+    // others per page.
+    final Object key = action.shared ? action.id : (r, action.id);
+    final last = _lastInvoke[key];
+    if (last != null && now - last < (action.cooldown ?? tapGuard.cooldown)) {
+      return DockTapRejection.cooldown;
+    }
+    _lastInvoke[key] = now;
+    return null;
   }
 
   static bool _isSettled(Route<dynamic>? route) {
     if (route == null) return true;
-    if (!route.isCurrent) return false;
     if (route.navigator?.userGestureInProgress ?? false) return false;
     if (route is TransitionRoute) {
       if (_moving(route.animation) || _moving(route.secondaryAnimation)) {
@@ -101,14 +123,14 @@ class DockActionRegistration {
 
   /// The host this registration belongs to.
   final DockActionHost host;
-  List<DockAction> _actions = const [];
+  List<DockAction<Object?>> _actions = const [];
   Route<dynamic>? _route;
   bool _active = false;
   int _serial = 0;
   bool _disposed = false;
 
   /// Actions this page wants in the side column (icon actions, top to bottom).
-  List<DockAction> get actions => _actions;
+  List<DockAction<Object?>> get actions => _actions;
 
   /// Whether the page is currently shown (route current and ticking).
   bool get isActive => _active;
@@ -116,7 +138,7 @@ class DockActionRegistration {
   /// Reports the page's current column [actions], whether it is [active]
   /// (visible and current), and its [route] for the transition check.
   void update({
-    required List<DockAction> actions,
+    required List<DockAction<Object?>> actions,
     required bool active,
     Route<dynamic>? route,
   }) {
@@ -129,24 +151,27 @@ class DockActionRegistration {
     if (active || wasActive) host._markDirty();
   }
 
-  /// Wraps [callback] so it only fires when this page is the active one, its
-  /// route is not mid-transition, and the cooldown has passed. This is what
-  /// prevents "tap back 3x, pop 3 pages".
-  VoidCallback? guard(VoidCallback? callback) {
-    if (callback == null) return null;
-    return () {
-      if (host._tryInvoke(this)) callback();
-    };
+  /// [action] as builders get it: `onPressed` is null while the action is
+  /// disabled, and goes through the tap guard unless the guard or the action
+  /// opts out. The guard is what prevents "tap back 3x, pop 3 pages".
+  DockAction<A> guarded<A>(DockAction<A> action) {
+    final callback = action.effectiveOnPressed;
+    if (callback == null) return action.copyWith(onPressed: null);
+    if (!action.guarded || !host.tapGuard.enabled) return action;
+    return action.copyWith(
+      onPressed: () {
+        if (host._tryInvoke(this, action)) callback();
+      },
+    );
   }
-
-  /// [action] with its `onPressed` wrapped by [guard].
-  DockAction guarded(DockAction action) =>
-      action.copyWith(onPressed: guard(action.onPressed));
 
   void dispose() {
     if (_disposed) return;
     _disposed = true;
     host._registrations.remove(this);
+    host._lastInvoke.removeWhere(
+      (key, _) => key is (DockActionRegistration, Object) && key.$1 == this,
+    );
     if (_active) host._markDirty();
   }
 }

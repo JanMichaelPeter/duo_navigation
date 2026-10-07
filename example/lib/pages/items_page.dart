@@ -2,7 +2,6 @@ import 'package:nav_dock/nav_dock.dart';
 import 'package:flutter/material.dart';
 
 import '../navigation.dart';
-import '../style/custom_style.dart';
 
 /// Push several levels deep: the back chip stays put, per-page actions
 /// animate out/in, "Back to top" collapses the stack in one smooth step.
@@ -27,22 +26,22 @@ class _ItemsPageState extends State<ItemsPage> {
         if (depth == 0)
           DockAction(
             id: 'add',
-            icon: const Icon(Icons.add),
+            icon: const DockIcon(Icons.add),
             tooltip: 'Add',
-            data: ActionRole.primary, // highlighted by the custom style
+            role: DockActionRole.primary, // highlighted by the custom style
             onPressed: () => showToast(context, 'Add'),
           ),
         if (depth > 0)
           DockAction(
             id: 'share',
-            icon: const Icon(Icons.ios_share),
+            icon: const DockIcon(Icons.ios_share),
             tooltip: 'Share',
             onPressed: () => showToast(context, 'Share level $depth'),
           ),
         if (depth.isOdd)
           DockAction(
             id: 'favorite',
-            icon: Icon(_favorite ? Icons.star : Icons.star_border),
+            icon: DockIcon(_favorite ? Icons.star : Icons.star_border),
             tooltip: 'Favorite',
             onPressed: () => setState(() => _favorite = !_favorite),
           ),

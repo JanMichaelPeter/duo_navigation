@@ -55,7 +55,7 @@ void main() {
     testWidgets('a DockPage without DockNavigation fails instead of '
         'guessing a layout', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(home: DockPage(body: SizedBox())),
+        const MaterialApp(home: DockPage<Object?>(body: SizedBox())),
       );
       expect(
         tester.takeException(),
@@ -204,7 +204,7 @@ void main() {
             ),
             child: child!,
           ),
-          home: DockShell(
+          home: DockShell<Object?, Object?>(
             tabs: _tabs,
             currentIndex: 0,
             onTabSelected: (_) {},
@@ -300,43 +300,43 @@ void main() {
     void handler() {}
 
     test('keeps fields that are not passed', () {
-      final action = DockAction(
+      final action = DockAction<Object?>(
         id: 'a',
-        icon: const Icon(Icons.share),
+        icon: const DockIcon(Icons.share),
         label: 'Share',
         tooltip: 'Share it',
         onPressed: handler,
-        data: 1,
+        payload: 1,
       );
-      final copy = action.copyWith(pinToBar: true);
+      final copy = action.copyWith(hoist: DockHoist.never);
       expect(copy.icon, action.icon);
       expect(copy.label, 'Share');
       expect(copy.tooltip, 'Share it');
       expect(copy.onPressed, handler);
-      expect(copy.data, 1);
-      expect(copy.pinToBar, isTrue);
+      expect(copy.payload, 1);
+      expect(copy.hoist, DockHoist.never);
     });
 
     test('clears nullable fields passed as null', () {
-      final action = DockAction(
+      final action = DockAction<Object?>(
         id: 'a',
-        icon: const Icon(Icons.share),
+        icon: const DockIcon(Icons.share),
         label: 'Share',
         tooltip: 'Share it',
         onPressed: handler,
-        data: 1,
+        payload: 1,
       );
       final copy = action.copyWith(
         icon: null,
         tooltip: null,
         onPressed: null,
-        data: null,
+        payload: null,
       );
       expect(copy.icon, isNull);
       expect(copy.label, 'Share');
       expect(copy.tooltip, isNull);
       expect(copy.onPressed, isNull);
-      expect(copy.data, isNull);
+      expect(copy.payload, isNull);
     });
   });
 }

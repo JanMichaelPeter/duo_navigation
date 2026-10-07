@@ -34,7 +34,7 @@ class DockNavigation extends StatefulWidget {
   /// Optional: an app that only reads the layout (`DockNavigation.modeOf`,
   /// `DockGeometry`) needs none. A frame that needs a builder no scope sets
   /// fails with a [FlutterError] naming it.
-  final DockBuilders<Object?>? builders;
+  final DockBuilders<Object?, Object?>? builders;
 
   /// The app below, usually the root `Navigator`.
   final Widget child;

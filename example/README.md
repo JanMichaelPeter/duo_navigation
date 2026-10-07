@@ -5,7 +5,7 @@ A three-tab app showing every feature of
 fully custom look built from the public builder hooks.
 
 * **Items**: drill-down navigation; the back chip stays put while per-page
-  actions animate. The "+" chip is highlighted via `DockAction.data`.
+  actions animate. The "+" chip is highlighted via its role (`DockActionRole.primary`).
 * **Map**: a full-bleed page (`DockPage.custom`) that runs under the tab
   bar and side column.
 * **Profile**: a single modal (Edit), a subpage (Settings) and a multi-step

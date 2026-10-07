@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import '../actions/action_column.dart';
 import '../actions/action_host.dart';
 import '../builders/builders.dart';
+import '../models/action.dart';
 
 class SideColumn extends StatelessWidget {
   const SideColumn({
@@ -13,6 +14,7 @@ class SideColumn extends StatelessWidget {
     required this.host,
     required this.rail,
     required this.columnOnRight,
+    required this.buildChip,
   });
 
   final DockActionHost host;
@@ -21,9 +23,13 @@ class SideColumn extends StatelessWidget {
   final Widget? rail;
   final bool columnOnRight;
 
+  /// Builds one action chip with the frame's typed action builder.
+  final Widget Function(BuildContext context, DockAction<Object?> action)
+  buildChip;
+
   @override
   Widget build(BuildContext context) {
-    final builders = DockBuilders.of<Object?>(context);
+    final builders = DockBuilders.of<Object?, Object?>(context);
     // The column's slot includes the system inset on its own edge (cutout,
     // gesture strip); the content stays clear of it and of the status bar and
     // home indicator. The opposite edge is not the column's concern.
@@ -34,7 +40,7 @@ class SideColumn extends StatelessWidget {
         listenable: host,
         builder: (context, _) => builders.buildSideColumn(
           context,
-          DockActionColumn(host: host),
+          DockActionColumn(host: host, buildChip: buildChip),
           rail,
           host.active?.actions.any((a) => a.canHoist) ?? false,
         ),

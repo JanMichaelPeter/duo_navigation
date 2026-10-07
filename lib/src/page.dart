@@ -1,24 +1,27 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import 'actions/action_host.dart';
 import 'builders/builders.dart';
-import 'keys.dart';
 import 'frame/frame.dart';
 import 'frame/modal_scope.dart';
+import 'geometry/layout_mode.dart';
+import 'keys.dart';
 import 'models/action.dart';
 import 'models/bar_data.dart';
-import 'geometry/layout_mode.dart';
 
 /// Builds a whole page from [DockBarData] (see [DockPage.custom]).
-typedef DockPageBuilder =
-    Widget Function(BuildContext context, DockBarData bar);
+typedef DockPageBuilder<A> =
+    Widget Function(BuildContext context, DockBarData<A> bar);
 
 /// A tab root, subpage or modal page. Declare actions once; the page puts them
 /// in the app bar (compact) or hands icon actions to the side column (wide).
 ///
+/// [A] is the actions' payload type; the action and page builders get it
+/// typed.
+///
 /// Use [DockPage.custom] to build the whole page yourself (slivers, large
 /// titles, floating bars...) from [DockBarData].
-class DockPage extends StatelessWidget {
+class DockPage<A> extends StatelessWidget {
   /// A page whose title bar and body are built by the `page` builder
   /// (`DockBuilders.page`).
   const DockPage({
@@ -37,19 +40,22 @@ class DockPage extends StatelessWidget {
     this.leading,
     this.trailing = const [],
     this.automaticallyImplyLeading = true,
-    required DockPageBuilder this.builder,
+    required DockPageBuilder<A> this.builder,
   }) : body = null;
 
   /// Title shown in the title bar.
   final Widget? title;
 
-  /// Must have an icon (it moves to the side column in wide mode). Defaults
-  /// to a back button, or a close button for fullscreen dialogs.
-  final DockAction? leading;
+  /// The leading action. Defaults to [DockAction.back] for pages that can pop,
+  /// or [DockAction.close] for full-screen dialogs. In wide mode it moves into
+  /// the column when it has an icon; a text-only one ("Cancel") stays in the
+  /// bar.
+  final DockAction<A>? leading;
 
-  /// In wide mode icon actions move to the side column (in this order, above
-  /// the leading action); label-only and pinned actions stay in the bar.
-  final List<DockAction> trailing;
+  /// In wide mode icon actions move to the side column (ordered by
+  /// [DockAction.order], above the leading action); label-only actions and
+  /// those with `hoist: DockHoist.never` stay in the bar.
+  final List<DockAction<A>> trailing;
 
   /// Add a back/close action when the route can pop and [leading] is null.
   final bool automaticallyImplyLeading;
@@ -58,30 +64,30 @@ class DockPage extends StatelessWidget {
   final Widget? body;
 
   /// Builds the whole page ([DockPage.custom]).
-  final DockPageBuilder? builder;
+  final DockPageBuilder<A>? builder;
 
   @override
   Widget build(BuildContext context) {
-    final content = _DockPageContent(page: this);
+    final content = _DockPageContent<A>(page: this);
     // No shell or modal scope above: this page was presented modally on the
     // root navigator, so it brings its own frame.
     if (context.getInheritedWidgetOfExactType<DockScope>() != null) {
       return content;
     }
-    return DockModalScope(child: content);
+    return DockModalScope<A>(child: content);
   }
 }
 
-class _DockPageContent extends StatefulWidget {
+class _DockPageContent<A> extends StatefulWidget {
   const _DockPageContent({required this.page});
 
-  final DockPage page;
+  final DockPage<A> page;
 
   @override
-  State<_DockPageContent> createState() => _DockPageContentState();
+  State<_DockPageContent<A>> createState() => _DockPageContentState<A>();
 }
 
-class _DockPageContentState extends State<_DockPageContent> {
+class _DockPageContentState<A> extends State<_DockPageContent<A>> {
   DockActionRegistration? _registration;
 
   @override
@@ -90,7 +96,7 @@ class _DockPageContentState extends State<_DockPageContent> {
     super.dispose();
   }
 
-  DockAction? _resolveLeading(ModalRoute<Object?>? route) {
+  DockAction<A>? _resolveLeading(ModalRoute<Object?>? route) {
     final page = widget.page;
     void pop() => Navigator.maybePop(context);
 
@@ -103,20 +109,40 @@ class _DockPageContentState extends State<_DockPageContent> {
     if (!page.automaticallyImplyLeading || route == null || !route.canPop) {
       return null;
     }
-    final l10n = MaterialLocalizations.of(context);
+    // Back and close share one identity, so they morph instead of flickering.
     final isDialog = route is PageRoute && route.fullscreenDialog;
-    // Same id either way, so back <-> close morphs instead of flickering.
-    return DockAction.back(
-      icon: isDialog ? const Icon(Icons.close) : const BackButtonIcon(),
-      tooltip: isDialog ? l10n.closeButtonTooltip : l10n.backButtonTooltip,
-      onPressed: pop,
-    );
+    return isDialog
+        ? DockAction<A>.close(onPressed: pop)
+        : DockAction<A>.back(onPressed: pop);
+  }
+
+  /// Whether the page shows: its route is current, or only popups (dialogs,
+  /// sheets, menus) are above it. Page routes animate the routes below them
+  /// out of the way; popups leave them as they are, so a route below only
+  /// popups is not current but its secondary animation stays dismissed.
+  static bool _shows(ModalRoute<Object?>? route) {
+    if (route == null || route.isCurrent) return true;
+    return route.isActive && (route.secondaryAnimation?.isDismissed ?? false);
+  }
+
+  /// The trailing actions that move into the column, top to bottom: higher
+  /// [DockAction.order] first, equal orders in declaration order.
+  static List<DockAction<A>> _hoisted<A>(List<DockAction<A>> trailing) {
+    final indexed = [
+      for (var i = 0; i < trailing.length; i++)
+        if (trailing[i].canHoist) (i, trailing[i]),
+    ];
+    indexed.sort((a, b) {
+      final byOrder = b.$2.order.compareTo(a.$2.order);
+      return byOrder != 0 ? byOrder : a.$1.compareTo(b.$1);
+    });
+    return [for (final (_, action) in indexed) action];
   }
 
   @override
   Widget build(BuildContext context) {
     final scope = DockScope.maybeOf(context)!;
-    final builders = DockBuilders.of<Object?>(context);
+    final builders = DockBuilders.of<Object?, A>(context);
     final page = widget.page;
 
     if (_registration?.host != scope.host) {
@@ -134,39 +160,41 @@ class _DockPageContentState extends State<_DockPageContent> {
     // becomes / stops being the visible top page.
     final route = ModalRoute.of(context);
     final leading = _resolveLeading(route);
-    assert(
-      leading == null || leading.icon != null,
-      'Leading actions need an icon: they move to the side column when wide.',
-    );
+    final leadingInColumn = leading != null && leading.canHoist;
 
-    final hoisted = <DockAction>[
-      for (final a in page.trailing)
-        if (a.canHoist) a,
-      ?leading,
+    final hoisted = <DockAction<A>>[
+      ..._hoisted(page.trailing),
+      if (leadingInColumn) leading,
     ];
     registration.update(
       actions: hoisted,
       // TickerMode.valuesOf needs Flutter 3.41; keep .of while supporting 3.38.
       // ignore: deprecated_member_use
-      active: (route?.isCurrent ?? true) && TickerMode.of(context),
+      active: _shows(route) && TickerMode.of(context),
       route: route,
     );
 
     final wide = scope.mode == DockLayoutMode.wide;
-    final bar = DockBarData(
+    final bar = DockBarData<A>(
       mode: scope.mode,
       title: page.title,
-      leading: wide || leading == null ? null : registration.guarded(leading),
+      leading: leading == null || (wide && leadingInColumn)
+          ? null
+          : registration.guarded(leading),
       trailing: [
         for (final a in page.trailing)
           if (!wide || !a.canHoist) registration.guarded(a),
       ],
       hoisted: wide ? hoisted.map(registration.guarded).toList() : const [],
       sideColumnSide: wide ? scope.side : null,
-      buildAction: (a, placement) => KeyedSubtree(
-        key: DockKeys.action(a.id),
-        child: builders.buildAction(context, a, placement),
-      ),
+      buildAction: (a, placement) {
+        final key = a.key;
+        final built = builders.buildAction(context, a, placement);
+        return KeyedSubtree(
+          key: DockKeys.action(a.id),
+          child: key == null ? built : KeyedSubtree(key: key, child: built),
+        );
+      },
     );
 
     final builder = page.builder;

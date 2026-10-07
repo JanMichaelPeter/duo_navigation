@@ -11,7 +11,7 @@ import 'frame.dart';
 /// page pushed on the root navigator). Wrap a modal's own nested Navigator in
 /// this explicitly so all its steps share one column, and the back button
 /// stays in place between steps.
-class DockModalScope extends StatelessWidget {
+class DockModalScope<A> extends StatelessWidget {
   /// Frames [child] as one modal with a shared side column.
   const DockModalScope({
     super.key,
@@ -26,13 +26,13 @@ class DockModalScope extends StatelessWidget {
 
   /// Builders for this modal frame only, on top of the app's; null fields
   /// fall back to them.
-  final DockBuilders<Object?>? builders;
+  final DockBuilders<Object?, A>? builders;
 
   /// The modal content, typically its own Navigator.
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => DockFrame<Object?>(
+  Widget build(BuildContext context) => DockFrame<Object?, A>(
     isModal: true,
     bodyMode: bodyMode,
     builders: builders,

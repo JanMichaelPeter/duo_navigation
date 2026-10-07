@@ -123,7 +123,7 @@ void main() {
           data: DockNavigationData(windowEdgesSource: source),
           child: child!,
         ),
-        home: DockShell(
+        home: DockShell<Object?, Object?>(
           tabs: const [
             DockTab<Object?>(
               id: 'home',

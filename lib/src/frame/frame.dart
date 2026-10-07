@@ -13,6 +13,8 @@ import '../geometry/body_mode.dart';
 import '../geometry/layout_mode.dart';
 import '../geometry/side.dart';
 import '../keys.dart';
+import '../models/action.dart';
+import '../models/enums.dart';
 import '../models/tab.dart';
 import '../models/tabs_data.dart';
 import '../tabs/tab_item.dart';
@@ -63,7 +65,7 @@ class DockScope extends InheritedWidget {
 typedef DockTabVeto = FutureOr<bool> Function(int index);
 
 /// Shared implementation of the shell and modal frames. Not exported.
-class DockFrame<T> extends StatefulWidget {
+class DockFrame<T, A> extends StatefulWidget {
   const DockFrame({
     super.key,
     required this.isModal,
@@ -89,13 +91,13 @@ class DockFrame<T> extends StatefulWidget {
   final DockBodyMode? bodyMode;
 
   /// Overrides on top of the builders above; null fields fall back to them.
-  final DockBuilders<T>? builders;
+  final DockBuilders<T, A>? builders;
 
   @override
-  State<DockFrame<T>> createState() => _DockFrameState<T>();
+  State<DockFrame<T, A>> createState() => _DockFrameState<T, A>();
 }
 
-class _DockFrameState<T> extends State<DockFrame<T>> {
+class _DockFrameState<T, A> extends State<DockFrame<T, A>> {
   final DockActionHost _host = DockActionHost();
 
   @override
@@ -139,7 +141,7 @@ class _DockFrameState<T> extends State<DockFrame<T>> {
 
   List<Widget> _items(
     BuildContext context,
-    DockBuilders<T> builders,
+    DockBuilders<T, A> builders,
     DockTabsData<T> data,
   ) {
     final count = data.tabs.length;
@@ -164,6 +166,32 @@ class _DockFrameState<T> extends State<DockFrame<T>> {
     ];
   }
 
+  /// Hands a chip's action to the typed action builder.
+  Widget _chip(
+    BuildContext context,
+    DockBuilders<T, A> builders,
+    DockAction<Object?> action,
+  ) {
+    if (action is! DockAction<A>) {
+      throw FlutterError.fromParts([
+        ErrorSummary('A page action does not match this frame.'),
+        ErrorDescription(
+          'The action ${action.id} is a ${action.runtimeType}, and this '
+          'frame draws DockAction<$A>.',
+        ),
+        ErrorHint(
+          'Give the shell or modal scope the action payload type its pages '
+          'use, for example DockShell<MyTab, MyAction>.',
+        ),
+      ]);
+    }
+    return builders.buildAction(
+      context,
+      action,
+      DockActionPlacement.sideColumn,
+    );
+  }
+
   Widget _build(BuildContext context) {
     final config = DockNavigation.of(context);
     _host.tapGuard = config.tapGuard;
@@ -173,7 +201,7 @@ class _DockFrameState<T> extends State<DockFrame<T>> {
     final ltr = Directionality.of(context) == TextDirection.ltr;
     final columnOnRight = DockNavigation.sideOnRight(context);
     final side = columnOnRight == ltr ? DockSide.end : DockSide.start;
-    final builders = DockBuilders.of<T>(context);
+    final builders = DockBuilders.of<T, A>(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -234,6 +262,7 @@ class _DockFrameState<T> extends State<DockFrame<T>> {
                       ),
                     ),
               columnOnRight: columnOnRight,
+              buildChip: (context, action) => _chip(context, builders, action),
             ),
           ),
         );
