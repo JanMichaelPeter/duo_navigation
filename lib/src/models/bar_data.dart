@@ -2,6 +2,8 @@ import 'package:flutter/widgets.dart';
 
 import 'action.dart';
 import 'enums.dart';
+import '../geometry/side.dart';
+import '../geometry/layout_mode.dart';
 
 /// Renders an action at a placement with the configured action builder.
 typedef DockActionWidgetBuilder =

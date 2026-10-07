@@ -118,7 +118,9 @@ void main() {
         tester,
         data: const DockNavigationData(
           side: DockSide.end,
-          windowEdges: DockWindowEdges(left: true, right: false),
+          windowEdgesSource: DockWindowEdgesSource.fixed(
+            DockWindowEdges(left: true, right: false),
+          ),
         ),
       );
       expect(railRect(tester).center.dx, lessThan(100));

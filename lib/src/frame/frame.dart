@@ -7,12 +7,13 @@ import 'package:flutter/widgets.dart';
 
 import '../actions/action_host.dart';
 import '../config/navigation.dart';
-import '../models/enums.dart';
 import '../models/tab.dart';
 import '../models/tabs_data.dart';
 import 'frame_layout.dart';
 import 'obstructed_body.dart';
 import 'side_column.dart';
+import '../geometry/side.dart';
+import '../geometry/layout_mode.dart';
 
 /// Exposes the current layout mode and action host to pages.
 class DockScope extends InheritedWidget {
@@ -24,7 +25,7 @@ class DockScope extends InheritedWidget {
     required super.child,
   });
 
-  /// Compact or wide, decided by the frame's width and the breakpoint.
+  /// Compact or wide, decided by the layout policy.
   final DockLayoutMode mode;
 
   /// Edge the side column is on (after window-edge resolution), relative to
@@ -41,15 +42,9 @@ class DockScope extends InheritedWidget {
   static DockScope? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<DockScope>();
 
-  /// Current mode; outside any scope it falls back to the screen width.
-  static DockLayoutMode modeOf(BuildContext context) {
-    final scope = maybeOf(context);
-    if (scope != null) return scope.mode;
-    final config = DockNavigation.of(context);
-    return MediaQuery.sizeOf(context).width >= config.breakpoint
-        ? DockLayoutMode.wide
-        : DockLayoutMode.compact;
-  }
+  /// Current mode; outside any scope it is [DockNavigation.modeOf].
+  static DockLayoutMode modeOf(BuildContext context) =>
+      maybeOf(context)?.mode ?? DockNavigation.modeOf(context);
 
   @override
   bool updateShouldNotify(DockScope oldWidget) =>
@@ -94,17 +89,18 @@ class _DockFrameState extends State<DockFrame> {
     final config = DockNavigation.of(context);
     _host.tapCooldown = config.tapCooldown;
     final padding = MediaQuery.paddingOf(context);
+    final window = MediaQuery.sizeOf(context);
     final ltr = Directionality.of(context) == TextDirection.ltr;
-    final preferRight = (config.side == DockSide.end) == ltr;
-    final sideOnRight =
-        config.windowEdges?.resolveRight(preferRight: preferRight) ??
-        preferRight;
+    final sideOnRight = DockNavigation.sideOnRight(context);
     final systemInset = sideOnRight ? padding.right : padding.left;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= config.breakpoint;
-        final mode = wide ? DockLayoutMode.wide : DockLayoutMode.compact;
+        final mode = config.layoutPolicy.resolve(
+          window: window,
+          frame: constraints.biggest,
+        );
+        final wide = mode == DockLayoutMode.wide;
         final tabs = widget.tabs == null
             ? null
             : DockTabsData(

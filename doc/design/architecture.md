@@ -122,7 +122,8 @@ The column moves to the other edge only when the window touches that edge and no
 (`DockWindowEdges.resolveRight`, kept from 0.0.1). No source, or an unknown value, means the preferred edge.
 `DockNavigation` owns the single subscription, so nested scopes never start a second platform listener.
 
-`DockNavigation.modeOf(context)` and `DockNavigation.sideOf(context)` resolve mode and side without a frame (level 0).
+`DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` resolve mode, side and edges without a frame
+(level 0). Window-edge changes notify only widgets that read the side or the edges.
 
 ### 5.3 DockGeometry
 
@@ -692,18 +693,17 @@ merges into `main` for the 0.1.0 release.
 |------|-------|--------|
 | 1 | This document | #4 |
 | 2 | Workspace, stricter analysis, import-boundary test, CI and release per package | #38 |
-| 3 | Geometry and configuration | #5 (core), #16, #17, #20 (models), #24 |
+| 3 | Geometry, configuration and the window-placement adapter package | #5, #16, #17, #20 (models), #24 |
 | 4 | Frame: slots, inset and overlay, geometry publication | #6 |
-| 5 | Window-placement adapter package | #5 |
-| 6 | Testing entry point | #32, #16 |
-| 7 | Builders and Material defaults | #8, #9, #34 |
-| 8 | Tabs | #11, #25, #26, #27 |
-| 9 | Actions and tap guard | #10 (model), #14, #15, #19, #20 (actions) |
-| 10 | Page layer | #10, #12, #13, #20 (bar), #23 |
-| 11 | Show and hide | #7 |
-| 12 | Keyboard | #22 |
-| 13 | Backdrop and bleed | #21, #28, #29 |
-| 14 | Accessibility | #18, #30, #31 |
-| 15 | Example, README, migration guide | #37, #9, #23, #24 |
-| 16 | Quality gates: docs, API diff, performance | #35, #36 |
-| 17 | Release checklist and 0.1.0 | #39 |
+| 5 | Testing entry point | #32 |
+| 6 | Builders and Material defaults | #8, #9, #34 |
+| 7 | Tabs | #11, #25, #26, #27 |
+| 8 | Actions and tap guard | #10 (model), #14, #15, #19, #20 (actions) |
+| 9 | Page layer | #10, #12, #13, #20 (bar), #23 |
+| 10 | Show and hide | #7 |
+| 11 | Keyboard | #22 |
+| 12 | Backdrop and bleed | #21, #28, #29 |
+| 13 | Accessibility | #18, #30, #31 |
+| 14 | Example, README, migration guide | #37, #9, #23, #24 |
+| 15 | Quality gates: docs, API diff, performance | #35, #36 |
+| 16 | Release checklist and 0.1.0 | #39 |

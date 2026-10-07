@@ -13,6 +13,8 @@ dependencies:
     sdk: flutter
   nav_dock:
     path: ../
+  nav_dock_window_placement:
+    path: ../packages/nav_dock_window_placement
 
 flutter:
   uses-material-design: true

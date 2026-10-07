@@ -1,21 +1,28 @@
-import 'package:nav_dock/nav_dock.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:window_placement/window_placement.dart';
-import 'package:window_placement/window_placement_platform_interface.dart';
+import 'package:nav_dock/nav_dock.dart';
 
-/// Left half of a 2000 wide display: only the left edge touches.
-final _leftHalf = WindowPlacementInfo.fromBounds(
-  const Rect.fromLTWH(0, 0, 1000, 700),
-  const Rect.fromLTWH(0, 0, 2000, 700),
-);
+const _leftOnly = DockWindowEdges(left: true, right: false);
+const _fullscreen = DockWindowEdges(left: true, right: true);
 
-class _FakePlacement extends WindowPlacementPlatform {
-  @override
-  Future<WindowPlacementInfo> getPlacement() async => _leftHalf;
+/// A source whose edges the test changes over time.
+class _FakeSource implements DockWindowEdgesSource {
+  _FakeSource(this.value);
 
   @override
-  Stream<WindowPlacementInfo> get onPlacementChanged => Stream.value(_leftHalf);
+  DockWindowEdges? value;
+
+  final _changes = StreamController<DockWindowEdges?>.broadcast();
+
+  @override
+  Stream<DockWindowEdges?> get changes => _changes.stream;
+
+  void push(DockWindowEdges? edges) {
+    value = edges;
+    _changes.add(edges);
+  }
 }
 
 Widget _app(DockNavigationData data) {
@@ -34,46 +41,81 @@ Widget _app(DockNavigationData data) {
 }
 
 void main() {
-  Future<double> railX(WidgetTester tester, DockNavigationData data) async {
+  Future<void> pumpWide(WidgetTester tester, DockNavigationData data) async {
     tester.view.physicalSize = const Size(1000, 700);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    final real = WindowPlacementPlatform.instance;
-    WindowPlacementPlatform.instance = _FakePlacement();
-    addTearDown(() => WindowPlacementPlatform.instance = real);
     await tester.pumpWidget(_app(data));
     await tester.pumpAndSettle();
-    return tester.getCenter(find.byIcon(Icons.home)).dx;
   }
 
-  testWidgets('detected left half moves the column left', (tester) async {
-    expect(await railX(tester, const DockNavigationData()), lessThan(100));
+  double railX(WidgetTester tester) =>
+      tester.getCenter(find.byIcon(Icons.home)).dx;
+
+  testWidgets('no source: always the preferred side', (tester) async {
+    await pumpWide(tester, const DockNavigationData());
+    expect(railX(tester), greaterThan(900));
   });
 
-  testWidgets('explicit windowEdges overrides detection', (tester) async {
-    const fullscreen = DockWindowEdges(left: true, right: true);
-    expect(
-      await railX(tester, const DockNavigationData(windowEdges: fullscreen)),
-      greaterThan(900),
-    );
-  });
-
-  testWidgets('detectWindowEdges: false always uses side', (tester) async {
-    expect(
-      await railX(tester, const DockNavigationData(detectWindowEdges: false)),
-      greaterThan(900),
-    );
-  });
-
-  testWidgets('no plugin (web, desktop, tests): falls back to side quietly', (
+  testWidgets('a fixed source moves the column to the touching edge', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(1000, 700);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
+    await pumpWide(
+      tester,
+      const DockNavigationData(
+        windowEdgesSource: DockWindowEdgesSource.fixed(_leftOnly),
+      ),
+    );
+    expect(railX(tester), lessThan(100));
+  });
+
+  testWidgets('the column follows the source over time', (tester) async {
+    final source = _FakeSource(null);
+    await pumpWide(tester, DockNavigationData(windowEdgesSource: source));
+    expect(railX(tester), greaterThan(900));
+
+    source.push(_leftOnly); // split screen, left half
+    await tester.pumpAndSettle();
+    expect(railX(tester), lessThan(100));
+
+    source.push(_fullscreen);
+    await tester.pumpAndSettle();
+    expect(railX(tester), greaterThan(900));
+
+    source.push(null); // unknown again
+    await tester.pumpAndSettle();
+    expect(railX(tester), greaterThan(900));
+  });
+
+  testWidgets('replacing the source starts from its value', (tester) async {
+    final first = _FakeSource(_leftOnly);
+    await pumpWide(tester, DockNavigationData(windowEdgesSource: first));
+    expect(railX(tester), lessThan(100));
+
+    final second = _FakeSource(_fullscreen);
+    await tester.pumpWidget(
+      _app(DockNavigationData(windowEdgesSource: second)),
+    );
+    await tester.pumpAndSettle();
+    expect(railX(tester), greaterThan(900));
+
+    first.push(_leftOnly); // the old source no longer counts
+    await tester.pumpAndSettle();
+    expect(railX(tester), greaterThan(900));
+    expect(first._changes.hasListener, isFalse);
+  });
+
+  testWidgets('removing the source goes back to the preferred side', (
+    tester,
+  ) async {
+    await pumpWide(
+      tester,
+      const DockNavigationData(
+        windowEdgesSource: DockWindowEdgesSource.fixed(_leftOnly),
+      ),
+    );
     await tester.pumpWidget(_app(const DockNavigationData()));
     await tester.pumpAndSettle();
-    expect(tester.getCenter(find.byIcon(Icons.home)).dx, greaterThan(900));
-    expect(tester.takeException(), isNull);
+    expect(railX(tester), greaterThan(900));
   });
 }
