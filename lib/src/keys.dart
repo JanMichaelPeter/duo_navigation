@@ -16,6 +16,9 @@ abstract final class DockKeys {
   /// The rail of tabs in the side column.
   static const Key rail = ValueKey<_DockKey>(_DockKey('rail'));
 
+  /// The tab with [id] (`DockTab.id`), in the tab bar or in the rail.
+  static Key tab(Object id) => ValueKey<_DockKey>(_DockKey('tab', id));
+
   /// The action with [id], in the title bar or as a chip in the column.
   static Key action(Object id) => ValueKey<_DockKey>(_DockKey('action', id));
 }

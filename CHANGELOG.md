@@ -45,6 +45,23 @@ Unreleased. A redesign; see the
   only.
 * Each builder typedef documents its contract: constraints, safe area, keys,
   semantics and animation.
+* **BREAKING** Tabs: `DockTab<T>` has a required `id`, icons as `DockIcon`
+  descriptors (font, image or widget), `badge` (`DockBadge`), `semanticLabel`,
+  `key` and a typed `payload` (replacing `data`). `DockShell<T>` and
+  `DockBuilders<T>` carry the payload type to the tab builders without casts;
+  `Object?` builders such as `DockMaterialBuilders` work for any type.
+* **BREAKING** Tab builders are split: `tabItem` draws one tab and
+  `tabBar` / `rail` arrange the built items. The package wraps each item with
+  its semantics (selected, label, badge, tap action) and keys
+  (`DockKeys.tab(id)`, then `DockTab.key`); `DockTabBarSemantics` marks custom
+  containers.
+* `DockShell.onTabReselected` (taps on the current tab) and
+  `DockShell.canSelectTab` (a sync or async veto).
+* New `DockTabStack`: keeps tabs alive and the inactive ones inert (offstage,
+  no tickers, no focus, no hero flights), built when first shown.
+* The rail scrolls when the tabs don't fit and keeps the selected tab visible;
+  `DockSideColumnLayout` gives the rail its height before the actions. The
+  column grows with the text scale up to `columnTextScaleLimit` (1.5).
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work

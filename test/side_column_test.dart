@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _tabs = [
-  DockTab(icon: Icon(Icons.home), label: 'Home'),
-  DockTab(icon: Icon(Icons.person), label: 'Me'),
+  DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
+  DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
 ];
 
 Widget _app({

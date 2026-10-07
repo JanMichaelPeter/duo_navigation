@@ -6,30 +6,24 @@ import 'package:flutter/widgets.dart';
 import '../actions/action_column.dart';
 import '../actions/action_host.dart';
 import '../builders/builders.dart';
-import '../keys.dart';
-import '../models/tabs_data.dart';
 
 class SideColumn extends StatelessWidget {
   const SideColumn({
     super.key,
     required this.host,
-    required this.tabs,
+    required this.rail,
     required this.columnOnRight,
   });
 
   final DockActionHost host;
-  final DockTabsData? tabs;
+
+  /// The built rail, or null in a modal frame.
+  final Widget? rail;
   final bool columnOnRight;
 
   @override
   Widget build(BuildContext context) {
-    final builders = DockBuilders.of(context);
-    final rail = tabs == null
-        ? null
-        : KeyedSubtree(
-            key: DockKeys.rail,
-            child: builders.buildRail(context, tabs!),
-          );
+    final builders = DockBuilders.of<Object?>(context);
     // The column's slot includes the system inset on its own edge (cutout,
     // gesture strip); the content stays clear of it and of the status bar and
     // home indicator. The opposite edge is not the column's concern.

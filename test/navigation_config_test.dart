@@ -5,8 +5,8 @@ import 'package:nav_dock/nav_dock.dart';
 import 'package:nav_dock/testing.dart';
 
 const _tabs = [
-  DockTab(icon: Icon(Icons.home), label: 'Home'),
-  DockTab(icon: Icon(Icons.person), label: 'Me'),
+  DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
+  DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
 ];
 
 /// Counts builds of a widget that depends on [read].

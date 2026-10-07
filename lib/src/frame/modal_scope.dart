@@ -26,13 +26,13 @@ class DockModalScope extends StatelessWidget {
 
   /// Builders for this modal frame only, on top of the app's; null fields
   /// fall back to them.
-  final DockBuilders? builders;
+  final DockBuilders<Object?>? builders;
 
   /// The modal content, typically its own Navigator.
   final Widget child;
 
   @override
-  Widget build(BuildContext context) => DockFrame(
+  Widget build(BuildContext context) => DockFrame<Object?>(
     isModal: true,
     bodyMode: bodyMode,
     builders: builders,

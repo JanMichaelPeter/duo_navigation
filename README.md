@@ -76,7 +76,25 @@ GoRoute(
 );
 ```
 
-Without go_router: see `example/` (a Navigator per tab, inactive tabs wrapped in `Offstage` + `TickerMode(enabled: false)`).
+Without go_router, `DockTabStack` keeps one navigator per tab alive and the inactive ones inert (offstage, not ticking, out of focus and semantics):
+
+```dart
+const tabs = <DockTab<Object?>>[
+  DockTab(id: 'items', icon: DockIcon(Icons.list_alt), label: 'Items', badge: DockBadge.count(3)),
+  DockTab(id: 'profile', icon: DockIcon(Icons.person), label: 'Profile'),
+];
+
+DockShell(
+  tabs: tabs,
+  currentIndex: index,
+  onTabSelected: (i) => setState(() => index = i),
+  onTabReselected: (i) => navigatorKeys[i].currentState?.popUntil((r) => r.isFirst),
+  canSelectTab: (i) async => !hasUnsavedChanges, // optional veto
+  child: DockTabStack(index: index, children: [itemsNavigator, profileNavigator]),
+)
+```
+
+A tab has an `id` (`find.byKey(DockKeys.tab(id))` finds it), icons as `DockIcon` descriptors, an optional `badge`, `semanticLabel`, `key` and a typed `payload` for custom builders (`DockTab<MyItem>`, read as `data.tab.payload` without a cast). The package gives every tab item its semantics: selected state, label, badge and tap action.
 
 ### Pages
 
@@ -176,8 +194,9 @@ The package owns placement, insets, identity and timing; every visual is a build
 ```dart
 DockNavigation(
   builders: const DockMaterialBuilders().merge(DockBuilders(
-    tabBar: (context, tabs) => MyBottomBar(...),
-    rail: (context, tabs) => MyPillRail(...),
+    tabItem: (context, item) => MyTabItem(...),           // one tab, bar or rail
+    tabBar: (context, tabs, items) => MyBottomBar(items), // arranges the items
+    rail: (context, tabs, items) => MyPillRail(items),
     action: (context, action, placement) => ...,     // bar vs column
     page: (context, bar, body) => MyScaffold(...),   // app bar look
     sideColumn: (context, actions, rail, hasActions) => ..., // arrangement
@@ -195,11 +214,15 @@ DockNavigation(
 
 **Per shell or subtree.** `DockShell(builders: ...)` and `DockModalScope(builders: ...)` override the app's builders for that frame, field by field; `DockBuildersScope` does the same for any subtree (for example a page builder for one area). Builders run below the shell, so inherited widgets placed around a `DockShell` reach them.
 
+**Tabs.** `tabItem` draws one tab (the package adds its semantics and keys); `tabBar` and `rail` arrange the built items and mark the container with `DockTabBarSemantics` (Material's `NavigationBar` does this itself). When the tabs don't fit the column, the rail scrolls and keeps the selected tab visible; `DockSideColumnLayout` gives the rail its height first in custom `sideColumn` builders. The column grows with the text scale up to `columnTextScaleLimit`.
+
+**Typed tabs.** `DockShell<MyItem>` with `DockBuilders<MyItem>` gives the tab builders `DockTab<MyItem>`. Builders written for `Object?`, such as `DockMaterialBuilders`, work for any payload type; builders for another type fail with an error naming the field.
+
 **Contracts.** Each builder typedef documents what it gets and what it owns: constraints, safe area (the tab bar includes the bottom safe area in its height), keys (the package applies `DockKeys`), semantics and animation. A builder that no scope sets fails with an error naming it.
 
 `DockMaterial.*` are the plain functions behind the defaults; wrap them instead of rewriting. `DockMaterial.morphingIcon` cross-fades icon changes in your own chips.
 
-`example/` uses a fully custom look (`example/lib/style/custom_style.dart`): capsule tab bar, square chips, badges via `DockTab.data`, a highlighted chip via `DockAction.data`, a wrapped default page, its own column layout and chip transition. Use `const DockMaterialBuilders()` in `example/lib/main.dart` to see the defaults.
+`example/` uses a fully custom look (`example/lib/style/custom_style.dart`): capsule tab bar, one tab item for bar and rail, square chips, badges via `DockTab.badge`, a highlighted chip via `DockAction.data`, a wrapped default page, its own column layout and chip transition. Use `const DockMaterialBuilders()` in `example/lib/main.dart` to see the defaults.
 
 `DockScope.modeOf(context)` tells any widget which layout is active.
 

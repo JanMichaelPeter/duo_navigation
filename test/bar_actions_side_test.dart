@@ -13,8 +13,8 @@ Widget _app(TargetPlatform platform, DockSide side) {
     ),
     home: DockShell(
       tabs: const [
-        DockTab(icon: Icon(Icons.home), label: 'Home'),
-        DockTab(icon: Icon(Icons.person), label: 'Me'),
+        DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
+        DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
       ],
       currentIndex: 0,
       onTabSelected: (_) {},
