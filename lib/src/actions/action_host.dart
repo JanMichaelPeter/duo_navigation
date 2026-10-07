@@ -5,6 +5,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
 import '../models/action.dart';
+import 'clock.dart';
+import 'tap_guard.dart';
 
 /// Collects the actions of every page below one frame (shell or modal) and
 /// decides whose actions the side column shows.
@@ -17,11 +19,11 @@ class DockActionHost extends ChangeNotifier {
   /// Creates an empty host. Frames create their own; you rarely need one.
   DockActionHost();
 
-  /// Minimum time between two guarded action taps in this frame.
-  Duration tapCooldown = const Duration(milliseconds: 350);
+  /// How taps are guarded. The frame sets it from the configuration.
+  DockTapGuard tapGuard = const DockTapGuard();
 
   final List<DockActionRegistration> _registrations = [];
-  final Stopwatch _clock = Stopwatch()..start();
+  final DockClock _stopwatch = DockClock.stopwatch();
   Duration? _lastInvoke;
   int _serial = 0;
   bool _notifyScheduled = false;
@@ -57,11 +59,12 @@ class DockActionHost extends ChangeNotifier {
   }
 
   bool _tryInvoke(DockActionRegistration r) {
+    if (!tapGuard.enabled) return true;
     if (r._disposed || !identical(active, r)) return false;
     if (!_isSettled(r._route)) return false;
-    final now = _clock.elapsed;
+    final now = (tapGuard.clock ?? _stopwatch).now();
     final last = _lastInvoke;
-    if (last != null && now - last < tapCooldown) return false;
+    if (last != null && now - last < tapGuard.cooldown) return false;
     _lastInvoke = now;
     return true;
   }

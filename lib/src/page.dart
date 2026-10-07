@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'actions/action_host.dart';
 import 'config/navigation.dart';
+import 'keys.dart';
 import 'frame/frame.dart';
 import 'frame/modal_scope.dart';
 import 'models/action.dart';
@@ -162,8 +163,10 @@ class _DockPageContentState extends State<_DockPageContent> {
       ],
       hoisted: wide ? hoisted.map(registration.guarded).toList() : const [],
       sideColumnSide: wide ? scope.side : null,
-      buildAction: (a, placement) =>
-          config.actionBuilder(context, a, placement),
+      buildAction: (a, placement) => KeyedSubtree(
+        key: DockKeys.action(a.id),
+        child: config.actionBuilder(context, a, placement),
+      ),
     );
 
     final builder = page.builder;

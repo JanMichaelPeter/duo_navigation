@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nav_dock/nav_dock.dart';
+import 'package:nav_dock/testing.dart';
 
 const _tabs = [
   DockTab(icon: Icon(Icons.home), label: 'Home'),
@@ -21,22 +20,6 @@ class _Probe extends StatelessWidget {
     read(context);
     builds.add(builds.length);
     return const SizedBox();
-  }
-}
-
-/// A source whose edges the test changes.
-class _PushSource implements DockWindowEdgesSource {
-  final _changes = StreamController<DockWindowEdges?>.broadcast();
-
-  @override
-  DockWindowEdges? value;
-
-  @override
-  Stream<DockWindowEdges?> get changes => _changes.stream;
-
-  void push(DockWindowEdges edges) {
-    value = edges;
-    _changes.add(edges);
   }
 }
 
@@ -102,7 +85,7 @@ void main() {
 
   group('window-edge changes', () {
     testWidgets('rebuild side readers only', (tester) async {
-      final source = _PushSource();
+      final source = FakeWindowEdgesSource();
       final configBuilds = <int>[];
       final sideBuilds = <int>[];
       await tester.pumpWidget(

@@ -119,9 +119,9 @@ Every action (in the bar and in the column) only fires when:
 
 1. its page is the one currently shown,
 2. its route isn't mid-transition or mid-swipe-back, and
-3. `tapCooldown` (default 350 ms) has passed since the last action in this frame.
+3. the cooldown (default 350 ms) has passed since the last action in this frame.
 
-Tapping back three times pops one page.
+Tapping back three times pops one page. Configure it with `DockNavigationData(tapGuard: DockTapGuard(cooldown: ..., clock: ...))`; `DockTapGuard.disabled` lets every tap through.
 
 ### Following the window to the screen edge
 
@@ -186,7 +186,7 @@ DockNavigationData(
   sideColumnBuilder: (context, actions, rail, hasActions) => ..., // arrangement
   actionTransitionBuilder: (context, animation, child) => ...,
   actionAnimationDuration: const Duration(milliseconds: 250),
-  tapCooldown: const Duration(milliseconds: 350),
+  tapGuard: const DockTapGuard(cooldown: Duration(milliseconds: 350)),
 );
 ```
 
@@ -195,6 +195,32 @@ DockNavigationData(
 `DockScope.modeOf(context)` tells any widget which layout is active.
 
 In a custom `pageBuilder` or `DockPage.custom`, check `bar.trailingAtStart`: when the side column is at the start edge, put the bar's trailing actions at the start too (the default page does this).
+
+## Testing
+
+`package:nav_dock/testing.dart` has what widget tests need, without adding a dependency:
+
+```dart
+import 'package:nav_dock/testing.dart';
+
+final edges = FakeWindowEdgesSource();
+await tester.pumpWidget(MaterialApp(
+  builder: (context, child) => DockTestHarness(
+    mode: DockLayoutMode.wide,          // whatever the test surface size
+    side: DockSide.start,
+    textDirection: TextDirection.rtl,
+    windowEdgesSource: edges,           // or windowEdges: DockWindowEdges(...)
+    child: child!,
+  ),
+  home: const MyShell(),
+));
+
+edges.push(const DockWindowEdges(left: true, right: false)); // split screen
+await tester.tap(find.byKey(DockKeys.action('share')));
+```
+
+* `DockTestHarness` replaces `DockNavigation` in a test and pins mode, side, window edges and text direction. Its tap guard follows the frames, so `tester.pump(duration)` lets the cooldown pass and tests never wait on real time. `tapGuard: DockTapGuard.disabled` turns it off; `FakeDockClock` controls it directly.
+* `DockKeys.bar`, `.column`, `.rail` and `.action(id)` find the chrome, whatever builder draws it.
 
 ## Rules and limits
 
