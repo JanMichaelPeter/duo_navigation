@@ -93,14 +93,18 @@ The leading action is implied: back for pushed pages, close for `fullscreenDialo
 
 ## Concepts
 
-### Penetrable side column = extra safe area
+### The body sits beside the chrome
 
-The body always fills the whole screen. The tab bar or side column is published as additional `MediaQuery.padding` / `viewPadding` on that edge, just like a notch or home indicator:
+By default (`DockBodyMode.inset`) the frame lays the body out in the free area: beside the side column in wide mode, above the tab bar in compact mode. A plain `Scaffold` page works unchanged, and a button at the bottom of a `Column` never ends up under the tab bar.
 
-* content in `SafeArea` (text, lists, forms) stops beside it;
-* content that ignores the safe area (colors, images, maps) runs underneath.
+* Below the frame, `MediaQuery.padding` is zero on the edges the chrome covers and unchanged on the others, so `SafeArea` adds nothing there and still pads the rest.
+* On its edge, the column sits inside the safe area: after a cutout or gesture strip, not over it.
+* The tab bar builder owns the bottom safe area (home indicator): include `MediaQuery.paddingOf(context).bottom` in the bar's height. A debug error reports a bar that is shorter.
+* `MediaQuery.size` stays the window size, as with Flutter's own sub-screens; use `LayoutBuilder` for the available size.
 
-So no new API: the existing safe-area decisions in your pages carry over. A `ListView` already pads its scroll axis automatically; wrap it in `SafeArea(top: false, bottom: false)` for the horizontal inset. Bottom padding from the tab bar is dropped while the keyboard covers it.
+`DockGeometry.of(context)` tells a page the frame's layout: mode, side, how much the chrome covers per edge. Pass an `aspect` to rebuild only when that part changes.
+
+**Content under the chrome.** `DockBodyMode.overlay` (on `DockNavigationData`, `DockShell` or `DockModalScope`) lays the body out under the chrome, as nav_dock 0.0.1 did. The chrome is then published as extra `MediaQuery.padding`, so `SafeArea` content stops beside it and everything else (colors, images, maps) runs underneath.
 
 ### Action identity and animation
 

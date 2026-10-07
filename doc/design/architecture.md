@@ -163,7 +163,7 @@ The body also gets an adjusted `MediaQuery` (section 6.3), so existing widgets w
 
 | Slot | Laid out | Painted |
 |------|----------|---------|
-| `backdrop` | the whole frame | first |
+| `backdrop` (with #28) | the whole frame | first |
 | `body` | the free area (inset) or the whole frame (overlay) | second |
 | `bar` | compact mode: full width, its own height, at the bottom | third |
 | `column` | wide mode: its width, frame height minus the keyboard, on the resolved edge | third |

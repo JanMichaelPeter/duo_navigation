@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../defaults.dart';
+import '../geometry/body_mode.dart';
 import '../geometry/layout_policy.dart';
 import '../geometry/side.dart';
 import '../geometry/window_edges_source.dart';
@@ -26,6 +27,7 @@ class DockNavigationData {
     this.layoutPolicy = const DockLayoutPolicy.breakpoint(600),
     this.side = DockSide.end,
     this.windowEdgesSource,
+    this.bodyMode = DockBodyMode.inset,
     this.sideColumnWidth = 72,
     this.sideItemExtent = 56,
     this.actionSpacing = 8,
@@ -57,7 +59,14 @@ class DockNavigationData {
   /// detection, always [side].
   final DockWindowEdgesSource? windowEdgesSource;
 
-  /// Minimum width of the side column.
+  /// How frames lay out their body: beside the bar and column
+  /// ([DockBodyMode.inset], the default) or under them
+  /// ([DockBodyMode.overlay]). `DockShell` and `DockModalScope` can override
+  /// it.
+  final DockBodyMode bodyMode;
+
+  /// Width of the side column. On its edge, the column sits after the system
+  /// inset (cutout, gesture strip), so it covers that inset plus this width.
   final double sideColumnWidth;
 
   /// Outer width of the rail pill and the action chips in the side column.
@@ -103,6 +112,7 @@ class DockNavigationData {
     DockLayoutPolicy? layoutPolicy,
     DockSide? side,
     Object? windowEdgesSource = _unset,
+    DockBodyMode? bodyMode,
     double? sideColumnWidth,
     double? sideItemExtent,
     double? actionSpacing,
@@ -122,6 +132,7 @@ class DockNavigationData {
       windowEdgesSource: identical(windowEdgesSource, _unset)
           ? this.windowEdgesSource
           : windowEdgesSource as DockWindowEdgesSource?,
+      bodyMode: bodyMode ?? this.bodyMode,
       sideColumnWidth: sideColumnWidth ?? this.sideColumnWidth,
       sideItemExtent: sideItemExtent ?? this.sideItemExtent,
       actionSpacing: actionSpacing ?? this.actionSpacing,
@@ -145,6 +156,7 @@ class DockNavigationData {
       other.layoutPolicy == layoutPolicy &&
       other.side == side &&
       other.windowEdgesSource == windowEdgesSource &&
+      other.bodyMode == bodyMode &&
       other.sideColumnWidth == sideColumnWidth &&
       other.sideItemExtent == sideItemExtent &&
       other.actionSpacing == actionSpacing &&
@@ -163,6 +175,7 @@ class DockNavigationData {
     layoutPolicy,
     side,
     windowEdgesSource,
+    bodyMode,
     sideColumnWidth,
     sideItemExtent,
     actionSpacing,

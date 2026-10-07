@@ -49,6 +49,10 @@ class _TabsHomeState extends State<TabsHome> {
       tabs: _tabs,
       currentIndex: _index,
       onTabSelected: _select,
+      // The map tab runs under the bar and column, so this shell keeps the
+      // body under the chrome; the other pages use SafeArea. The default,
+      // DockBodyMode.inset, lays the body out beside the chrome instead.
+      bodyMode: DockBodyMode.overlay,
       child: Stack(
         fit: StackFit.expand,
         children: [

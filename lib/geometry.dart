@@ -2,6 +2,8 @@
 /// the column and the window edges, without the page, action or builder types.
 library;
 
+export 'src/geometry/body_mode.dart';
+export 'src/geometry/dock_geometry.dart' show DockGeometry, DockGeometryAspect;
 export 'src/geometry/layout_mode.dart';
 export 'src/geometry/layout_policy.dart';
 export 'src/geometry/side.dart';

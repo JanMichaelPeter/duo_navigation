@@ -14,6 +14,16 @@ Unreleased. A redesign; see the
 * **BREAKING** `DockNavigation.of` throws a `FlutterError` when there is no
   `DockNavigation` above, instead of silently using defaults. Use
   `DockNavigation.maybeOf` where none is expected.
+* **BREAKING** The body is laid out beside the tab bar and side column
+  (`DockBodyMode.inset`, the new default) instead of under them. Plain
+  `Scaffold` pages no longer need `SafeArea` to stay clear of the chrome.
+  `DockBodyMode.overlay` on `DockNavigationData`, `DockShell` or
+  `DockModalScope` restores the 0.0.1 layout.
+* **BREAKING** On its edge, the side column sits after the system inset
+  (cutout, gesture strip) instead of overlapping it.
+* New `DockGeometry.of(context)`: the frame's mode, side and chrome per edge,
+  with aspects so widgets rebuild only for what they read.
+* A debug error reports a tab bar that is shorter than the bottom safe area.
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work
