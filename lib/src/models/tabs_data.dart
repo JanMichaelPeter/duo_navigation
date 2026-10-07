@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-import 'enums.dart';
 import 'tab.dart';
+import '../geometry/layout_mode.dart';
 
 /// Everything a tab bar or rail builder needs.
 @immutable

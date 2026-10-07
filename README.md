@@ -24,7 +24,7 @@ The package owns **placement, visibility, insets, identity and animation timing*
 
 ## Platforms
 
-iOS, iPadOS and Android (Flutter >= 3.38). Window-edge detection uses the window_placement plugin, which only exists for these.
+Every Flutter platform (Flutter >= 3.38); `nav_dock` has no native code. Following the window to the screen edge in split screen needs a window-edge source: `nav_dock_window_placement` provides one for iOS, iPadOS and Android.
 
 ## Installation
 
@@ -42,7 +42,9 @@ import 'package:nav_dock/nav_dock.dart';
 MaterialApp(
   // Above the root Navigator, so root-level modals see the config too.
   builder: (context, child) => DockNavigation(
-    data: const DockNavigationData(breakpoint: 466), // or 600
+    data: const DockNavigationData(
+      layoutPolicy: DockLayoutPolicy.breakpoint(466), // default: 600
+    ),
     child: child!,
   ),
   home: ...,
@@ -117,7 +119,7 @@ Every action (in the bar and in the column) only fires when:
 
 Tapping back three times pops one page.
 
-### Following the window to the screen edge (automatic)
+### Following the window to the screen edge
 
 Only matters when your app doesn't fill the whole display: iPad Split View / Stage Manager, Android split screen or freeform windows.
 
@@ -133,7 +135,15 @@ Only matters when your app doesn't fill the whole display: iPad Split View / Sta
  └──────────────────────────────────────────┘
 ```
 
-**What happens.** `DockNavigation` asks the [window_placement](https://github.com/JanMichaelPeter/window_placement) plugin which display edges the window touches, and keeps listening. Nothing to wire up. `side` is a preference; the column only moves to the other edge when the window touches *only* that edge:
+**Setup.** Give `DockNavigation` a window-edge source. `nav_dock_window_placement` asks the [window_placement](https://github.com/JanMichaelPeter/window_placement) plugin which display edges the window touches, and keeps listening:
+
+```dart
+final windowEdges = WindowPlacementEdgesSource(); // create once, dispose with the app
+
+DockNavigationData(windowEdgesSource: windowEdges)
+```
+
+**What happens.** `side` is a preference; the column only moves to the other edge when the window touches *only* that edge:
 
 | Window touches | Typical case | Column on |
 |---|---|---|
@@ -145,30 +155,9 @@ Only matters when your app doesn't fill the whole display: iPad Split View / Sta
 
 Title-bar actions follow the column (`DockBarData.trailingAtStart`).
 
-**Overriding.**
+Without a source, or while it reports nothing, `side` is used.
 
-```dart
-DockNavigationData(
-  windowEdges: DockWindowEdges(left: true, right: false), // use this instead of detecting
-  detectWindowEdges: false,                                   // or: ignore window edges, always `side`
-)
-```
-
-**Tests.** Without a native side the detection stays silent and `side` is used. To simulate split screen, replace the plugin's platform:
-
-```dart
-import 'package:window_placement/window_placement.dart';
-import 'package:window_placement/window_placement_platform_interface.dart';
-
-class FakePlacement extends WindowPlacementPlatform {
-  @override
-  Future<WindowPlacementInfo> getPlacement() async => leftHalf;
-  @override
-  Stream<WindowPlacementInfo> get onPlacementChanged => Stream.value(leftHalf);
-}
-
-WindowPlacementPlatform.instance = FakePlacement();
-```
+**Other sources and tests.** `DockWindowEdgesSource` is a small interface (`value` and a `changes` stream), so an app that knows its window geometry another way can implement it. `DockWindowEdgesSource.fixed(DockWindowEdges(left: true, right: false))` pins the edges, for example in tests.
 
 ### How pages are tracked
 
@@ -182,7 +171,7 @@ Optional. With a plain `DockNavigationData()` you get Material 3 defaults (`Dock
 
 ```dart
 DockNavigationData(
-  breakpoint: 600,
+  layoutPolicy: DockLayoutPolicy.breakpoint(600),
   sideColumnWidth: 76,
   sideItemExtent: 56,              // rail pill + chip width; read it in custom builders
   side: DockSide.end,          // start for left-handed layouts

@@ -15,6 +15,15 @@ const _oldFiles = {
   'lib/src/page.dart',
 };
 
+/// Directories that `geometry.dart` may export from: read-only layout types,
+/// no page, action or builder types.
+const _geometryDirs = ['src/geometry/', 'src/bleed/'];
+
+final _directive = RegExp(
+  r'''^\s*(import|export)\s+['"]([^'"]+)['"]''',
+  multiLine: true,
+);
+
 final _designImport = RegExp(
   r'''^\s*(?:import|export)\s+['"]package:flutter/(?:material|cupertino)\.dart['"]''',
   multiLine: true,
@@ -45,5 +54,34 @@ void main() {
       isEmpty,
       reason: 'Remove deleted files from _oldFiles in boundaries_test.dart.',
     );
+  });
+
+  test('geometry.dart exports only read-only layout types', () {
+    final exports = [
+      for (final m in _directive.allMatches(
+        File('lib/geometry.dart').readAsStringSync(),
+      ))
+        if (m[1] == 'export') m[2]!,
+    ];
+    expect(exports, isNotEmpty);
+    expect(
+      exports.where((uri) => !_geometryDirs.any(uri.startsWith)),
+      isEmpty,
+      reason: 'geometry.dart exports from ${_geometryDirs.join(' and ')} only.',
+    );
+  });
+
+  test('geometry files depend on nothing outside geometry', () {
+    for (final file in Directory('lib/src/geometry').listSync()) {
+      if (file is! File) continue;
+      for (final m in _directive.allMatches(file.readAsStringSync())) {
+        final uri = m[2]!;
+        final allowed =
+            uri.startsWith('dart:') ||
+            uri.startsWith('package:flutter/') ||
+            !uri.contains('/');
+        expect(allowed, isTrue, reason: '${file.path} imports $uri');
+      }
+    }
   });
 }

@@ -5,4 +5,17 @@ the [window_placement](https://pub.dev/packages/window_placement) plugin. It
 tells nav_dock which display edges the app window touches, so the side column
 follows the window to the screen edge in split screen and windowing.
 
-**Status:** work in progress for nav_dock 0.1.0 (#5). Not published yet.
+```dart
+final windowEdges = WindowPlacementEdgesSource(); // create once, dispose with the app
+
+DockNavigation(
+  data: DockNavigationData(windowEdgesSource: windowEdges),
+  child: ...,
+)
+```
+
+Detection runs on iOS, iPadOS and Android. On other platforms, and in widget
+tests without a fake plugin, the source reports nothing and nav_dock uses its
+preferred side.
+
+**Status:** released together with nav_dock 0.1.0.

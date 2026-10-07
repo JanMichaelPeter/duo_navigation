@@ -6,7 +6,7 @@ import 'frame/frame.dart';
 import 'frame/modal_scope.dart';
 import 'models/action.dart';
 import 'models/bar_data.dart';
-import 'models/enums.dart';
+import 'geometry/layout_mode.dart';
 
 /// Builds a whole page from [DockBarData] (see [DockPage.custom]).
 typedef DockPageBuilder =

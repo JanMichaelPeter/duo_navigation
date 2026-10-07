@@ -74,25 +74,32 @@ class DockAction {
   /// Whether this action moves to the side column in wide mode.
   bool get canHoist => icon != null && !pinToBar;
 
-  /// A copy with the given fields replaced; [id] stays the same.
+  /// A copy with the given fields replaced; [id] stays the same. Pass null
+  /// for a nullable field ([icon], [label], [tooltip], [onPressed], [data]) to
+  /// clear it.
   DockAction copyWith({
-    Widget? icon,
-    String? label,
-    String? tooltip,
-    VoidCallback? onPressed,
+    Object? icon = _unset,
+    Object? label = _unset,
+    Object? tooltip = _unset,
+    Object? onPressed = _unset,
     bool? shared,
     bool? pinToBar,
-    Object? data,
+    Object? data = _unset,
   }) {
     return DockAction(
       id: id,
-      icon: icon ?? this.icon,
-      label: label ?? this.label,
-      tooltip: tooltip ?? this.tooltip,
-      onPressed: onPressed ?? this.onPressed,
+      icon: identical(icon, _unset) ? this.icon : icon as Widget?,
+      label: identical(label, _unset) ? this.label : label as String?,
+      tooltip: identical(tooltip, _unset) ? this.tooltip : tooltip as String?,
+      onPressed: identical(onPressed, _unset)
+          ? this.onPressed
+          : onPressed as VoidCallback?,
       shared: shared ?? this.shared,
       pinToBar: pinToBar ?? this.pinToBar,
-      data: data ?? this.data,
+      data: identical(data, _unset) ? this.data : data,
     );
   }
 }
+
+/// Marks a `copyWith` argument that was not passed.
+const Object _unset = Object();

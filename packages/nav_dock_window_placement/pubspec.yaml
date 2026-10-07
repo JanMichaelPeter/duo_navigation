@@ -4,7 +4,7 @@ description: >-
   side column follows the window to the screen edge in split screen.
 version: 0.0.1
 repository: https://github.com/JanMichaelPeter/nav_dock/tree/main/packages/nav_dock_window_placement
-# Published from 0.1.0 on, once the adapter exists (#5).
+# Published together with nav_dock 0.1.0.
 publish_to: none
 
 environment:
@@ -17,6 +17,8 @@ dependencies:
   flutter:
     sdk: flutter
   nav_dock: ">=0.0.1 <0.2.0"
+  # window_placement needs Dart 3.10 (Flutter 3.38).
+  window_placement: ^0.0.1
 
 dev_dependencies:
   flutter_test:

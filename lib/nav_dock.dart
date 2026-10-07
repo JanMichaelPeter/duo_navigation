@@ -3,6 +3,7 @@
 /// docked to the screen edge on wide screens.
 library;
 
+export 'geometry.dart';
 export 'src/actions/action_host.dart'
     show DockActionHost, DockActionRegistration;
 export 'src/config/builders.dart';
@@ -17,5 +18,4 @@ export 'src/models/bar_data.dart';
 export 'src/models/enums.dart';
 export 'src/models/tab.dart';
 export 'src/models/tabs_data.dart';
-export 'src/models/window_edges.dart';
 export 'src/page.dart';

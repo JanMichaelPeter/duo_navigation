@@ -19,15 +19,8 @@ screenshots:
     path: screenshots/nav_dock_demo.gif
 
 environment:
-  # window_placement needs Dart 3.10 (Flutter 3.38).
   sdk: ">=3.10.0 <4.0.0"
   flutter: ">=3.38.0"
-
-# iOS, iPadOS (ios) and Android only. Window-edge detection uses the
-# window_placement plugin, which has no other implementations.
-platforms:
-  android:
-  ios:
 
 workspace:
   - example
@@ -36,8 +29,6 @@ workspace:
 dependencies:
   flutter:
     sdk: flutter
-  # Detects which display edges the window touches (split screen).
-  window_placement: ^0.0.1
 
 dev_dependencies:
   flutter_test:
