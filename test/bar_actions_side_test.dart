@@ -1,3 +1,4 @@
+import 'package:nav_dock/material.dart';
 import 'package:nav_dock/nav_dock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -6,6 +7,7 @@ Widget _app(TargetPlatform platform, DockSide side) {
   return MaterialApp(
     theme: ThemeData(platform: platform),
     builder: (context, child) => DockNavigation(
+      builders: const DockMaterialBuilders(),
       data: DockNavigationData(side: side),
       child: child!,
     ),

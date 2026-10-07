@@ -1,15 +1,38 @@
 import 'package:flutter/material.dart';
 
-import 'config/navigation.dart';
-import 'models/action.dart';
-import 'models/bar_data.dart';
-import 'models/enums.dart';
-import 'models/tabs_data.dart';
+import '../builders/builders.dart';
+import '../config/navigation.dart';
+import '../models/action.dart';
+import '../models/bar_data.dart';
+import '../models/enums.dart';
+import '../models/tabs_data.dart';
 
-/// Material 3 defaults for every builder. Replace any of them through
-/// `DockNavigationData`; they're plain functions you can also call and
-/// wrap from your own builders.
-abstract final class DockDefaults {
+/// Every [DockBuilders] field set to the Material 3 defaults in
+/// [DockMaterial].
+///
+/// ```dart
+/// DockNavigation(builders: const DockMaterialBuilders(), child: ...)
+/// ```
+///
+/// Replace single builders with [DockBuilders.merge]:
+/// `const DockMaterialBuilders().merge(DockBuilders(tabBar: myTabBar))`.
+class DockMaterialBuilders extends DockBuilders {
+  /// The Material defaults.
+  const DockMaterialBuilders()
+    : super(
+        tabBar: DockMaterial.tabBar,
+        rail: DockMaterial.rail,
+        action: DockMaterial.action,
+        page: DockMaterial.page,
+        sideColumn: DockMaterial.sideColumn,
+        actionTransition: DockMaterial.actionTransition,
+      );
+}
+
+/// The Material 3 visuals behind [DockMaterialBuilders]. They are plain
+/// functions: call and wrap them from your own builders instead of rewriting
+/// them.
+abstract final class DockMaterial {
   static const double _railPadding = 4;
 
   /// A Material 3 [NavigationBar] with one destination per tab.

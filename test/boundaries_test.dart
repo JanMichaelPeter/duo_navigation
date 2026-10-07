@@ -9,11 +9,7 @@ bool _mayUseDesignLibraries(String path) =>
 
 /// 0.0.1 files that the 0.1.0 redesign replaces (#42). Remove each entry when
 /// its file goes; the test fails once an entry no longer exists.
-const _oldFiles = {
-  'lib/src/defaults.dart',
-  'lib/src/models/action.dart',
-  'lib/src/page.dart',
-};
+const _oldFiles = {'lib/src/models/action.dart', 'lib/src/page.dart'};
 
 /// Directories that `geometry.dart` may export from: read-only layout types,
 /// no page, action or builder types.

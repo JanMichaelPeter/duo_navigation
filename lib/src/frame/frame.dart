@@ -4,6 +4,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../actions/action_host.dart';
+import '../builders/builders.dart';
 import '../config/navigation.dart';
 import '../config/navigation_data.dart';
 import '../geometry/body_mode.dart';
@@ -65,6 +66,7 @@ class DockFrame extends StatefulWidget {
     this.currentIndex = 0,
     this.onTabSelected,
     this.bodyMode,
+    this.builders,
   });
 
   final bool isModal;
@@ -75,6 +77,9 @@ class DockFrame extends StatefulWidget {
 
   /// Null: [DockNavigationData.bodyMode].
   final DockBodyMode? bodyMode;
+
+  /// Overrides on top of the builders above; null fields fall back to them.
+  final DockBuilders? builders;
 
   @override
   State<DockFrame> createState() => _DockFrameState();
@@ -91,6 +96,15 @@ class _DockFrameState extends State<DockFrame> {
 
   @override
   Widget build(BuildContext context) {
+    // The scope sits above everything the frame builds, so the bar, the
+    // column and the pages all see the shell's builders.
+    return DockBuildersScope(
+      builders: widget.builders,
+      child: Builder(builder: _build),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     final config = DockNavigation.of(context);
     _host.tapGuard = config.tapGuard;
     final padding = MediaQuery.paddingOf(context);
@@ -133,7 +147,7 @@ class _DockFrameState extends State<DockFrame> {
                 ? null
                 : KeyedSubtree(
                     key: DockKeys.bar,
-                    child: config.tabBarBuilder(context, tabs),
+                    child: DockBuilders.of(context).buildTabBar(context, tabs),
                   ),
             column: SideColumn(
               key: DockKeys.column,

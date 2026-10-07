@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nav_dock/material.dart';
 import 'package:nav_dock/nav_dock.dart';
 import 'package:nav_dock/testing.dart';
 
@@ -8,7 +9,11 @@ const _fullscreen = DockWindowEdges(left: true, right: true);
 
 Widget _app(DockNavigationData data) {
   return MaterialApp(
-    builder: (context, child) => DockNavigation(data: data, child: child!),
+    builder: (context, child) => DockNavigation(
+      builders: const DockMaterialBuilders(),
+      data: data,
+      child: child!,
+    ),
     home: DockShell(
       tabs: const [
         DockTab(icon: Icon(Icons.home), label: 'Home'),

@@ -1,5 +1,6 @@
-import 'package:nav_dock/nav_dock.dart';
 import 'package:flutter/material.dart';
+import 'package:nav_dock/material.dart';
+import 'package:nav_dock/nav_dock.dart';
 
 /// Put on [DockAction.data] to highlight a chip. The package passes
 /// `data` through untouched; only builders that look for it react.
@@ -7,15 +8,15 @@ enum ActionRole { primary }
 
 /// A complete custom look, built only from the public builder hooks.
 ///
-/// Optional: without it (plain `DockNavigationData()`) nav_dock uses
-/// the Material defaults in `DockDefaults`. Override as many or as few
-/// builders as you like; everything not set keeps its default.
+/// Optional: with `const DockMaterialBuilders()` instead of [builders],
+/// nav_dock uses the Material defaults in `DockMaterial`. Override as many or
+/// as few builders as you like with `DockMaterialBuilders().merge(...)`.
 ///
 /// Showcases, one hook each:
 /// * [tabBar]: floating capsule instead of a NavigationBar.
 /// * [rail]: rounded rectangle with an animated selection.
 /// * [action]: square chips in the column; bar actions keep the defaults.
-/// * [page]: wraps [DockDefaults.page] with a theme override.
+/// * [page]: wraps [DockMaterial.page] with a theme override.
 /// * [sideColumn]: rail separated from the actions by a short divider.
 /// * [actionTransition]: chips slide up and fade instead of scaling.
 /// * `DockTab.data` (an int) shows as a badge in bar and rail.
@@ -23,14 +24,19 @@ abstract final class CustomStyle {
   static const double _radius = 32;
   static const double _railPadding = 4;
 
+  /// Every visual of the custom look.
+  static const DockBuilders builders = DockBuilders(
+    tabBar: tabBar,
+    rail: rail,
+    action: action,
+    page: page,
+    sideColumn: sideColumn,
+    actionTransition: actionTransition,
+  );
+
+  /// The sizes and timings the custom look is designed for.
   static DockNavigationData data(DockNavigationData base) {
     return base.copyWith(
-      tabBarBuilder: tabBar,
-      railBuilder: rail,
-      actionBuilder: action,
-      pageBuilder: page,
-      sideColumnBuilder: sideColumn,
-      actionTransitionBuilder: actionTransition,
       sideColumnWidth: 80,
       sideItemExtent: 60, // rail and chips both read this
       actionSpacing: 12,
@@ -97,7 +103,7 @@ abstract final class CustomStyle {
       BuildContext context, DockAction action, DockActionPlacement placement) {
     // Title bar actions: reuse the default look.
     if (placement != DockActionPlacement.sideColumn) {
-      return DockDefaults.action(context, action, placement);
+      return DockMaterial.action(context, action, placement);
     }
     final scheme = Theme.of(context).colorScheme;
     final extent = DockNavigation.of(context).sideItemExtent;
@@ -119,7 +125,7 @@ abstract final class CustomStyle {
           fixedSize: Size.square(extent),
           shape: shape,
         ),
-        icon: DockDefaults.morphingIcon(action.icon!),
+        icon: DockMaterial.morphingIcon(action.icon!),
       ),
     );
   }
@@ -142,7 +148,7 @@ abstract final class CustomStyle {
           ),
         ),
       ),
-      child: DockDefaults.page(context, bar, body),
+      child: DockMaterial.page(context, bar, body),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:nav_dock/material.dart';
 import 'package:nav_dock/nav_dock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -16,7 +17,11 @@ Widget _app({
       data: MediaQuery.of(
         context,
       ).copyWith(padding: padding, viewPadding: padding),
-      child: DockNavigation(data: data, child: child!),
+      child: DockNavigation(
+        builders: const DockMaterialBuilders(),
+        data: data,
+        child: child!,
+      ),
     ),
     home: DockShell(
       tabs: _tabs,

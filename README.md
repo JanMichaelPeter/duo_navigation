@@ -33,6 +33,7 @@ flutter pub add nav_dock
 ```
 
 ```dart
+import 'package:nav_dock/material.dart'; // the Material visuals
 import 'package:nav_dock/nav_dock.dart';
 ```
 
@@ -42,6 +43,7 @@ import 'package:nav_dock/nav_dock.dart';
 MaterialApp(
   // Above the root Navigator, so root-level modals see the config too.
   builder: (context, child) => DockNavigation(
+    builders: const DockMaterialBuilders(),
     data: const DockNavigationData(
       layoutPolicy: DockLayoutPolicy.breakpoint(466), // default: 600
     ),
@@ -169,32 +171,39 @@ Each `DockPage` registers with the nearest frame (shell or modal). It counts as 
 
 ## Customizing
 
-Optional. With a plain `DockNavigationData()` you get Material 3 defaults (`DockDefaults`) and your app theme styles them. Override only the builders you want; the rest keep their defaults.
-
-`example/` deliberately uses a fully custom look (`example/lib/style/custom_style.dart`): capsule tab bar, square chips, badges via `DockTab.data`, a highlighted chip via `DockAction.data`, a wrapped default page, its own column layout and chip transition. Drop the `CustomStyle.data(...)` call in `example/lib/main.dart` to see the defaults.
+The package owns placement, insets, identity and timing; every visual is a builder in `DockBuilders`. `const DockMaterialBuilders()` (`package:nav_dock/material.dart`) sets all of them to Material 3 defaults that your theme styles. Replace single ones with `merge`; the rest keep their defaults:
 
 ```dart
-DockNavigationData(
-  layoutPolicy: DockLayoutPolicy.breakpoint(600),
-  sideColumnWidth: 76,
-  sideItemExtent: 56,              // rail pill + chip width; read it in custom builders
-  side: DockSide.end,          // start for left-handed layouts
-  tabBarBuilder: (context, tabs) => MyBottomBar(...),
-  railBuilder: (context, tabs) => MyPillRail(...),
-  actionBuilder: (context, action, placement) => ...,   // bar vs column
-  pageBuilder: (context, bar, body) => MyScaffold(...), // app bar look
-  sideColumnBuilder: (context, actions, rail, hasActions) => ..., // arrangement
-  actionTransitionBuilder: (context, animation, child) => ...,
-  actionAnimationDuration: const Duration(milliseconds: 250),
-  tapGuard: const DockTapGuard(cooldown: Duration(milliseconds: 350)),
-);
+DockNavigation(
+  builders: const DockMaterialBuilders().merge(DockBuilders(
+    tabBar: (context, tabs) => MyBottomBar(...),
+    rail: (context, tabs) => MyPillRail(...),
+    action: (context, action, placement) => ...,     // bar vs column
+    page: (context, bar, body) => MyScaffold(...),   // app bar look
+    sideColumn: (context, actions, rail, hasActions) => ..., // arrangement
+    actionTransition: (context, animation, child) => ...,
+  )),
+  data: const DockNavigationData(
+    sideColumnWidth: 76,
+    sideItemExtent: 56,          // rail pill + chip width; read it in custom builders
+    side: DockSide.end,          // start for left-handed layouts
+    actionAnimationDuration: Duration(milliseconds: 250),
+  ),
+  child: child!,
+)
 ```
 
-`DockDefaults.*` are plain functions; wrap them instead of rewriting. `DockDefaults.morphingIcon` cross-fades icon changes in your own chips.
+**Per shell or subtree.** `DockShell(builders: ...)` and `DockModalScope(builders: ...)` override the app's builders for that frame, field by field; `DockBuildersScope` does the same for any subtree (for example a page builder for one area). Builders run below the shell, so inherited widgets placed around a `DockShell` reach them.
+
+**Contracts.** Each builder typedef documents what it gets and what it owns: constraints, safe area (the tab bar includes the bottom safe area in its height), keys (the package applies `DockKeys`), semantics and animation. A builder that no scope sets fails with an error naming it.
+
+`DockMaterial.*` are the plain functions behind the defaults; wrap them instead of rewriting. `DockMaterial.morphingIcon` cross-fades icon changes in your own chips.
+
+`example/` uses a fully custom look (`example/lib/style/custom_style.dart`): capsule tab bar, square chips, badges via `DockTab.data`, a highlighted chip via `DockAction.data`, a wrapped default page, its own column layout and chip transition. Use `const DockMaterialBuilders()` in `example/lib/main.dart` to see the defaults.
 
 `DockScope.modeOf(context)` tells any widget which layout is active.
 
-In a custom `pageBuilder` or `DockPage.custom`, check `bar.trailingAtStart`: when the side column is at the start edge, put the bar's trailing actions at the start too (the default page does this).
+In a custom `page` builder or `DockPage.custom`, check `bar.trailingAtStart`: when the side column is at the start edge, put the bar's trailing actions at the start too (the default page does this).
 
 ## Testing
 
@@ -206,6 +215,7 @@ import 'package:nav_dock/testing.dart';
 final edges = FakeWindowEdgesSource();
 await tester.pumpWidget(MaterialApp(
   builder: (context, child) => DockTestHarness(
+    builders: const DockMaterialBuilders(),
     mode: DockLayoutMode.wide,          // whatever the test surface size
     side: DockSide.start,
     textDirection: TextDirection.rtl,

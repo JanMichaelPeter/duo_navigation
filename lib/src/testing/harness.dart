@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../actions/clock.dart';
 import '../actions/tap_guard.dart';
+import '../builders/builders.dart';
 import '../config/navigation.dart';
 import '../config/navigation_data.dart';
 import '../geometry/layout_mode.dart';
@@ -19,6 +20,7 @@ import '../geometry/window_edges_source.dart';
 /// ```dart
 /// await tester.pumpWidget(MaterialApp(
 ///   builder: (context, child) => DockTestHarness(
+///     builders: const DockMaterialBuilders(),
 ///     mode: DockLayoutMode.wide,
 ///     textDirection: TextDirection.rtl,
 ///     child: child!,
@@ -35,6 +37,7 @@ class DockTestHarness extends StatelessWidget {
   const DockTestHarness({
     super.key,
     this.data = const DockNavigationData(),
+    this.builders,
     this.mode,
     this.side,
     this.windowEdges,
@@ -49,6 +52,10 @@ class DockTestHarness extends StatelessWidget {
 
   /// The configuration the pinned values are applied to.
   final DockNavigationData data;
+
+  /// The visuals, as on [DockNavigation.builders]; usually
+  /// `const DockMaterialBuilders()` or the app's own.
+  final DockBuilders? builders;
 
   /// The layout mode, whatever the window size. Null: [data]'s policy.
   final DockLayoutMode? mode;
@@ -84,6 +91,7 @@ class DockTestHarness extends StatelessWidget {
             : windowEdgesSource ?? data.windowEdgesSource,
         tapGuard: tapGuard,
       ),
+      builders: builders,
       child: child,
     );
     final direction = textDirection;

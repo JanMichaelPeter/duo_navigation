@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
+import '../builders/builders.dart';
 import '../geometry/layout_mode.dart';
 import '../geometry/side.dart';
 import '../geometry/window_edges.dart';
@@ -15,15 +16,25 @@ import 'navigation_data.dart';
 /// It also listens to [DockNavigationData.windowEdgesSource], once for the
 /// whole app, and moves the side column to the edge the window touches.
 class DockNavigation extends StatefulWidget {
-  /// Provides [data] to [child].
+  /// Provides [data] and [builders] to [child].
   const DockNavigation({
     super.key,
     this.data = const DockNavigationData(),
+    this.builders,
     required this.child,
   });
 
   /// The configuration.
   final DockNavigationData data;
+
+  /// The app's visuals, for example `const DockMaterialBuilders()` from
+  /// `package:nav_dock/material.dart`. Shells, modal frames and
+  /// [DockBuildersScope]s can override them field by field.
+  ///
+  /// Optional: an app that only reads the layout (`DockNavigation.modeOf`,
+  /// `DockGeometry`) needs none. A frame that needs a builder no scope sets
+  /// fails with a [FlutterError] naming it.
+  final DockBuilders? builders;
 
   /// The app below, usually the root `Navigator`.
   final Widget child;
@@ -139,7 +150,7 @@ class _DockNavigationState extends State<DockNavigation> {
     return _DockNavigationScope(
       data: widget.data,
       edges: _edges,
-      child: widget.child,
+      child: DockBuildersScope(builders: widget.builders, child: widget.child),
     );
   }
 }

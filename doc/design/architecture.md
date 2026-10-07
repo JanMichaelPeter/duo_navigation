@@ -373,6 +373,9 @@ sealed class DockIcon {
 }
 ```
 
+The type parameters arrive with their models: `T` with tabs (#11), `A` with actions (#14, #19) and `B` with the page
+layer (#12). Until then `DockBuilders` has none.
+
 Two risks are validated early. The first is ergonomics: a fixture in `test/fixtures/typed_payloads.dart` models a
 component library with typed payloads and is used from the geometry/config PR on. The second is real adapters. If
 generics turn out too heavy, a checked accessor (`payloadOf<T>()`) is the fallback, decided before the docs PR.

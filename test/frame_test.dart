@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:nav_dock/material.dart';
 import 'package:nav_dock/nav_dock.dart';
 
 const _tabs = [
@@ -31,6 +32,7 @@ enum _Frame { shell, modal }
 
 Widget _app({
   DockNavigationData data = const DockNavigationData(),
+  DockBuilders? builders,
   EdgeInsets padding = EdgeInsets.zero,
   EdgeInsets viewInsets = EdgeInsets.zero,
   TextDirection direction = TextDirection.ltr,
@@ -47,7 +49,11 @@ Widget _app({
       ),
       child: Directionality(
         textDirection: direction,
-        child: DockNavigation(data: data, child: child!),
+        child: DockNavigation(
+          builders: const DockMaterialBuilders().merge(builders),
+          data: data,
+          child: child!,
+        ),
       ),
     ),
     home: switch (frame) {
@@ -135,7 +141,10 @@ void main() {
       await pump(
         tester,
         MaterialApp(
-          builder: (context, child) => DockNavigation(child: child!),
+          builder: (context, child) => DockNavigation(
+            builders: const DockMaterialBuilders(),
+            child: child!,
+          ),
           home: const DockPage(body: _probeBody),
         ),
       );
@@ -199,8 +208,8 @@ void main() {
       await pump(
         tester,
         _app(
-          data: DockNavigationData(
-            tabBarBuilder: (context, tabs) => ValueListenableBuilder(
+          builders: DockBuilders(
+            tabBar: (context, tabs) => ValueListenableBuilder(
               valueListenable: tall,
               builder: (context, isTall, _) => AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -243,8 +252,8 @@ void main() {
         tester,
         _app(
           padding: const EdgeInsets.only(bottom: 34),
-          data: DockNavigationData(
-            tabBarBuilder: (context, tabs) => const SizedBox(height: 20),
+          builders: DockBuilders(
+            tabBar: (context, tabs) => const SizedBox(height: 20),
           ),
         ),
         size: phone,
@@ -340,8 +349,8 @@ void main() {
     await pump(
       tester,
       _app(
-        data: DockNavigationData(
-          tabBarBuilder: (context, tabs) => ValueListenableBuilder(
+        builders: DockBuilders(
+          tabBar: (context, tabs) => ValueListenableBuilder(
             valueListenable: tall,
             builder: (context, isTall, _) =>
                 SizedBox(height: isTall ? 120 : 60),

@@ -3,6 +3,7 @@
 
 import 'package:flutter/widgets.dart';
 
+import '../builders/builders.dart';
 import '../config/navigation.dart';
 import '../models/action.dart';
 import '../models/enums.dart';
@@ -124,6 +125,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
   @override
   Widget build(BuildContext context) {
     final config = DockNavigation.of(context);
+    final builders = DockBuilders.of(context);
     return Align(
       alignment: Alignment.bottomCenter,
       child: SingleChildScrollView(
@@ -138,7 +140,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
                 animateIn: item.animateIn,
                 duration: config.actionAnimationDuration,
                 curve: config.actionAnimationCurve,
-                transitionBuilder: config.actionTransitionBuilder,
+                transitionBuilder: builders.buildActionTransition,
                 onDismissed: () => _remove(item.key),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
@@ -149,7 +151,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
                   child: Center(
                     child: KeyedSubtree(
                       key: DockKeys.action(item.action.id),
-                      child: config.actionBuilder(
+                      child: builders.buildAction(
                         context,
                         item.owner.guarded(item.action),
                         DockActionPlacement.sideColumn,
