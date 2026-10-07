@@ -34,17 +34,17 @@ and loses no state.
 
 ## 3. Packages and entry points
 
-The repository becomes a pub workspace:
+The repository is a pub workspace. The repository root is both the workspace root and the `nav_dock` package:
 
 ```
-pubspec.yaml                          workspace root
-packages/nav_dock/                    the package
+pubspec.yaml                          nav_dock, and the workspace root
+lib/, test/                           nav_dock
 packages/nav_dock_window_placement/   window-edge source backed by window_placement (native)
 example/                              depends on both
 ```
 
-If pub allows the root to stay the `nav_dock` package while being the workspace root, the package stays at the root
-and only the adapter moves into `packages/`. This is checked first in the workspace PR (#38).
+`.pubignore` keeps `packages/` and `doc/design/` out of the `nav_dock` archive. Each package is released with its
+own tag, `<package>-v<version>` (`tool/release.sh`).
 
 `nav_dock` has four entry points:
 
@@ -678,7 +678,6 @@ The redesign is done when each of these is shown by a test:
 
 | Question | Where | Fallback |
 |----------|-------|----------|
-| Can the workspace root stay the `nav_dock` package? | #38 | move it to `packages/nav_dock` |
 | Are scoped generics comfortable in a real adapter? | #20 fixture, early adopters | checked `payloadOf<T>()` accessor |
 | Does `secondaryAnimation` reliably mark "only popups above"? | #14 | `DockRouteObserver` |
 | Do platforms announce "tab x of n" from the tab roles? | #18, release checklist #39 | explicit position in the semantic label |

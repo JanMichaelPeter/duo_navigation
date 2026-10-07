@@ -22,21 +22,26 @@ jobs:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+      # Resolves the whole workspace: nav_dock, the adapter and the example.
       - run: flutter pub get
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed $(git ls-files '*.dart')
-      - run: flutter analyze
-      - run: flutter test
-      - name: Analyze example
-        working-directory: example
+      - name: Analyze and test each package
         run: |
-          flutter pub get
-          flutter analyze
-      - name: Test example
-        working-directory: example
-        run: flutter test
-      - name: Check package
-        run: flutter pub publish --dry-run
+          for dir in . packages/nav_dock_window_placement example; do
+            echo "::group::$dir"
+            (cd "$dir" && flutter analyze && if [ -d test ]; then flutter test; fi)
+            echo "::endgroup::"
+          done
+      - name: Check publishable packages
+        run: |
+          for dir in . packages/nav_dock_window_placement; do
+            if grep -q '^publish_to: *none' "$dir/pubspec.yaml"; then
+              echo "Skipping $dir (publish_to: none)"
+            else
+              (cd "$dir" && flutter pub publish --dry-run)
+            fi
+          done
 
   # nav_dock has no native code; building the example checks that it and
   # window_placement compile on each platform.
