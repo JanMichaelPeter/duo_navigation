@@ -116,14 +116,10 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
   final DockActionHost _host = DockActionHost();
 
   /// How far the bar and column are shown. Only ticks while they animate.
-  late final AnimationController _visibility = AnimationController(
-    vsync: this,
-    value: _wantsNavigation ? 1 : 0,
-  );
-  late final CurvedAnimation _curved = CurvedAnimation(
-    parent: _visibility,
-    curve: Curves.linear,
-  );
+  /// Created in [initState], not lazily: [dispose] must not be the first to
+  /// touch it (it would look up TickerMode on a deactivated element).
+  late final AnimationController _visibility;
+  late final CurvedAnimation _curved;
   Duration _visibilityDuration = Duration.zero;
 
   /// The shell's and the active page's wish together.
@@ -133,6 +129,11 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
   @override
   void initState() {
     super.initState();
+    _visibility = AnimationController(
+      vsync: this,
+      value: widget.navigationVisible ? 1 : 0,
+    );
+    _curved = CurvedAnimation(parent: _visibility, curve: Curves.linear);
     _host.addListener(_syncVisibility);
   }
 
