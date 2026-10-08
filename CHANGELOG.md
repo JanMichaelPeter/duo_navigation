@@ -135,6 +135,11 @@ Unreleased. A redesign; see the
   The example covers every level, including a go_router setup
   (`example/lib/main_go_router.dart`), typed tab payloads, a backdrop, a
   bleeding map, a plain `Scaffold` page and an immersive page.
+* CI: `dart doc` must report no warnings, every PR gets a public-API diff
+  against the last release in its summary, publishing checks the version
+  against the API changes, and performance gates count rebuilds (chrome
+  changes don't rebuild the body, nothing rebuilds while idle, budgets for a
+  tab switch and an animation tick).
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work

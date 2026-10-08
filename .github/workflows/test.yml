@@ -33,6 +33,18 @@ jobs:
             (cd "$dir" && flutter analyze && if [ -d test ]; then flutter test; fi)
             echo "::endgroup::"
           done
+      - name: Check the API docs (no dartdoc warnings)
+        run: |
+          for dir in . packages/nav_dock_window_placement; do
+            (cd "$dir" && dart doc --dry-run . 2>&1 | tee /tmp/doc.log)
+            grep -q "Found 0 warnings and 0 errors." /tmp/doc.log
+          done
+      - name: Public API diff against the last release
+        run: |
+          dart pub global activate dart_apitool
+          dart pub global run dart_apitool:main diff --old pub://nav_dock --new . \
+            --version-check-mode=none --report-format=markdown --report-file-path=api.md
+          { echo "## nav_dock public API changes"; cat api.md; } >> "$GITHUB_STEP_SUMMARY"
       - name: Check publishable packages
         run: |
           for dir in . packages/nav_dock_window_placement; do
