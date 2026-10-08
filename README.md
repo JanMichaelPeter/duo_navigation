@@ -111,9 +111,39 @@ DockPage(
 
 The leading action is implied: back for pushed pages, close for `fullscreenDialog`. A text-only leading action such as `DockAction.back(icon: null, label: 'Cancel')` stays in the bar in every mode. `DockPage.custom(builder: (context, bar) => ...)` gives you `DockBarData` to build the whole page yourself (slivers, large titles, floating bars).
 
-An action has an `id` (`find.byKey(DockKeys.action(id))` finds it), a `role` (`back`, `close`, `primary`, `secondary`, `destructive`, `overflow`) that builders can style, an icon as `DockIcon` (`DockIcon.back` and `DockIcon.close` follow the platform), and optionally `label`, `badge`, `enabled`, `semanticLabel`, `key`, `order` (position in the column), `hoist: DockHoist.never` (stays in the bar), `cooldown`, `guarded` and a typed `payload` (`DockAction<MySpec>`, read in builders without a cast; give the shell the type, `DockShell<MyTab, MySpec>`).
+An action has an `id` (`find.byKey(DockKeys.action(id))` finds it), a `role` (`back`, `close`, `primary`, `secondary`, `destructive`, `overflow`) that builders can style, an icon as `DockIcon` (`DockIcon.back` and `DockIcon.close` follow the platform), and optionally `label`, `badge`, `enabled`, `semanticLabel`, `key`, `order` (position in the column), `hoist: DockHoist.never` (stays in the bar), `cooldown`, `guarded` and a typed `payload` (`DockAction<MySpec>`, read in builders without a cast; give the shell the types, `DockShell<MyTab, MySpec, MyBar>`).
+
+**Pages with their own `Scaffold`.** `DockPage` is two pieces: `DockPageScope` (the title, actions and bar payload, registered with the frame) and the `page` builder. Use the scope directly to keep your own `Scaffold`, keys, bottom bar or floating action button, and read the bar with `DockAppBar` (`package:nav_dock/material.dart`) or `DockBarData.of(context)` in your own bar:
+
+```dart
+DockPageScope(
+  title: const Text('Items'),
+  trailing: [DockAction(id: 'add', icon: const DockIcon(Icons.add), onPressed: add)],
+  child: Scaffold(
+    key: const Key('items'),
+    appBar: const DockAppBar(),
+    bottomNavigationBar: const ItemsToolbar(),
+    body: const ItemsList(),
+  ),
+)
+```
+
+`barPayload` passes page data to the bar builder, typed (`DockPageScope<MySpec, MyTitle>(barPayload: MyTitle.large('Inbox'))`, read as `bar.payload`). `DockBarLayout` lays out a custom bar's leading action, title and actions, with start/end mirroring, right-to-left and a centered title.
 
 A page keeps its actions in the column while a dialog or sheet is open above it; their taps are dropped until it closes.
+
+## Adoption levels
+
+Each level works without the ones above it, so an app can adopt nav_dock step by step:
+
+| Level | Use | Works with |
+|---|---|---|
+| 0 | `DockNavigation.modeOf` / `sideOf`, `DockGeometry` (`package:nav_dock/geometry.dart`) | your own frame and pages |
+| 1 | `DockShell` and tabs (`DockTabStack`) | plain `Scaffold` pages with their own `AppBar`; the column holds only the rail |
+| 2 | `DockPage` / `DockPageScope` and actions | actions moving into the column, or not (`hoisting: DockHoisting.none`) |
+| 3 | custom builders, typed payloads | your design system |
+
+**Keeping actions in the bar.** `DockHoisting.none` (on `DockNavigationData`, `DockShell`, `DockModalScope` or a page) moves nothing into the column: every page keeps all its actions, back included, in its bar, and the bar data is the same in both modes. Per action, `hoist: DockHoist.never` does the same.
 
 ## Concepts
 
@@ -181,7 +211,7 @@ DockNavigationData(windowEdgesSource: windowEdges)
 | only the other edge | split screen, other half | the other edge |
 | unknown | not reported yet | `side` |
 
-Title-bar actions follow the column (`DockBarData.trailingAtStart`).
+Title-bar actions follow the column (`DockBarData.trailingAtStart`; `DockAppBar` and `DockBarLayout` handle it).
 
 Without a source, or while it reports nothing, `side` is used.
 
@@ -230,7 +260,7 @@ DockNavigation(
 
 `DockScope.modeOf(context)` tells any widget which layout is active.
 
-In a custom `page` builder or `DockPage.custom`, check `bar.trailingAtStart`: when the side column is at the start edge, put the bar's trailing actions at the start too (the default page does this).
+In a custom `page` builder or `DockPage.custom`, lay the bar out with `DockBarLayout(actionsAtStart: bar.trailingAtStart, ...)`: when the side column is at the start edge, the bar's actions belong at the start too.
 
 ## Testing
 

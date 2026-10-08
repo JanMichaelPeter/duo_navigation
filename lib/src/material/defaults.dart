@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../builders/builders.dart';
+import 'app_bar.dart';
 import '../config/navigation.dart';
 import '../frame/side_column_layout.dart';
 import '../tabs/tab_item.dart';
@@ -20,10 +21,11 @@ import '../models/tabs_data.dart';
 ///
 /// Replace single builders with [DockBuilders.merge]:
 /// `const DockMaterialBuilders().merge(DockBuilders(tabBar: myTabBar))`.
-/// [T] and [A] are the tabs' and actions' payload types; the defaults work for
-/// any, so a typed app can use `DockMaterialBuilders<MyTab, MyAction>()` as a
-/// base for typed overrides.
-class DockMaterialBuilders<T, A> extends DockBuilders<T, A> {
+/// [T], [A] and [B] are the tabs', actions' and bars' payload types; the
+/// defaults work for any, so a typed app can use
+/// `DockMaterialBuilders<MyTab, MyAction, MyBar>()` as a base for typed
+/// overrides.
+class DockMaterialBuilders<T, A, B> extends DockBuilders<T, A, B> {
   /// The Material defaults.
   const DockMaterialBuilders()
     : super(
@@ -222,91 +224,15 @@ abstract final class DockMaterial {
     );
   }
 
-  /// Scaffold + AppBar. When the side column is at the start edge, the bar's
-  /// actions move to the start too, so everything sits on one side.
+  /// A [Scaffold] with a [DockAppBar]. When the side column is at the start
+  /// edge, the bar's actions move to the start too, so everything sits on
+  /// one side.
   static Widget page(
     BuildContext context,
-    DockBarData<Object?> bar,
+    DockBarData<Object?, Object?> bar,
     Widget body,
   ) {
-    if (bar.trailingAtStart && bar.trailing.isNotEmpty && bar.leading == null) {
-      return Scaffold(appBar: _actionsAtStartAppBar(context, bar), body: body);
-    }
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        // A text leading action ("Cancel") needs more than the icon width.
-        leadingWidth: bar.leading?.icon == null && bar.leading != null
-            ? 96
-            : null,
-        leading: bar.leading == null
-            ? null
-            : bar.buildAction(bar.leading!, DockActionPlacement.barLeading),
-        title: bar.title,
-        actions: [
-          for (final a in bar.trailing)
-            bar.buildAction(a, DockActionPlacement.barTrailing),
-          if (bar.trailing.isNotEmpty) const SizedBox(width: 8),
-        ],
-      ),
-      body: body,
-    );
-  }
-
-  // Only without a leading action in the bar (wide mode, leading in the
-  // column).
-  static PreferredSizeWidget _actionsAtStartAppBar(
-    BuildContext context,
-    DockBarData<Object?> bar,
-  ) {
-    final theme = Theme.of(context);
-    final actions = [
-      for (final a in bar.trailing)
-        bar.buildAction(a, DockActionPlacement.barTrailing),
-    ];
-    final centered =
-        theme.appBarTheme.centerTitle ??
-        switch (theme.platform) {
-          TargetPlatform.iOS || TargetPlatform.macOS => true,
-          _ => false,
-        };
-
-    if (!centered) {
-      // Start-aligned title: actions take the leading spot, title follows.
-      return AppBar(
-        automaticallyImplyLeading: false,
-        titleSpacing: 8,
-        title: Row(
-          children: [
-            ...actions,
-            const SizedBox(width: 8),
-            if (bar.title != null) Flexible(child: bar.title!),
-          ],
-        ),
-      );
-    }
-
-    // Centered title: mirror the toolbar so the actions slot lands at the
-    // start, and restore the real direction inside each slot.
-    final direction = Directionality.of(context);
-    Widget restore(Widget child) =>
-        Directionality(textDirection: direction, child: child);
-    final appBar = AppBar(
-      automaticallyImplyLeading: false,
-      centerTitle: true,
-      title: bar.title == null ? null : restore(bar.title!),
-      // Mirrored row: reverse so the actions keep their reading order.
-      actions: [...actions.reversed.map(restore), const SizedBox(width: 8)],
-    );
-    return PreferredSize(
-      preferredSize: appBar.preferredSize,
-      child: Directionality(
-        textDirection: direction == TextDirection.ltr
-            ? TextDirection.rtl
-            : TextDirection.ltr,
-        child: appBar,
-      ),
-    );
+    return Scaffold(appBar: const DockAppBar(), body: body);
   }
 
   /// Actions fill the top and anchor to the bottom, with the rail below them.

@@ -139,7 +139,7 @@ abstract final class CustomStyle {
   /// Wrapping a default instead of rewriting it: same Scaffold + AppBar,
   /// different app bar theme.
   static Widget page(
-      BuildContext context, DockBarData<Object?> bar, Widget body) {
+      BuildContext context, DockBarData<Object?, Object?> bar, Widget body) {
     final theme = Theme.of(context);
     return Theme(
       data: theme.copyWith(

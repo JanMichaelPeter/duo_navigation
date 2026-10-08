@@ -32,7 +32,7 @@ enum _Frame { shell, modal }
 
 Widget _app({
   DockNavigationData data = const DockNavigationData(),
-  DockBuilders<Object?, Object?>? builders,
+  DockBuilders<Object?, Object?, Object?>? builders,
   EdgeInsets padding = EdgeInsets.zero,
   EdgeInsets viewInsets = EdgeInsets.zero,
   TextDirection direction = TextDirection.ltr,
@@ -50,23 +50,25 @@ Widget _app({
       child: Directionality(
         textDirection: direction,
         child: DockNavigation(
-          builders: const DockMaterialBuilders<Object?, Object?>().merge(
-            builders,
-          ),
+          builders: const DockMaterialBuilders<Object?, Object?, Object?>()
+              .merge(builders),
           data: data,
           child: child!,
         ),
       ),
     ),
     home: switch (frame) {
-      _Frame.shell => DockShell<Object?, Object?>(
+      _Frame.shell => DockShell<Object?, Object?, Object?>(
         tabs: _tabs,
         currentIndex: 0,
         onTabSelected: (_) {},
         bodyMode: bodyMode,
         child: body,
       ),
-      _Frame.modal => DockModalScope<Object?>(bodyMode: bodyMode, child: body),
+      _Frame.modal => DockModalScope<Object?, Object?>(
+        bodyMode: bodyMode,
+        child: body,
+      ),
     },
   );
 }
@@ -147,7 +149,7 @@ void main() {
             builders: const DockMaterialBuilders(),
             child: child!,
           ),
-          home: const DockPage<Object?>(body: _probeBody),
+          home: const DockPage<Object?, Object?>(body: _probeBody),
         ),
       );
       expect(rectOf(tester, _plain).right, 1000 - 72);
@@ -210,7 +212,7 @@ void main() {
       await pump(
         tester,
         _app(
-          builders: DockBuilders<Object?, Object?>(
+          builders: DockBuilders<Object?, Object?, Object?>(
             tabBar: (context, tabs, items) => ValueListenableBuilder(
               valueListenable: tall,
               builder: (context, isTall, _) => AnimatedContainer(
@@ -254,7 +256,7 @@ void main() {
         tester,
         _app(
           padding: const EdgeInsets.only(bottom: 34),
-          builders: DockBuilders<Object?, Object?>(
+          builders: DockBuilders<Object?, Object?, Object?>(
             tabBar: (context, tabs, items) => const SizedBox(height: 20),
           ),
         ),
@@ -351,7 +353,7 @@ void main() {
     await pump(
       tester,
       _app(
-        builders: DockBuilders<Object?, Object?>(
+        builders: DockBuilders<Object?, Object?, Object?>(
           tabBar: (context, tabs, items) => ValueListenableBuilder(
             valueListenable: tall,
             builder: (context, isTall, _) =>

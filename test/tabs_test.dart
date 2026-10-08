@@ -36,7 +36,8 @@ void main() {
     WidgetTester tester,
     Widget home, {
     DockLayoutMode mode = DockLayoutMode.compact,
-    DockBuilders<Object?, Object?>? builders = const DockMaterialBuilders(),
+    DockBuilders<Object?, Object?, Object?>? builders =
+        const DockMaterialBuilders(),
     Size size = const Size(1000, 700),
     double textScale = 1,
   }) async {
@@ -67,7 +68,7 @@ void main() {
   }) {
     var index = initial;
     return StatefulBuilder(
-      builder: (context, setState) => DockShell<Object?, Object?>(
+      builder: (context, setState) => DockShell<Object?, Object?, Object?>(
         tabs: tabs ?? _typedTabs(),
         currentIndex: index,
         onTabSelected: (i) {
@@ -85,11 +86,11 @@ void main() {
     testWidgets('reach the builders without a cast', (tester) async {
       await pump(
         tester,
-        DockShell<_Item, Object?>(
+        DockShell<_Item, Object?, Object?>(
           tabs: _typedTabs(),
           currentIndex: 0,
           onTabSelected: (_) {},
-          builders: DockBuilders<_Item, Object?>(
+          builders: DockBuilders<_Item, Object?, Object?>(
             tabItem: (context, data) => Text(data.tab.payload!.name),
           ),
           child: const SizedBox(),
@@ -106,7 +107,7 @@ void main() {
     ) async {
       await pump(
         tester,
-        DockShell<_Item, Object?>(
+        DockShell<_Item, Object?, Object?>(
           tabs: _typedTabs(),
           currentIndex: 0,
           onTabSelected: (_) {},
@@ -121,8 +122,8 @@ void main() {
       tester,
     ) async {
       expect(
-        () => const DockMaterialBuilders<Object?, Object?>().merge(
-          DockBuilders<_Other, Object?>(
+        () => const DockMaterialBuilders<Object?, Object?, Object?>().merge(
+          DockBuilders<_Other, Object?, Object?>(
             tabItem: (context, data) => const SizedBox(),
           ),
         ),
@@ -137,13 +138,13 @@ void main() {
 
       await pump(
         tester,
-        DockShell<_Item, Object?>(
+        DockShell<_Item, Object?, Object?>(
           tabs: _typedTabs(),
           currentIndex: 0,
           onTabSelected: (_) {},
           child: const SizedBox(),
         ),
-        builders: DockBuilders<_Other, Object?>(
+        builders: DockBuilders<_Other, Object?, Object?>(
           tabItem: (context, data) => const SizedBox(),
           tabBar: (context, data, items) => Row(children: items),
         ),

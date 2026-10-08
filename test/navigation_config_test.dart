@@ -55,7 +55,7 @@ void main() {
     testWidgets('a DockPage without DockNavigation fails instead of '
         'guessing a layout', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(home: DockPage<Object?>(body: SizedBox())),
+        const MaterialApp(home: DockPage<Object?, Object?>(body: SizedBox())),
       );
       expect(
         tester.takeException(),
@@ -204,7 +204,7 @@ void main() {
             ),
             child: child!,
           ),
-          home: DockShell<Object?, Object?>(
+          home: DockShell<Object?, Object?, Object?>(
             tabs: _tabs,
             currentIndex: 0,
             onTabSelected: (_) {},

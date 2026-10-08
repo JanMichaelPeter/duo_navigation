@@ -132,7 +132,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
   @override
   Widget build(BuildContext context) {
     final config = DockNavigation.of(context);
-    final builders = DockBuilders.of<Object?, Object?>(context);
+    final builders = DockBuilders.of<Object?, Object?, Object?>(context);
     return Align(
       alignment: Alignment.bottomCenter,
       child: SingleChildScrollView(

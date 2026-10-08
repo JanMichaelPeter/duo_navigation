@@ -55,7 +55,7 @@ class DockTestHarness extends StatelessWidget {
 
   /// The visuals, as on [DockNavigation.builders]; usually
   /// `const DockMaterialBuilders()` or the app's own.
-  final DockBuilders<Object?, Object?>? builders;
+  final DockBuilders<Object?, Object?, Object?>? builders;
 
   /// The layout mode, whatever the window size. Null: [data]'s policy.
   final DockLayoutMode? mode;

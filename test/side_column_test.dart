@@ -23,13 +23,13 @@ Widget _app({
         child: child!,
       ),
     ),
-    home: DockShell<Object?, Object?>(
+    home: DockShell<Object?, Object?, Object?>(
       tabs: _tabs,
       currentIndex: 0,
       onTabSelected: (_) {},
       child: Navigator(
         onGenerateRoute: (_) => MaterialPageRoute(
-          builder: (_) => DockPage<Object?>(
+          builder: (_) => DockPage<Object?, Object?>(
             title: const Text('Home'),
             trailing: [
               DockAction<Object?>(
