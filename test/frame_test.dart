@@ -226,6 +226,27 @@ void main() {
       expect(bodyMediaQuery(tester).padding.bottom, 0);
     });
 
+    testWidgets('a SafeArea in the bar adds the bottom inset, not the top', (
+      tester,
+    ) async {
+      const bar = Key('bar');
+      await pump(
+        tester,
+        _app(
+          padding: const EdgeInsets.only(top: 40, bottom: 20),
+          builders: DockBuilders<Object?, Object?, Object?>(
+            // A bar that pads itself on every side, as design systems do.
+            tabBar: (context, tabs, items) => const SafeArea(
+              child: SizedBox(key: bar, height: 56, width: double.infinity),
+            ),
+          ),
+        ),
+        size: phone,
+      );
+      expect(tester.getSize(find.byKey(DockKeys.bar)).height, 56 + 20);
+      expect(tester.getRect(find.byKey(bar)).bottom, 800 - 20);
+    });
+
     testWidgets('the body follows a bar that animates its height', (
       tester,
     ) async {

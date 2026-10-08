@@ -48,6 +48,33 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Items'), findsOneWidget);
   });
 
+  testWidgets('setup flow: step 1 closes the flow, later steps go back',
+      (tester) async {
+    await pumpAt(tester, const Size(390, 844));
+    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Run setup flow'));
+    await tester.pumpAndSettle();
+    expect(find.text('Step 1 of 3'), findsOneWidget);
+    expect(inAppBar(find.byIcon(Icons.close)), findsOneWidget);
+
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+    expect(find.text('Step 2 of 3'), findsOneWidget);
+    expect(inAppBar(find.byType(BackButtonIcon)), findsOneWidget);
+
+    await tester.tap(find.byType(BackButtonIcon));
+    await tester.pumpAndSettle();
+    // Back and close are one action, and the app's tap guard runs on real
+    // time: wait out its cooldown as a user would.
+    await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 400)));
+    await tester.tap(inAppBar(find.byIcon(Icons.close)));
+    await tester.pumpAndSettle();
+    expect(find.text('Step 1 of 3'), findsNothing);
+    expect(find.text('Run setup flow'), findsOneWidget);
+  });
+
   testWidgets('tab switch moves the column to the new page', (tester) async {
     await pumpAt(tester, const Size(1024, 768));
     await tester.tap(find.byIcon(Icons.map_outlined));

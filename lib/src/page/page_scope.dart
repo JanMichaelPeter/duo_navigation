@@ -45,6 +45,7 @@ class DockPageScope<A, B> extends StatefulWidget {
     this.leading,
     this.trailing = const [],
     this.automaticallyImplyLeading = true,
+    this.impliedLeading,
     this.hoisting,
     this.visible = true,
     this.backdrop,
@@ -59,9 +60,12 @@ class DockPageScope<A, B> extends StatefulWidget {
   final B? barPayload;
 
   /// The leading action. Defaults to [DockAction.back] for pages that can pop,
-  /// or [DockAction.close] for full-screen dialogs. In wide mode it moves into
-  /// the column when it has an icon; a text-only one ("Cancel") stays in the
-  /// bar.
+  /// or [DockAction.close] for full-screen dialogs (see [impliedLeading]). In
+  /// wide mode it moves into the column when it has an icon; a text-only one
+  /// ("Cancel") stays in the bar.
+  ///
+  /// A [DockAction.back] or [DockAction.close] without `onPressed` pops the
+  /// page's route, or dismisses the modal on a modal's first page.
   final DockAction<A>? leading;
 
   /// The page's other actions. In wide mode icon actions move to the side
@@ -73,6 +77,16 @@ class DockPageScope<A, B> extends StatefulWidget {
   /// Add a back or close action when the route can pop and [leading] is
   /// null.
   final bool automaticallyImplyLeading;
+
+  /// The leading action implied when [leading] is null. Null: the modal's
+  /// choice on its first page (`DockModalScope.impliedLeading`), otherwise
+  /// [DockImpliedLeading.close] for a full-screen dialog and
+  /// [DockImpliedLeading.back] for anything else.
+  ///
+  /// The first page of a modal (the page on the modal's route, or the first
+  /// page of a Navigator inside a `DockModalScope`) gets one too, and it
+  /// dismisses the modal.
+  final DockImpliedLeading? impliedLeading;
 
   /// Whether this page's icon actions move into the column in wide mode.
   /// Null: the frame's (`DockShell.hoisting`, `DockModalScope.hoisting`,
@@ -106,9 +120,31 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
     super.dispose();
   }
 
-  DockAction<A>? _resolveLeading(ModalRoute<Object?>? route) {
+  DockAction<A>? _resolveLeading(DockScope scope, ModalRoute<Object?>? route) {
     final page = widget;
-    void pop() => Navigator.maybePop(context);
+    // The modal's first page: on the modal's own route, or the first page of
+    // a Navigator inside the modal. It dismisses the modal when it can't pop
+    // its own route.
+    final modal = scope.route;
+    final first =
+        modal != null &&
+        route != null &&
+        (route == modal ||
+            (route.isFirst && route.navigator != modal.navigator));
+    final ModalRoute<Object?>? popped = route == null
+        ? null
+        : route.canPop
+        ? route
+        : first && modal.canPop
+        ? modal
+        : null;
+    void pop() {
+      if (popped != null && popped != route) {
+        popped.navigator?.maybePop();
+      } else {
+        Navigator.maybePop(context);
+      }
+    }
 
     final explicit = page.leading;
     if (explicit != null) {
@@ -116,14 +152,18 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
           ? explicit.copyWith(onPressed: pop)
           : explicit;
     }
-    if (!page.automaticallyImplyLeading || route == null || !route.canPop) {
-      return null;
-    }
+    if (!page.automaticallyImplyLeading || popped == null) return null;
+    final kind =
+        page.impliedLeading ??
+        (first ? scope.impliedLeading : null) ??
+        (popped is PageRoute && popped.fullscreenDialog
+            ? DockImpliedLeading.close
+            : DockImpliedLeading.back);
     // Back and close share one identity, so they morph instead of flickering.
-    final isDialog = route is PageRoute && route.fullscreenDialog;
-    return isDialog
-        ? DockAction<A>.close(onPressed: pop)
-        : DockAction<A>.back(onPressed: pop);
+    return switch (kind) {
+      DockImpliedLeading.close => DockAction<A>.close(onPressed: pop),
+      DockImpliedLeading.back => DockAction<A>.back(onPressed: pop),
+    };
   }
 
   /// Whether the page shows: its route is current, or only popups (dialogs,
@@ -163,6 +203,7 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
           leading: widget.leading,
           trailing: widget.trailing,
           automaticallyImplyLeading: widget.automaticallyImplyLeading,
+          impliedLeading: widget.impliedLeading,
           hoisting: widget.hoisting,
           visible: widget.visible,
           backdrop: widget.backdrop,
@@ -187,7 +228,7 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
     // Depending on ModalRoute and TickerMode rebuilds this page whenever it
     // becomes / stops being the visible top page.
     final route = ModalRoute.of(context);
-    final leading = _resolveLeading(route);
+    final leading = _resolveLeading(scope, route);
     final hoisting = page.hoisting ?? scope.hoisting;
     final hoists = hoisting == DockHoisting.iconActions;
     final leadingInColumn = hoists && leading != null && leading.canHoist;

@@ -38,6 +38,16 @@ enum DockHoist {
   never,
 }
 
+/// Which leading action a page gets when it declares none
+/// (`DockPageScope.impliedLeading`, `DockModalScope.impliedLeading`).
+enum DockImpliedLeading {
+  /// [DockAction.back].
+  back,
+
+  /// [DockAction.close], for modals that are dismissed rather than left.
+  close,
+}
+
 /// Whether actions move into the side column in wide mode at all. Set on
 /// `DockNavigationData`, overridden by `DockShell`, `DockModalScope` and
 /// `DockPageScope`.

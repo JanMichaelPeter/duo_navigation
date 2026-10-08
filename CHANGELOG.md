@@ -29,6 +29,8 @@ the design is in the
 * New `DockGeometry.of(context)`: the frame's mode, side and chrome per edge,
   with aspects so widgets rebuild only for what they read.
 * A debug error reports a tab bar that is shorter than the bottom safe area.
+  The tab bar's `MediaQuery` has no top padding, so a bar wrapped in
+  `SafeArea` doesn't grow by the status bar height.
 * **BREAKING** `DockNavigationData.tapCooldown` is replaced by
   `tapGuard: DockTapGuard(enabled:, cooldown:, clock:)`. The guard's time
   comes from a `DockClock`; `DockTapGuard.disabled` lets every tap through.
@@ -76,6 +78,11 @@ the design is in the
 * **BREAKING** `DockAction.back` takes a `label` and can be text-only
   ("Cancel"); a text-only leading action stays in the bar in every mode. New
   `DockAction.close`, with the same identity as back, so the two morph.
+* New `DockImpliedLeading` (`impliedLeading` on `DockModalScope`,
+  `DockPageScope` and `DockPage`): close or back instead of the default
+  (close only for full-screen dialogs). A modal's first page, also the first
+  page of a `Navigator` inside a `DockModalScope`, gets an implied action that
+  dismisses the modal.
   `DockIcon.back` and `DockIcon.close` are resolved by the builders
   (`DockMaterial.icon`).
 * **BREAKING** The tap guard's cooldown applies per action, so different

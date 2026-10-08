@@ -32,8 +32,10 @@ typedef DockTabItemBuilder<T> =
 ///   selected tab visible.
 /// * **Safe area.** The bar owns the bottom safe area: include
 ///   `MediaQuery.paddingOf(context).bottom` in its height (for example with
-///   `SafeArea(top: false, ...)`). A debug error reports a bar that is
-///   shorter. The rail is already inside the column's safe area.
+///   `SafeArea`). A debug error reports a bar that is shorter. The bar's
+///   `MediaQuery` has no top padding (the status bar is above the page), so
+///   a `SafeArea` around the bar adds only the bottom and side insets. The
+///   rail is already inside the column's safe area.
 /// * **Context.** Called below the shell (or modal frame), its
 ///   [DockBuilders] scope and `DockNavigation`: inherited widgets placed
 ///   around a `DockShell` are visible.

@@ -127,7 +127,7 @@ GoRoute(
 
 ## Pages and actions
 
-**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. Pass `leading` to change it, for example a text-only `DockAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode.
+**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. `impliedLeading: DockImpliedLeading.close` on a `DockModalScope` or a page asks for close on any other route (a custom modal route, a sheet-like page). Pass `leading` to change it, for example a text-only `DockAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode.
 
 **An action** has an `id` (`find.byKey(DockKeys.action(id))` finds it), an icon as `DockIcon` (`DockIcon.back` and `DockIcon.close` follow the platform) and/or a `label`, and optionally:
 
@@ -173,7 +173,7 @@ By default (`DockBodyMode.inset`) the frame lays the body out in the free area: 
 
 * Below the frame, `MediaQuery.padding` is zero on the edges the chrome covers and unchanged on the others.
 * On its edge, the column sits at the window edge, over the system inset (`DockColumnInset.overlap`). With `DockNavigationData(columnInset: DockColumnInset.safeArea)` it sits after a cutout or Android's button bar instead, and its builder can paint a background under it. Overlap keeps the column at the edge (iOS reports a landscape inset on both sides, not only the camera side); safeArea keeps chips clear of cutouts and system buttons.
-* The tab bar builder owns the bottom safe area (home indicator): include `MediaQuery.paddingOf(context).bottom` in its height. A debug error reports a bar that is shorter.
+* The tab bar builder owns the bottom safe area (home indicator): include `MediaQuery.paddingOf(context).bottom` in its height. A debug error reports a bar that is shorter. The bar sees no top padding, so a bar that wraps itself in `SafeArea` doesn't grow by the status bar.
 * `MediaQuery.size` stays the window size, as with Flutter's own sub-screens; use `LayoutBuilder` for the available size.
 
 `DockGeometry.of(context)` tells a page the frame's layout: mode, side, how much the chrome covers per edge, visibility and keyboard. Pass an `aspect` to rebuild only when that part changes.
@@ -332,7 +332,7 @@ Everything these libraries export is public API and follows semantic versioning;
 ## Rules and limits
 
 * Modal = pushed on the **root** navigator. A page pushed onto a tab navigator is a subpage and keeps the tab bar.
-* Multi-step modals: wrap the modal's own `Navigator` in `DockModalScope` so all steps share one column. Its first page needs an explicit `leading` (for example `DockAction.close(onPressed: closeFlow)`) because its route can't pop.
+* Multi-step modals: wrap the modal's own `Navigator` in `DockModalScope` so all steps share one column. Its first page gets a leading action that dismisses the whole modal (close for a full-screen dialog, or what `DockModalScope.impliedLeading` says); the later steps get back.
 * Trailing ids must be unique per page.
 * Android back with nested tab navigators: add `NavigatorPopHandler` (go_router handles this).
 * During an interactive iOS back swipe the column switches when the pop commits, not during the drag; page backdrops cross-fade then too.
