@@ -53,6 +53,28 @@ class DockTabItem<T> extends StatelessWidget {
   }
 }
 
+/// Applies the package's per-item wrapping to children a tab bar builds
+/// itself.
+extension DockTabsDataWrap<T> on DockTabsData<T> {
+  /// Wraps [child], the widget a bar built for the tab at [index], like the
+  /// package wraps its own items: `DockKeys.tab(id)` and `DockTab.key`, and
+  /// the tab's semantics (selected state, label, badge, position, tap), which
+  /// replace the child's own. Use it for bars that build their children from
+  /// [tabs] instead of placing the built `items`; mark the bar with
+  /// [DockTabBarSemantics].
+  ///
+  /// ```dart
+  /// tabBar: (context, data, items) => DockTabBarSemantics(
+  ///   child: MyTabBar(children: [
+  ///     for (var i = 0; i < data.tabs.length; i++)
+  ///       data.wrap(i, MyTabButton(spec: data.tabs[i].payload, onTap: data.itemData(i).onTap)),
+  ///   ]),
+  /// )
+  /// ```
+  Widget wrap(int index, Widget child) =>
+      DockTabItem<T>(data: itemData(index), child: child);
+}
+
 /// Marks a tab bar or rail as a tab bar for assistive technology.
 ///
 /// Use it in custom `tabBar` and `rail` builders, around the widget that

@@ -15,7 +15,10 @@ enum DockTabPlacement {
 /// What a tab bar or rail builder gets: all tabs and the selection.
 ///
 /// The items themselves come built (see [DockTabItemData]); the container
-/// arranges them.
+/// arranges them. A bar that builds its children itself from [tabs] (from a
+/// list of item descriptions, say) uses [itemData] for each tab's state and
+/// tap, and `wrap` (from `package:nav_dock/nav_dock.dart`) to give each
+/// child the package's keys and semantics.
 @immutable
 class DockTabsData<T> {
   /// Built by the frame.
@@ -45,6 +48,21 @@ class DockTabsData<T> {
   DockTabPlacement get placement => mode == DockLayoutMode.compact
       ? DockTabPlacement.bar
       : DockTabPlacement.rail;
+
+  /// The item data of the tab at [index], as the package's own items get it:
+  /// its selection, position and a tap that applies the shell's selection,
+  /// re-selection and veto rules.
+  DockTabItemData<T> itemData(int index) {
+    RangeError.checkValidIndex(index, tabs, 'index');
+    return DockTabItemData<T>(
+      tab: tabs[index],
+      index: index,
+      count: tabs.length,
+      selected: index == currentIndex,
+      placement: placement,
+      onTap: () => onSelected(index),
+    );
+  }
 }
 
 /// What a tab item builder gets: one tab, its position and selection.

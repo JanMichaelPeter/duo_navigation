@@ -5,7 +5,7 @@ A three-tab app that shows every feature of
 from the public builders.
 
 ```sh
-flutter run                          # a Navigator per tab in a DockTabStack
+flutter run                          # a DockTabNavigator per tab in a DockTabStack
 flutter run -t lib/main_go_router.dart   # the same app with go_router
 ```
 

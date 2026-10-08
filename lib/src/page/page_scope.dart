@@ -9,6 +9,7 @@ import '../geometry/layout_mode.dart';
 import '../keys.dart';
 import '../models/action.dart';
 import '../models/bar_data.dart';
+import '../tabs/tab_stack.dart';
 
 /// Declares a page's title bar and actions, and provides them to the page as
 /// [DockBarData] (`DockBarData.of(context)`).
@@ -239,9 +240,13 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
     ];
     registration.update(
       actions: hoisted,
-      // TickerMode.valuesOf needs Flutter 3.41; keep .of while supporting 3.38.
-      // ignore: deprecated_member_use
-      active: _shows(route) && TickerMode.of(context),
+      // TickerMode.valuesOf needs Flutter 3.41; keep .of while supporting 3.35.
+      // DockTabStack.isActiveOf covers tabs that keep ticking.
+      active:
+          _shows(route) &&
+          // ignore: deprecated_member_use
+          TickerMode.of(context) &&
+          DockTabStack.isActiveOf(context),
       route: route,
       navigationVisible: page.visible,
       backdrop: page.backdrop,

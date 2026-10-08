@@ -1,0 +1,126 @@
+import 'package:flutter/widgets.dart';
+
+import 'tab_stack.dart';
+
+/// A [Navigator] for one tab of a `DockShell`: it doesn't clip, and the
+/// system back gesture pops its pages while its tab is shown.
+///
+/// ```dart
+/// DockShell(
+///   tabs: tabs,
+///   currentIndex: index,
+///   onTabSelected: (i) => setState(() => index = i),
+///   child: DockTabStack(
+///     index: index,
+///     children: [
+///       DockTabNavigator(onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => const HomePage())),
+///       DockTabNavigator(onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => const MePage())),
+///     ],
+///   ),
+/// )
+/// ```
+///
+/// * **System back** (Android's back button and gesture, and the predictive
+///   back animation) pops the shown tab's pages first; on a tab's first page
+///   it goes to the navigator above, as without tabs. Tabs that aren't shown
+///   (`DockTabStack.isActiveOf`) neither handle back nor tell the app they
+///   could, so a pushed page in another tab doesn't keep the app from
+///   closing.
+/// * **No clip** (`Clip.none`, a plain [Navigator] clips to its bounds), so a
+///   `DockBleed` in a page reaches under the bar and the column.
+///
+/// The arguments are the [Navigator]'s. Apps with a routing package (such as
+/// go_router's `StatefulShellRoute`) get system back from it and use their
+/// own navigators.
+class DockTabNavigator extends StatefulWidget {
+  /// A tab's navigator; see [Navigator] for the arguments.
+  const DockTabNavigator({
+    super.key,
+    this.navigatorKey,
+    this.initialRoute,
+    this.onGenerateInitialRoutes = Navigator.defaultGenerateInitialRoutes,
+    this.onGenerateRoute,
+    this.onUnknownRoute,
+    this.observers = const [],
+    this.restorationScopeId,
+    this.handlesSystemBack = true,
+  });
+
+  /// The key of the [Navigator], to push from outside the tab. Null: an
+  /// internal one.
+  final GlobalKey<NavigatorState>? navigatorKey;
+
+  /// See [Navigator.initialRoute].
+  final String? initialRoute;
+
+  /// See [Navigator.onGenerateInitialRoutes].
+  final RouteListFactory onGenerateInitialRoutes;
+
+  /// See [Navigator.onGenerateRoute].
+  final RouteFactory? onGenerateRoute;
+
+  /// See [Navigator.onUnknownRoute].
+  final RouteFactory? onUnknownRoute;
+
+  /// See [Navigator.observers].
+  final List<NavigatorObserver> observers;
+
+  /// See [Navigator.restorationScopeId].
+  final String? restorationScopeId;
+
+  /// Whether the system back gesture pops this navigator's pages while its
+  /// tab is shown.
+  final bool handlesSystemBack;
+
+  @override
+  State<DockTabNavigator> createState() => _DockTabNavigatorState();
+}
+
+class _DockTabNavigatorState extends State<DockTabNavigator> {
+  GlobalKey<NavigatorState>? _ownKey;
+  bool? _active;
+
+  GlobalKey<NavigatorState> get _key =>
+      widget.navigatorKey ?? (_ownKey ??= GlobalKey<NavigatorState>());
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final active = DockTabStack.isActiveOf(context);
+    final becameActive = _active == false && active;
+    _active = active;
+    if (becameActive) {
+      // While hidden, this tab kept its navigation state to itself; tell the
+      // app again whether back can pop something here.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _active != true) return;
+        NavigationNotification(
+          canHandlePop: _key.currentState?.canPop() ?? false,
+        ).dispatch(context);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final active = _active ?? true;
+    return NotificationListener<NavigationNotification>(
+      // A hidden tab must not tell the app that back can pop something.
+      onNotification: (_) => !active,
+      child: NavigatorPopHandler<Object?>(
+        enabled: active && widget.handlesSystemBack,
+        onPopWithResult: (_) => _key.currentState?.maybePop(),
+        child: Navigator(
+          key: _key,
+          clipBehavior: Clip.none,
+          initialRoute: widget.initialRoute,
+          onGenerateInitialRoutes: widget.onGenerateInitialRoutes,
+          onGenerateRoute: widget.onGenerateRoute,
+          onUnknownRoute: widget.onUnknownRoute,
+          observers: widget.observers,
+          restorationScopeId: widget.restorationScopeId,
+        ),
+      ),
+    );
+  }
+}

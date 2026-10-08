@@ -39,7 +39,7 @@ const tabs = <DockTab<TabAccent>>[
   ),
 ];
 
-/// One Navigator per tab in a DockTabStack. With go_router, see
+/// One DockTabNavigator per tab in a DockTabStack. With go_router, see
 /// `main_go_router.dart`.
 class TabsHome extends StatefulWidget {
   const TabsHome({super.key});
@@ -76,10 +76,10 @@ class _TabsHomeState extends State<TabsHome> {
         index: _index,
         children: [
           for (var i = 0; i < tabs.length; i++)
-            Navigator(
-              key: _keys[i],
-              // No clip, so the map page can bleed under the bar and column.
-              clipBehavior: Clip.none,
+            // Doesn't clip (the map page bleeds under the bar and column) and
+            // handles Android's system back for the shown tab.
+            DockTabNavigator(
+              navigatorKey: _keys[i],
               onGenerateRoute: (settings) => MaterialPageRoute<void>(
                   settings: settings, builder: (_) => _roots[i]),
             ),

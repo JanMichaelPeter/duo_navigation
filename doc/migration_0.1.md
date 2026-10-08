@@ -78,7 +78,8 @@ DockTab(
 * `id` is required. Icons are `DockIcon` descriptors (`DockIcon(iconData)`, `.image`, `.widget`).
 * `data` is `payload`, typed: `DockTab<MyItem>`. Badges, keys and semantic labels have their own fields.
 * Re-taps still reach `onTabSelected` unless you pass `onTabReselected`. `canSelectTab` can veto a switch.
-* Your own `Offstage` + `TickerMode` stack can become `DockTabStack(index:, children:)`.
+* Your own `Offstage` + `TickerMode` stack can become `DockTabStack(index:, children:)`, and each tab's `Navigator` a
+  `DockTabNavigator`, which handles Android's system back and doesn't clip.
 
 ## 4. Pages and actions
 
