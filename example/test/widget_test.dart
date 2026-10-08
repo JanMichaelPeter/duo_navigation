@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:window_placement/window_placement.dart';
 import 'package:window_placement/window_placement_platform_interface.dart';
 
+import 'package:nav_dock/nav_dock.dart';
 import 'package:nav_dock_example/main.dart';
+import 'package:nav_dock_example/main_go_router.dart';
 
 void main() {
   Future<void> pumpAt(WidgetTester tester, Size size) async {
@@ -69,10 +71,78 @@ void main() {
     await tester.pumpAndSettle();
     expect(dividerOpacity(), 0);
 
-    // Settings subpage: back + help chips.
+    // Settings: a plain Scaffold page, the column holds only the rail.
     await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
-    expect(dividerOpacity(), 1);
+    expect(dividerOpacity(), 0);
+  });
+
+  testWidgets('a plain Scaffold page reads the layout', (tester) async {
+    await pumpAt(tester, const Size(1024, 768));
+    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BackButton), findsOneWidget);
+    expect(find.textContaining('wide, column on the end edge'), findsOneWidget);
+  });
+
+  testWidgets('the map bleeds under the chrome', (tester) async {
+    await pumpAt(tester, const Size(1024, 768));
+    await tester.tap(find.byIcon(Icons.map_outlined));
+    await tester.pumpAndSettle();
+    final map = find.descendant(
+      of: find.byType(DockBleed),
+      matching: find.byType(CustomPaint),
+    );
+    expect(tester.getRect(map.first).right, 1024);
+    // The column covers the map's right edge.
+    expect(tester.getRect(find.byKey(DockKeys.column)).right, 1024);
+  });
+
+  testWidgets('the camera page hides the navigation', (tester) async {
+    await pumpAt(tester, const Size(1024, 768));
+    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Camera'));
+    await tester.pumpAndSettle();
+    final camera = tester.element(find.byIcon(Icons.camera_alt_outlined));
+    expect(DockGeometry.of(camera).isHidden, isTrue);
+
+    Navigator.of(camera).pop();
+    await tester.pumpAndSettle();
+    expect(
+      DockGeometry.of(tester.element(find.text('Camera'))).isHidden,
+      isFalse,
+    );
+  });
+
+  for (final size in const [Size(390, 844), Size(1024, 768)]) {
+    testWidgets('the edit modal has a text Cancel at ${size.width}', (
+      tester,
+    ) async {
+      await pumpAt(tester, size);
+      await tester.tap(find.byKey(DockKeys.tab('profile')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
+      expect(inAppBar(find.text('Cancel')), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit profile'), findsNothing);
+    });
+  }
+
+  testWidgets('the go_router setup works the same', (tester) async {
+    tester.view.physicalSize = const Size(1024, 768);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const GoRouterExampleApp());
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(AppBar, 'Items'), findsOneWidget);
+    await tester.tap(find.byKey(DockKeys.tab('map')));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.my_location), findsOneWidget);
   });
 
   testWidgets('column follows the window to the only touching edge',

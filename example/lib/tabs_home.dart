@@ -4,31 +4,43 @@ import 'package:nav_dock/nav_dock.dart';
 import 'pages/items_page.dart';
 import 'pages/map_page.dart';
 import 'pages/profile_page.dart';
+import 'style/custom_style.dart';
 
-const _tabs = <DockTab<Object?>>[
+/// App data for a tab, carried as a typed payload: the custom tab item reads
+/// it as `data.tab.payload` without a cast.
+class TabAccent {
+  const TabAccent(this.color);
+
+  final Color color;
+}
+
+const tabs = <DockTab<TabAccent>>[
   DockTab(
     id: 'items',
     icon: DockIcon(Icons.list_alt_outlined),
     selectedIcon: DockIcon(Icons.list_alt),
     label: 'Items',
     badge: DockBadge.count(3),
+    payload: TabAccent(Colors.indigo),
   ),
   DockTab(
     id: 'map',
     icon: DockIcon(Icons.map_outlined),
     selectedIcon: DockIcon(Icons.map),
     label: 'Map',
+    payload: TabAccent(Colors.teal),
   ),
   DockTab(
     id: 'profile',
     icon: DockIcon(Icons.person_outline),
     selectedIcon: DockIcon(Icons.person),
     label: 'Profile',
+    payload: TabAccent(Colors.deepOrange),
   ),
 ];
 
-/// Plain Navigator-per-tab setup. With go_router, use
-/// StatefulShellRoute.indexedStack instead (see README).
+/// One Navigator per tab in a DockTabStack. With go_router, see
+/// `main_go_router.dart`.
 class TabsHome extends StatefulWidget {
   const TabsHome({super.key});
 
@@ -38,29 +50,36 @@ class TabsHome extends StatefulWidget {
 
 class _TabsHomeState extends State<TabsHome> {
   int _index = 0;
-  final _keys = List.generate(_tabs.length, (_) => GlobalKey<NavigatorState>());
+  final _keys = List.generate(tabs.length, (_) => GlobalKey<NavigatorState>());
   static const _roots = <Widget>[ItemsPage(depth: 0), MapPage(), ProfilePage()];
 
   @override
   Widget build(BuildContext context) {
-    return DockShell(
-      tabs: _tabs,
+    return DockShell<TabAccent, Object?, Object?>(
+      tabs: tabs,
       currentIndex: _index,
       onTabSelected: (i) => setState(() => _index = i),
       // A tap on the current tab pops it to its root.
       onTabReselected: (i) =>
           _keys[i].currentState?.popUntil((route) => route.isFirst),
-      // The map tab runs under the bar and column, so this shell keeps the
-      // body under the chrome; the other pages use SafeArea. The default,
-      // DockBodyMode.inset, lays the body out beside the chrome instead.
-      bodyMode: DockBodyMode.overlay,
+      // Builders for this shell only, typed for its tabs: the selected tab
+      // shows its accent color. Everything else comes from the app's style.
+      builders: DockBuilders<TabAccent, Object?, Object?>(
+        tabItem: (context, data) => CustomStyle.tabItem(
+          context,
+          data,
+          accent: data.tab.payload?.color,
+        ),
+      ),
       // Keeps every tab's navigator alive and the inactive ones inert.
       child: DockTabStack(
         index: _index,
         children: [
-          for (var i = 0; i < _tabs.length; i++)
+          for (var i = 0; i < tabs.length; i++)
             Navigator(
               key: _keys[i],
+              // No clip, so the map page can bleed under the bar and column.
+              clipBehavior: Clip.none,
               onGenerateRoute: (settings) => MaterialPageRoute<void>(
                   settings: settings, builder: (_) => _roots[i]),
             ),

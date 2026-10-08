@@ -5,15 +5,12 @@ library;
 
 export 'geometry.dart';
 export 'src/a11y/semantics.dart';
-export 'src/actions/action_host.dart'
-    show DockActionHost, DockActionRegistration;
 export 'src/actions/clock.dart';
 export 'src/actions/tap_guard.dart';
 export 'src/builders/builders.dart';
 export 'src/config/keyboard.dart';
 export 'src/config/navigation.dart';
 export 'src/config/navigation_data.dart';
-export 'src/frame/frame.dart' show DockScope;
 export 'src/frame/modal_scope.dart';
 export 'src/frame/shell.dart';
 export 'src/frame/side_column_layout.dart';

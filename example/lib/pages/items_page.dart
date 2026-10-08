@@ -46,29 +46,24 @@ class _ItemsPageState extends State<ItemsPage> {
             onPressed: () => setState(() => _favorite = !_favorite),
           ),
       ],
-      // SafeArea (horizontal only) keeps text beside the side column; the
-      // ListView itself already pads for the tab bar at the bottom.
-      body: SafeArea(
-        top: false,
-        bottom: false,
-        child: ListView(
-          children: [
+      // The body sits beside the tab bar and the column: no SafeArea needed.
+      body: ListView(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.subdirectory_arrow_right),
+            title: const Text('Go deeper'),
+            onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => ItemsPage(depth: depth + 1))),
+          ),
+          if (depth > 0)
             ListTile(
-              leading: const Icon(Icons.subdirectory_arrow_right),
-              title: const Text('Go deeper'),
-              onTap: () => Navigator.of(context).push(MaterialPageRoute(
-                  builder: (_) => ItemsPage(depth: depth + 1))),
+              leading: const Icon(Icons.vertical_align_top),
+              title: const Text('Back to top'),
+              onTap: () => Navigator.of(context).popUntil((r) => r.isFirst),
             ),
-            if (depth > 0)
-              ListTile(
-                leading: const Icon(Icons.vertical_align_top),
-                title: const Text('Back to top'),
-                onTap: () => Navigator.of(context).popUntil((r) => r.isFirst),
-              ),
-            for (var n = 1; n <= 30; n++)
-              ListTile(title: Text('Row $n'), subtitle: Text('Level $depth')),
-          ],
-        ),
+          for (var n = 1; n <= 30; n++)
+            ListTile(title: Text('Row $n'), subtitle: Text('Level $depth')),
+        ],
       ),
     );
   }

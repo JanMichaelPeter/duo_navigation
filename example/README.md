@@ -1,23 +1,29 @@
 # nav_dock example
 
-A three-tab app showing every feature of
-[nav_dock](https://pub.dev/packages/nav_dock), with a
-fully custom look built from the public builder hooks.
-
-* **Items**: drill-down navigation; the back chip stays put while per-page
-  actions animate. The "+" chip is highlighted via its role (`DockActionRole.primary`).
-* **Map**: a full-bleed page (`DockPage.custom`) that runs under the tab
-  bar and side column.
-* **Profile**: a single modal (Edit), a subpage (Settings) and a multi-step
-  modal with its own navigator (setup flow).
-
-The custom style lives in `lib/style/custom_style.dart`. It is optional: drop
-the `CustomStyle.data(...)` call in `lib/main.dart` to see the Material
-defaults.
-
-Rotate the device, use split screen, or resize an iPad window to switch
-between the compact and wide layouts.
+A three-tab app that shows every feature of
+[nav_dock](https://pub.dev/packages/nav_dock), with a fully custom look built
+from the public builders.
 
 ```sh
-flutter run
+flutter run                          # a Navigator per tab in a DockTabStack
+flutter run -t lib/main_go_router.dart   # the same app with go_router
 ```
+
+Rotate the device, use split screen, or resize an iPad window to switch
+between the compact and the wide layout.
+
+| Where | Shows |
+|---|---|
+| **Items** | `DockPage` with actions: drill down, the back chip stays put while per-page actions animate; the "+" chip is highlighted by its role (`DockActionRole.primary`); the tab has a badge (`DockBadge`) |
+| **Map** | `DockPage.custom`: the map runs under the tab bar and the side column (`DockBleed`), the floating title bar uses `DockBarLayout` |
+| **Profile** | `DockPageScope` with its own `Scaffold` and `DockAppBar`, a gradient `backdrop` under the chrome |
+| Profile → **Settings** | a plain `Scaffold` page with its own `AppBar`, no page layer; it reads the layout from `geometry.dart` |
+| Profile → **Camera** | an immersive page: `DockPage(visible: false)` hides the navigation |
+| Profile → **Edit** | a modal with a text "Cancel" leading action and text fields (the column lifts above the keyboard) |
+| Profile → **Setup flow** | a multi-step modal with its own navigator (`DockModalScope`): the close chip morphs into back |
+| `tabs_home.dart` | typed tab payloads (`DockTab<TabAccent>`) and builders for one shell (`DockShell(builders: ...)`) |
+| `main.dart` | the window-edge source (`nav_dock_window_placement`) and the app's builders |
+
+The custom look lives in `lib/style/custom_style.dart`. It is optional: use
+`builders: const DockMaterialBuilders()` in `lib/main.dart` to see the Material
+defaults.

@@ -126,6 +126,15 @@ Unreleased. A redesign; see the
   actions and rail, or the tab bar, in both modes. A layout switch keeps
   focus on the same tab or action. Reduced motion turns off the chips' and
   the icon morph's animations too.
+* **BREAKING** `DockActionHost`, `DockActionRegistration` and `DockScope` are
+  no longer exported: `DockPageScope` covers custom pages, and
+  `DockGeometry.of` / `DockNavigation.modeOf` give the layout.
+* Docs: the README is reorganized around the adoption levels and documents
+  the libraries and the stable API; new
+  [migration guide](https://github.com/JanMichaelPeter/nav_dock/blob/main/doc/migration_0.1.md).
+  The example covers every level, including a go_router setup
+  (`example/lib/main_go_router.dart`), typed tab payloads, a backdrop, a
+  bleeding map, a plain `Scaffold` page and an immersive page.
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work
