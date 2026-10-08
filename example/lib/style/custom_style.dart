@@ -98,8 +98,13 @@ abstract final class CustomStyle {
   // ------------------------------------------------------------- tab item ---
 
   /// One look for both: icon and label in the bar, icon only in the rail.
-  static Widget tabItem(BuildContext context, DockTabItemData<Object?> data) =>
-      _TabItem(data: data, showLabel: data.placement == DockTabPlacement.bar);
+  static Widget tabItem(BuildContext context, DockTabItemData<Object?> data,
+          {Color? accent}) =>
+      _TabItem(
+        data: data,
+        showLabel: data.placement == DockTabPlacement.bar,
+        accent: accent,
+      );
 
   // ------------------------------------------------------------- actions ---
 
@@ -217,10 +222,17 @@ abstract final class CustomStyle {
 
 /// One tab in the capsule bar or the rail.
 class _TabItem extends StatelessWidget {
-  const _TabItem({required this.data, required this.showLabel});
+  const _TabItem({
+    required this.data,
+    required this.showLabel,
+    this.accent,
+  });
 
   final DockTabItemData<Object?> data;
   final bool showLabel;
+
+  /// Color of the selected tab's pill; the color scheme's without one.
+  final Color? accent;
 
   @override
   Widget build(BuildContext context) {
@@ -261,7 +273,9 @@ class _TabItem extends StatelessWidget {
           curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(vertical: 6),
           decoration: BoxDecoration(
-            color: selected ? scheme.primaryContainer : Colors.transparent,
+            color: selected
+                ? accent?.withValues(alpha: 0.35) ?? scheme.primaryContainer
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(32),
           ),
           child: IconTheme.merge(
