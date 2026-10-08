@@ -21,6 +21,7 @@ class DockModalScope<A, B> extends StatelessWidget {
     this.builders,
     this.navigationVisible = true,
     this.backdrop,
+    this.impliedLeading,
     required this.child,
   });
 
@@ -44,6 +45,13 @@ class DockModalScope<A, B> extends StatelessWidget {
   /// own `DockPageScope.backdrop` replaces it while that page is shown.
   final Widget? backdrop;
 
+  /// The leading action of the modal's first page (the page on the route this
+  /// scope is on, or the first page of a Navigator inside it) when that page
+  /// declares none. It dismisses the modal. Null: [DockImpliedLeading.close]
+  /// if the route is a full-screen dialog, else [DockImpliedLeading.back].
+  /// Pages pushed inside the modal keep back.
+  final DockImpliedLeading? impliedLeading;
+
   /// The modal content, typically its own Navigator.
   final Widget child;
 
@@ -55,6 +63,7 @@ class DockModalScope<A, B> extends StatelessWidget {
     builders: builders,
     navigationVisible: navigationVisible,
     backdrop: backdrop,
+    impliedLeading: impliedLeading,
     child: child,
   );
 }

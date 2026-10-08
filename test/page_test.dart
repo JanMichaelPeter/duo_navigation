@@ -276,6 +276,124 @@ void main() {
     });
   });
 
+  group('implied leading', () {
+    late BuildContext root;
+    final roles = <String, DockActionRole?>{};
+
+    /// A page that records the role of its leading action under [name].
+    Widget page(String name, {DockImpliedLeading? impliedLeading}) =>
+        DockPage<Object?, Object?>.custom(
+          impliedLeading: impliedLeading,
+          builder: (context, bar) {
+            roles[name] = bar.leading?.role;
+            return Scaffold(appBar: const DockAppBar(), body: Text(name));
+          },
+        );
+
+    Future<void> start(WidgetTester tester) async {
+      roles.clear();
+      await pump(
+        tester,
+        Builder(
+          builder: (context) {
+            root = context;
+            return const SizedBox.expand();
+          },
+        ),
+        mode: DockLayoutMode.compact,
+      );
+    }
+
+    Future<void> push(WidgetTester tester, Route<void> route) async {
+      Navigator.of(root).push(route);
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> tapLeading(WidgetTester tester) async {
+      await tester.tap(_action(DockAction.backId).last);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('back for a page, close for a full-screen dialog', (
+      tester,
+    ) async {
+      await start(tester);
+      await push(tester, MaterialPageRoute(builder: (_) => page('page')));
+      await push(
+        tester,
+        MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => page('dialog'),
+        ),
+      );
+      expect(roles['page'], DockActionRole.back);
+      expect(roles['dialog'], DockActionRole.close);
+    });
+
+    testWidgets('a modal scope can ask for close on any route', (tester) async {
+      await start(tester);
+      await push(
+        tester,
+        MaterialPageRoute(
+          builder: (_) => DockModalScope<Object?, Object?>(
+            impliedLeading: DockImpliedLeading.close,
+            child: page('modal'),
+          ),
+        ),
+      );
+      expect(roles['modal'], DockActionRole.close);
+      await tapLeading(tester);
+      expect(find.text('modal'), findsNothing);
+    });
+
+    testWidgets('the first page of a navigator inside a modal dismisses it, '
+        'later pages go back', (tester) async {
+      await start(tester);
+      late BuildContext inner;
+      await push(
+        tester,
+        MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => DockModalScope<Object?, Object?>(
+            child: Navigator(
+              onGenerateRoute: (_) => MaterialPageRoute<void>(
+                builder: (context) {
+                  inner = context;
+                  return page('step 1');
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(roles['step 1'], DockActionRole.close);
+
+      Navigator.of(
+        inner,
+      ).push(MaterialPageRoute<void>(builder: (_) => page('step 2')));
+      await tester.pumpAndSettle();
+      expect(roles['step 2'], DockActionRole.back);
+      await tapLeading(tester);
+      expect(find.text('step 2'), findsNothing);
+      expect(find.text('step 1'), findsOneWidget);
+
+      await tapLeading(tester);
+      expect(find.text('step 1'), findsNothing);
+    });
+
+    testWidgets('a page can choose its own', (tester) async {
+      await start(tester);
+      await push(
+        tester,
+        MaterialPageRoute(
+          builder: (_) =>
+              page('sheet', impliedLeading: DockImpliedLeading.close),
+        ),
+      );
+      expect(roles['sheet'], DockActionRole.close);
+    });
+  });
+
   group('hoisting off', () {
     /// Records the bar data a page gets.
     Widget recordingPage(List<DockBarData<Object?, Object?>> bars) =>

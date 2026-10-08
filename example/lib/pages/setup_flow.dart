@@ -2,7 +2,8 @@ import 'package:nav_dock/nav_dock.dart';
 import 'package:flutter/material.dart';
 
 /// Multi-step modal: one DockModalScope around its own Navigator, so all
-/// steps share one side column. Step 1's close chip morphs into a back chip.
+/// steps share one side column. Step 1's implied close chip morphs into a
+/// back chip.
 class SetupFlow extends StatelessWidget {
   const SetupFlow({super.key});
 
@@ -29,11 +30,9 @@ class SetupStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return DockPage(
       title: Text('Step $step of 3'),
-      // Close shares the back action's identity: the same chip morphs into
-      // the back buttons of the later steps.
-      leading: step == 1
-          ? DockAction.close(onPressed: () => _closeFlow(context))
-          : null,
+      // No leading: step 1, the modal's first page, gets a close action that
+      // dismisses the flow (the route is a full-screen dialog), the later
+      // steps get back. Close and back share one identity, so the chip morphs.
       trailing: [
         if (step < 3)
           DockAction(

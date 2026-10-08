@@ -194,8 +194,8 @@ on the side without a cutout.
   `MediaQuery.padding` on that edge. With overlap it is `columnWidth` wide and that padding is zero. Its builder can paint a background under the cutout while its content stays clear of it. Vertically, the
   column keeps the system padding (status bar, home indicator).
 - `columnWidth` grows with the text scale (`sideColumnWidth × clamp(textScale, 1, maxColumnScale)`).
-- The bar builder owns the bottom safe area: it gets the system padding in its `MediaQuery` and must include
-  `padding.bottom` in its height. A debug assertion fires when the measured bar is shorter than `padding.bottom`.
+- The bar builder owns the bottom safe area: it gets the system padding in its `MediaQuery`, without the top
+  (the status bar is above the page, as with `Scaffold`'s bottom bar), and must include `padding.bottom` in its height. A debug assertion fires when the measured bar is shorter than `padding.bottom`.
 - The measured bar height is used on every layout, so a bar that animates its own height moves the body with it.
 
 This changes 0.0.1's behavior: there, the column overlapped the system inset (`max(columnWidth, inset)`). The
@@ -540,7 +540,9 @@ DockPageScope(
 ```
 
 - `DockPage<A, B>` is the convenience widget: `DockPageScope` plus the configured `page` builder.
-- An implied leading action (route can pop) is `DockAction.back()`, or `DockAction.close()` for full-screen dialogs.
+- An implied leading action (route can pop) is `DockAction.back()`, or `DockAction.close()` for full-screen dialogs;
+  `DockImpliedLeading` on `DockModalScope` and `DockPageScope` overrides it. A modal's first page (on the modal's route,
+  or first in a `Navigator` inside it) gets one that dismisses the modal.
   Its icon is a descriptor and its tooltip comes from the builder's localizations, so the core stays widgets-only.
 - A `DockPage` with no frame above it brings its own modal frame (kept from 0.0.1).
 
