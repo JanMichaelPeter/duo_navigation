@@ -178,17 +178,20 @@ Hit testing runs in reverse paint order. Chrome that is fully hidden is neither 
 
 ### 6.2 The inset rule
 
-The column sits **inside the safe area**: on its edge it is placed after the system inset (cutout, gesture strip),
-and the free area starts after both.
+On its edge, the column sits **at the window edge, over the system inset** by default (`DockColumnInset.overlap`),
+and the free area starts after the column. The body keeps any part of the inset wider than the column. With
+`DockColumnInset.safeArea` it sits after the inset (cutout, button bar), and the free area starts after both.
+Overlap is the default because iOS reports a landscape inset on both sides, which would push the column far inward
+on the side without a cutout.
 
 | Mode | Chrome on the covered edge | Body rect (inset mode) |
 |------|----------------------------|------------------------|
-| wide, column right | `chrome.right = (systemPadding.right + columnWidth) × visibility` | `[0, width − chrome.right]` |
+| wide, column right | `chrome.right = (columnWidth [+ systemPadding.right with safeArea]) × visibility` | `[0, width − chrome.right]` |
 | wide, column left | mirrored | `[chrome.left, width]` |
 | compact | `chrome.bottom = barHeight × visibility` | `[0, height − bottomReserve]` (section 6.4) |
 
-- The column slot is `systemPadding + columnWidth` wide and gets the system inset as its `MediaQuery.padding` on that
-  edge. Its builder can paint a background under the cutout while its content stays clear of it. Vertically, the
+- With safeArea, the column slot is `systemPadding + columnWidth` wide and gets the system inset as its
+  `MediaQuery.padding` on that edge. With overlap it is `columnWidth` wide and that padding is zero. Its builder can paint a background under the cutout while its content stays clear of it. Vertically, the
   column keeps the system padding (status bar, home indicator).
 - `columnWidth` grows with the text scale (`sideColumnWidth × clamp(textScale, 1, maxColumnScale)`).
 - The bar builder owns the bottom safe area: it gets the system padding in its `MediaQuery` and must include
@@ -653,7 +656,7 @@ DockTestHarness(
 | `breakpoint: 600` | `layoutPolicy: DockLayoutPolicy.breakpoint(600)` |
 | `windowEdges:` / `detectWindowEdges:` | `windowEdgesSource: WindowPlacementEdgesSource()` (separate package) or `DockWindowEdgesSource.fixed(...)` |
 | body under the chrome, obstruction as padding | `bodyMode: DockBodyMode.inset` (default); `overlay` for the old behavior |
-| column overlapped the system inset | column sits after the system inset |
+| column overlapped the system inset | unchanged by default; `columnInset: DockColumnInset.safeArea` places it after |
 | `tapCooldown:` | `tapGuard: DockTapGuard(cooldown: ...)`; cooldown is per action |
 | `DockTab(icon: Icon(...), data: ...)` | `DockTab(id: ..., icon: DockIcon(...), payload: ...)` |
 | `DockAction(icon: Icon(...), pinToBar: true, data: ...)` | `DockAction(icon: DockIcon(...), hoist: DockHoist.never, payload: ...)` |

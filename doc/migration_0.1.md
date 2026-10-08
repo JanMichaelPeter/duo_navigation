@@ -54,8 +54,8 @@ lays the body out beside them (`DockBodyMode.inset`).
   doesn't fill its strip edge to edge (a floating capsule, round chips) sits on the bare, often black, window.
 * To keep the 0.0.1 layout, set `bodyMode: DockBodyMode.overlay` on `DockNavigationData`, a `DockShell` or a
   `DockModalScope`.
-* On its edge, the column now sits after the system inset (cutout, gesture strip) instead of overlapping it, so it
-  is that inset wider in total.
+* On its edge, the column still sits at the window edge, over the system inset. To keep it clear of a cutout or
+  Android's button bar in landscape, set `columnInset: DockColumnInset.safeArea` on `DockNavigationData`.
 * The frame now handles the software keyboard: the column lifts above it (`DockNavigationData.keyboard`), and in
   inset mode the body ends above it, so a page's `Scaffold` no longer needs to resize for it.
 

@@ -101,8 +101,11 @@ typedef DockPageScaffoldBuilder<A, B> =
 ///
 /// Contract:
 /// * **Constraints.** Tight: the column's width and the frame's height.
-/// * **Safe area.** The package keeps the content clear of the system insets
-///   (status bar, home indicator, the cutout on the column's edge).
+/// * **Safe area.** The package keeps the content clear of the status bar
+///   and the home indicator. On the column's own edge it depends on
+///   `DockNavigationData.columnInset`: with `overlap` (the default) the
+///   column is over the system inset and its `MediaQuery.padding` there is
+///   zero; with `safeArea` the content stays clear of it.
 /// * **Keys.** The package wraps the column in `DockKeys.column`.
 typedef DockSideColumnBuilder =
     Widget Function(

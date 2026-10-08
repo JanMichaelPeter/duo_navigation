@@ -375,6 +375,7 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
               columnWidth:
                   config.sideColumnWidth *
                   textScale.clamp(1.0, config.columnTextScaleLimit),
+              columnInset: config.columnInset,
               bodyMode: widget.bodyMode ?? config.bodyMode,
               systemPadding: padding,
               visibility: _shown,
@@ -428,6 +429,7 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
                             ),
                           ),
                     columnOnRight: columnOnRight,
+                    columnInset: config.columnInset,
                     buildChip: (context, action) =>
                         _chip(context, builders, action),
                   ),

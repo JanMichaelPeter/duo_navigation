@@ -155,10 +155,32 @@ void main() {
       expect(rectOf(tester, _plain).right, 1000 - 72);
     });
 
-    testWidgets('the column sits after the system inset on its edge', (
+    testWidgets('the column sits at the edge, over the system inset', (
       tester,
     ) async {
+      // An inset wider than the column: the body keeps the rest of it.
       await pump(tester, _app(padding: const EdgeInsets.only(right: 100)));
+      expect(rectOf(tester, _plain).right, 1000 - 72);
+      expect(geometry(tester).chrome, const EdgeInsets.only(right: 72));
+      expect(bodyMediaQuery(tester).padding.right, 28);
+      expect(bodyMediaQuery(tester).viewPadding.right, 28);
+
+      // A narrower one is covered by the column.
+      await pump(tester, _app(padding: const EdgeInsets.only(right: 40)));
+      expect(rectOf(tester, _plain).right, 1000 - 72);
+      expect(bodyMediaQuery(tester).padding.right, 0);
+    });
+
+    testWidgets('safeArea: the column sits after the system inset', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _app(
+          padding: const EdgeInsets.only(right: 100),
+          data: const DockNavigationData(columnInset: DockColumnInset.safeArea),
+        ),
+      );
       expect(rectOf(tester, _plain).right, 1000 - 100 - 72);
       expect(geometry(tester).chrome, const EdgeInsets.only(right: 172));
       expect(geometry(tester).strip, const EdgeInsets.only(right: 172));

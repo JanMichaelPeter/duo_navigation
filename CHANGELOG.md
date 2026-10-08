@@ -21,8 +21,10 @@ the design is in the
   `Scaffold` pages no longer need `SafeArea` to stay clear of the chrome.
   `DockBodyMode.overlay` on `DockNavigationData`, `DockShell` or
   `DockModalScope` restores the 0.0.1 layout.
-* **BREAKING** On its edge, the side column sits after the system inset
-  (cutout, gesture strip) instead of overlapping it.
+* New `DockNavigationData.columnInset`: the side column sits at the window
+  edge over the system inset on its edge (`DockColumnInset.overlap`, the
+  default, as in 0.0.1) or after it, clear of cutouts and system buttons
+  (`DockColumnInset.safeArea`).
 * New `DockGeometry.of(context)`: the frame's mode, side and chrome per edge,
   with aspects so widgets rebuild only for what they read.
 * A debug error reports a tab bar that is shorter than the bottom safe area.

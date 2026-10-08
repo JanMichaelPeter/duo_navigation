@@ -84,10 +84,26 @@ void main() {
     expect(chip.width, moreOrLessEquals(rail.width));
   });
 
-  testWidgets('column sits inside the safe area, after the side inset', (
+  testWidgets('column sits at the window edge, over the side inset', (
     tester,
   ) async {
     await pumpWide(tester, padding: const EdgeInsets.only(right: 90));
+    final rail = railRect(tester);
+    expect(rail.center.dx, moreOrLessEquals(1000 - 36));
+    expect(chipRect(tester).center.dx, moreOrLessEquals(rail.center.dx));
+    // The column's builders see no inset on its edge.
+    expect(
+      MediaQuery.paddingOf(tester.element(find.byIcon(Icons.home))).right,
+      0,
+    );
+  });
+
+  testWidgets('safeArea: column sits after the side inset', (tester) async {
+    await pumpWide(
+      tester,
+      padding: const EdgeInsets.only(right: 90),
+      data: const DockNavigationData(columnInset: DockColumnInset.safeArea),
+    );
     final rail = railRect(tester);
     // The 72 wide column starts after the 90 inset: 838 .. 910.
     expect(rail.center.dx, moreOrLessEquals(1000 - 90 - 36));

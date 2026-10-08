@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
+import '../config/column_inset.dart';
+
 import '../geometry/body_mode.dart';
 import '../geometry/dock_geometry.dart';
 import '../geometry/layout_mode.dart';
@@ -58,6 +60,7 @@ class DockFrameLayout
     required this.side,
     required this.columnOnRight,
     required this.columnWidth,
+    this.columnInset = DockColumnInset.overlap,
     required this.bodyMode,
     required this.systemPadding,
     required this.visibility,
@@ -81,6 +84,9 @@ class DockFrameLayout
 
   /// The column's width, not counting the system inset on its edge.
   final double columnWidth;
+
+  /// Whether the column sits over the system inset on its edge or after it.
+  final DockColumnInset columnInset;
 
   /// Whether the body is laid out beside the chrome or under it.
   final DockBodyMode bodyMode;
@@ -131,6 +137,7 @@ class DockFrameLayout
     side: side,
     columnOnRight: columnOnRight,
     columnWidth: columnWidth,
+    columnInset: columnInset,
     bodyMode: bodyMode,
     systemPadding: systemPadding,
     visibility: visibility,
@@ -146,6 +153,7 @@ class DockFrameLayout
       ..side = side
       ..columnOnRight = columnOnRight
       ..columnWidth = columnWidth
+      ..columnInset = columnInset
       ..bodyMode = bodyMode
       ..systemPadding = systemPadding
       ..visibility = visibility
@@ -164,6 +172,7 @@ class RenderDockFrame extends RenderBox
     required DockSide side,
     required bool columnOnRight,
     required double columnWidth,
+    DockColumnInset columnInset = DockColumnInset.overlap,
     required DockBodyMode bodyMode,
     required EdgeInsets systemPadding,
     required Animation<double> visibility,
@@ -178,6 +187,7 @@ class RenderDockFrame extends RenderBox
        _side = side,
        _columnOnRight = columnOnRight,
        _columnWidth = columnWidth,
+       _columnInset = columnInset,
        _bodyMode = bodyMode,
        _systemPadding = systemPadding;
 
@@ -241,6 +251,15 @@ class RenderDockFrame extends RenderBox
   set keyboard(double value) {
     if (value == _keyboard) return;
     _keyboard = value;
+    markNeedsLayout();
+  }
+
+  /// See [DockFrameLayout.columnInset].
+  DockColumnInset get columnInset => _columnInset;
+  DockColumnInset _columnInset;
+  set columnInset(DockColumnInset value) {
+    if (value == _columnInset) return;
+    _columnInset = value;
     markNeedsLayout();
   }
 
@@ -317,7 +336,9 @@ class RenderDockFrame extends RenderBox
     final column = _column;
     final bar = _bar;
     if (column != null) {
-      final inset = _columnOnRight ? _systemPadding.right : _systemPadding.left;
+      final inset = _columnInset == DockColumnInset.safeArea
+          ? (_columnOnRight ? _systemPadding.right : _systemPadding.left)
+          : 0.0;
       final width = inset + _columnWidth;
       // Lifted, the column fits above the keyboard, so its bottom-anchored
       // rail and chips ride up with it.
@@ -485,6 +506,7 @@ class RenderDockFrame extends RenderBox
         ),
       )
       ..add(DoubleProperty('columnWidth', _columnWidth))
+      ..add(EnumProperty<DockColumnInset>('columnInset', _columnInset))
       ..add(DiagnosticsProperty<EdgeInsets>('systemPadding', _systemPadding))
       ..add(DoubleProperty('visibility', _shown))
       ..add(DoubleProperty('keyboard', _keyboard));
