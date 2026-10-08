@@ -33,6 +33,7 @@ class DockShell<T, A, B> extends StatelessWidget {
     this.bodyMode,
     this.hoisting,
     this.builders,
+    this.navigationVisible = true,
     required this.child,
   });
 
@@ -68,6 +69,11 @@ class DockShell<T, A, B> extends StatelessWidget {
   /// of the app's; null fields fall back to them.
   final DockBuilders<T, A, B>? builders;
 
+  /// Whether the tab bar or side column shows. False hides it with an
+  /// animation and gives the body the whole frame, for example for a camera,
+  /// a video or onboarding. A page can hide it too (`DockPageScope.visible`).
+  final bool navigationVisible;
+
   /// The tab navigators, for example a `DockTabStack`.
   final Widget child;
 
@@ -83,6 +89,7 @@ class DockShell<T, A, B> extends StatelessWidget {
       bodyMode: bodyMode,
       hoisting: hoisting,
       builders: builders,
+      navigationVisible: navigationVisible,
       child: child,
     );
   }

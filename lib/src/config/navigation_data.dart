@@ -34,6 +34,8 @@ class DockNavigationData {
     this.actionSpacing = 8,
     this.actionAnimationDuration = const Duration(milliseconds: 250),
     this.actionAnimationCurve = Curves.easeOutCubic,
+    this.visibilityDuration = const Duration(milliseconds: 250),
+    this.visibilityCurve = Curves.easeInOutCubic,
     this.tapGuard = const DockTapGuard(),
   });
 
@@ -86,6 +88,13 @@ class DockNavigationData {
   /// Curve of chip in/out animations (flipped when animating out).
   final Curve actionAnimationCurve;
 
+  /// Duration of hiding and showing the navigation. Zero under
+  /// `MediaQuery.disableAnimations`.
+  final Duration visibilityDuration;
+
+  /// Curve of hiding and showing the navigation.
+  final Curve visibilityCurve;
+
   /// Guards action taps against double taps and taps during route
   /// transitions. [DockTapGuard.disabled] lets every tap through.
   final DockTapGuard tapGuard;
@@ -104,6 +113,8 @@ class DockNavigationData {
     double? actionSpacing,
     Duration? actionAnimationDuration,
     Curve? actionAnimationCurve,
+    Duration? visibilityDuration,
+    Curve? visibilityCurve,
     DockTapGuard? tapGuard,
   }) {
     return DockNavigationData(
@@ -121,6 +132,8 @@ class DockNavigationData {
       actionAnimationDuration:
           actionAnimationDuration ?? this.actionAnimationDuration,
       actionAnimationCurve: actionAnimationCurve ?? this.actionAnimationCurve,
+      visibilityDuration: visibilityDuration ?? this.visibilityDuration,
+      visibilityCurve: visibilityCurve ?? this.visibilityCurve,
       tapGuard: tapGuard ?? this.tapGuard,
     );
   }
@@ -139,6 +152,8 @@ class DockNavigationData {
       other.actionSpacing == actionSpacing &&
       other.actionAnimationDuration == actionAnimationDuration &&
       other.actionAnimationCurve == actionAnimationCurve &&
+      other.visibilityDuration == visibilityDuration &&
+      other.visibilityCurve == visibilityCurve &&
       other.tapGuard == tapGuard;
 
   @override
@@ -154,6 +169,8 @@ class DockNavigationData {
     actionSpacing,
     actionAnimationDuration,
     actionAnimationCurve,
+    visibilityDuration,
+    visibilityCurve,
     tapGuard,
   );
 }

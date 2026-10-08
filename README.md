@@ -160,6 +160,16 @@ By default (`DockBodyMode.inset`) the frame lays the body out in the free area: 
 
 **Content under the chrome.** `DockBodyMode.overlay` (on `DockNavigationData`, `DockShell` or `DockModalScope`) lays the body out under the chrome, as nav_dock 0.0.1 did. The chrome is then published as extra `MediaQuery.padding`, so `SafeArea` content stops beside it and everything else (colors, images, maps) runs underneath.
 
+### Hiding the navigation
+
+`DockShell(navigationVisible: false)` (and `DockModalScope`) hides the tab bar or side column with an animation, for full-screen flows such as a camera, video, onboarding or reading. A page can ask for it while it is on top: `DockPage(visible: false)` / `DockPageScope(visible: false)`. Hidden means:
+
+* the body gets the whole frame and `DockGeometry` reports no chrome (`visibility` animates from 1 to 0);
+* the chrome takes no taps, is out of focus traversal and out of the semantics tree;
+* showing it again animates back and keeps the body's state.
+
+`DockNavigationData.visibilityDuration` and `visibilityCurve` set the animation; with reduced motion (`MediaQuery.disableAnimations`) it jumps.
+
 ### Action identity and animation
 
 * `DockAction.back` (and any action with `shared: true`) is matched by `id` across pages. Its widget State survives navigation: no flicker going 4 levels deep and back, and back ↔ close morphs.

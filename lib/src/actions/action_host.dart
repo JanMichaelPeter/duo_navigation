@@ -126,8 +126,12 @@ class DockActionRegistration {
   List<DockAction<Object?>> _actions = const [];
   Route<dynamic>? _route;
   bool _active = false;
+  bool _navigationVisible = true;
   int _serial = 0;
   bool _disposed = false;
+
+  /// Whether this page wants the navigation shown (`DockPageScope.visible`).
+  bool get navigationVisible => _navigationVisible;
 
   /// Actions this page wants in the side column (icon actions, top to bottom).
   List<DockAction<Object?>> get actions => _actions;
@@ -141,14 +145,17 @@ class DockActionRegistration {
     required List<DockAction<Object?>> actions,
     required bool active,
     Route<dynamic>? route,
+    bool navigationVisible = true,
   }) {
     if (_disposed) return;
     final wasActive = _active;
+    final visibilityChanged = navigationVisible != _navigationVisible;
+    _navigationVisible = navigationVisible;
     _actions = actions;
     _route = route;
     _active = active;
     if (active && !wasActive) _serial = ++host._serial;
-    if (active || wasActive) host._markDirty();
+    if (active || wasActive || visibilityChanged) host._markDirty();
   }
 
   /// [action] as builders get it: `onPressed` is null while the action is

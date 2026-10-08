@@ -55,6 +55,7 @@ class DockFrameLayout
     required this.columnWidth,
     required this.bodyMode,
     required this.systemPadding,
+    required this.visibility,
     required this.body,
     this.bar,
     this.column,
@@ -77,6 +78,10 @@ class DockFrameLayout
 
   /// The `MediaQuery.padding` above the frame.
   final EdgeInsets systemPadding;
+
+  /// How far the bar and column are shown, from 0 (hidden) to 1. The render
+  /// object follows it on every tick without a rebuild.
+  final Animation<double> visibility;
 
   /// The page subtree.
   final Widget body;
@@ -105,6 +110,7 @@ class DockFrameLayout
     columnWidth: columnWidth,
     bodyMode: bodyMode,
     systemPadding: systemPadding,
+    visibility: visibility,
   );
 
   @override
@@ -115,7 +121,8 @@ class DockFrameLayout
       ..columnOnRight = columnOnRight
       ..columnWidth = columnWidth
       ..bodyMode = bodyMode
-      ..systemPadding = systemPadding;
+      ..systemPadding = systemPadding
+      ..visibility = visibility;
   }
 }
 
@@ -130,7 +137,9 @@ class RenderDockFrame extends RenderBox
     required double columnWidth,
     required DockBodyMode bodyMode,
     required EdgeInsets systemPadding,
-  }) : _mode = mode,
+    required Animation<double> visibility,
+  }) : _visibility = visibility,
+       _mode = mode,
        _side = side,
        _columnOnRight = columnOnRight,
        _columnWidth = columnWidth,
@@ -191,6 +200,31 @@ class RenderDockFrame extends RenderBox
     markNeedsLayout();
   }
 
+  /// See [DockFrameLayout.visibility].
+  Animation<double> get visibility => _visibility;
+  Animation<double> _visibility;
+  set visibility(Animation<double> value) {
+    if (value == _visibility) return;
+    if (attached) _visibility.removeListener(markNeedsLayout);
+    _visibility = value;
+    if (attached) _visibility.addListener(markNeedsLayout);
+    markNeedsLayout();
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _visibility.addListener(markNeedsLayout);
+  }
+
+  @override
+  void detach() {
+    _visibility.removeListener(markNeedsLayout);
+    super.detach();
+  }
+
+  double get _shown => _visibility.value.clamp(0.0, 1.0);
+
   RenderBox? get _body => childForSlot(DockFrameSlot.body);
   RenderBox? get _bar => childForSlot(DockFrameSlot.bar);
   RenderBox? get _column => childForSlot(DockFrameSlot.column);
@@ -210,16 +244,22 @@ class RenderDockFrame extends RenderBox
     size = constraints.biggest;
 
     var chrome = EdgeInsets.zero;
+    final shown = _shown;
     final column = _column;
     final bar = _bar;
     if (column != null) {
       final inset = _columnOnRight ? _systemPadding.right : _systemPadding.left;
       final width = inset + _columnWidth;
       column.layout(BoxConstraints.tightFor(width: width, height: size.height));
-      _offset(column, Offset(_columnOnRight ? size.width - width : 0, 0));
+      // Hiding slides the column off its edge.
+      final visible = width * shown;
+      _offset(
+        column,
+        Offset(_columnOnRight ? size.width - visible : visible - width, 0),
+      );
       chrome = _columnOnRight
-          ? EdgeInsets.only(right: width)
-          : EdgeInsets.only(left: width);
+          ? EdgeInsets.only(right: visible)
+          : EdgeInsets.only(left: visible);
     } else if (bar != null) {
       bar.layout(
         BoxConstraints(
@@ -230,8 +270,9 @@ class RenderDockFrame extends RenderBox
         parentUsesSize: true,
       );
       final height = bar.size.height;
-      _offset(bar, Offset(0, size.height - height));
-      chrome = EdgeInsets.only(bottom: height);
+      // Hiding slides the bar down.
+      _offset(bar, Offset(0, size.height - height * shown));
+      chrome = EdgeInsets.only(bottom: height * shown);
       assert(() {
         if (!_reportedShortBar &&
             height > 0 &&
@@ -269,6 +310,7 @@ class RenderDockFrame extends RenderBox
       bodyMode: _bodyMode,
       systemPadding: _systemPadding,
       chrome: chrome,
+      visibility: shown,
     );
     final body = _body;
     if (body != null) {
@@ -286,17 +328,53 @@ class RenderDockFrame extends RenderBox
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    for (final child in _paintOrder) {
-      context.paintChild(
-        child,
-        (child.parentData! as BoxParentData).offset + offset,
-      );
+    final body = _body;
+    if (body != null) _paintChild(context, body, offset);
+    final shown = _shown;
+    final chrome = [?_bar, ?_column];
+    if (shown == 0 || shown == 1) _clip.layer = null;
+    if (shown == 0) return; // Hidden chrome is not painted.
+    if (shown == 1) {
+      for (final child in chrome) {
+        _paintChild(context, child, offset);
+      }
+      return;
     }
+    // While sliding, keep the chrome inside the frame.
+    _clip.layer = context.pushClipRect(
+      needsCompositing,
+      offset,
+      Offset.zero & size,
+      (context, offset) {
+        for (final child in chrome) {
+          _paintChild(context, child, offset);
+        }
+      },
+      oldLayer: _clip.layer,
+    );
+  }
+
+  final LayerHandle<ClipRectLayer> _clip = LayerHandle<ClipRectLayer>();
+
+  static void _paintChild(
+    PaintingContext context,
+    RenderBox child,
+    Offset offset,
+  ) => context.paintChild(
+    child,
+    (child.parentData! as BoxParentData).offset + offset,
+  );
+
+  @override
+  void dispose() {
+    _clip.layer = null;
+    super.dispose();
   }
 
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    for (final child in _paintOrder.reversed) {
+    final children = _shown == 0 ? [?_body] : _paintOrder;
+    for (final child in children.reversed) {
       final offset = (child.parentData! as BoxParentData).offset;
       final hit = result.addWithPaintOffset(
         offset: offset,
@@ -323,6 +401,7 @@ class RenderDockFrame extends RenderBox
         ),
       )
       ..add(DoubleProperty('columnWidth', _columnWidth))
-      ..add(DiagnosticsProperty<EdgeInsets>('systemPadding', _systemPadding));
+      ..add(DiagnosticsProperty<EdgeInsets>('systemPadding', _systemPadding))
+      ..add(DoubleProperty('visibility', _shown));
   }
 }
