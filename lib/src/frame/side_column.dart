@@ -29,7 +29,7 @@ class SideColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final builders = DockBuilders.of<Object?, Object?>(context);
+    final builders = DockBuilders.of<Object?, Object?, Object?>(context);
     // The column's slot includes the system inset on its own edge (cutout,
     // gesture strip); the content stays clear of it and of the status bar and
     // home indicator. The opposite edge is not the column's concern.

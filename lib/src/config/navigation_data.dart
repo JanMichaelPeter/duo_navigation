@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../actions/tap_guard.dart';
 import '../geometry/body_mode.dart';
+import '../models/action.dart';
 import '../geometry/layout_policy.dart';
 import '../geometry/side.dart';
 import '../geometry/window_edges_source.dart';
@@ -26,6 +27,7 @@ class DockNavigationData {
     this.side = DockSide.end,
     this.windowEdgesSource,
     this.bodyMode = DockBodyMode.inset,
+    this.hoisting = DockHoisting.iconActions,
     this.sideColumnWidth = 72,
     this.columnTextScaleLimit = 1.5,
     this.sideItemExtent = 56,
@@ -57,6 +59,10 @@ class DockNavigationData {
   /// ([DockBodyMode.overlay]). `DockShell` and `DockModalScope` can override
   /// it.
   final DockBodyMode bodyMode;
+
+  /// Whether icon actions move into the side column in wide mode. `DockShell`,
+  /// `DockModalScope` and `DockPageScope` can override it.
+  final DockHoisting hoisting;
 
   /// Width of the side column. On its edge, the column sits after the system
   /// inset (cutout, gesture strip), so it covers that inset plus this width.
@@ -91,6 +97,7 @@ class DockNavigationData {
     DockSide? side,
     Object? windowEdgesSource = _unset,
     DockBodyMode? bodyMode,
+    DockHoisting? hoisting,
     double? sideColumnWidth,
     double? columnTextScaleLimit,
     double? sideItemExtent,
@@ -106,6 +113,7 @@ class DockNavigationData {
           ? this.windowEdgesSource
           : windowEdgesSource as DockWindowEdgesSource?,
       bodyMode: bodyMode ?? this.bodyMode,
+      hoisting: hoisting ?? this.hoisting,
       sideColumnWidth: sideColumnWidth ?? this.sideColumnWidth,
       columnTextScaleLimit: columnTextScaleLimit ?? this.columnTextScaleLimit,
       sideItemExtent: sideItemExtent ?? this.sideItemExtent,
@@ -124,6 +132,7 @@ class DockNavigationData {
       other.side == side &&
       other.windowEdgesSource == windowEdgesSource &&
       other.bodyMode == bodyMode &&
+      other.hoisting == hoisting &&
       other.sideColumnWidth == sideColumnWidth &&
       other.columnTextScaleLimit == columnTextScaleLimit &&
       other.sideItemExtent == sideItemExtent &&
@@ -138,6 +147,7 @@ class DockNavigationData {
     side,
     windowEdgesSource,
     bodyMode,
+    hoisting,
     sideColumnWidth,
     columnTextScaleLimit,
     sideItemExtent,

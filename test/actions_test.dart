@@ -29,7 +29,8 @@ void main() {
     Widget home, {
     DockLayoutMode mode = DockLayoutMode.wide,
     DockTapGuard tapGuard = const DockTapGuard(clock: DockClock.frameTime),
-    DockBuilders<Object?, Object?>? builders = const DockMaterialBuilders(),
+    DockBuilders<Object?, Object?, Object?>? builders =
+        const DockMaterialBuilders(),
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -46,7 +47,7 @@ void main() {
   }
 
   /// A shell with one nested navigator whose root page is [page].
-  Widget shell(Widget page) => DockShell<Object?, Object?>(
+  Widget shell(Widget page) => DockShell<Object?, Object?, Object?>(
     tabs: _tabs,
     currentIndex: 0,
     onTabSelected: (_) {},
@@ -86,7 +87,7 @@ void main() {
           Builder(
             builder: (context) {
               pageContext = context;
-              return DockPage<Object?>(
+              return DockPage<Object?, Object?>(
                 trailing: [icon('share'), icon('edit')],
                 body: const SizedBox.expand(),
               );
@@ -120,7 +121,7 @@ void main() {
           Builder(
             builder: (context) {
               pageContext = context;
-              return DockPage<Object?>(
+              return DockPage<Object?, Object?>(
                 trailing: [icon('share')],
                 body: const SizedBox.expand(),
               );
@@ -157,7 +158,7 @@ void main() {
           home: Builder(
             builder: (context) {
               pageContext = context;
-              return DockPage<Object?>(
+              return DockPage<Object?, Object?>(
                 trailing: [icon('share', onPressed: () => taps++)],
                 body: const SizedBox.expand(),
               );
@@ -192,7 +193,7 @@ void main() {
           Builder(
             builder: (context) {
               pageContext = context;
-              return DockPage<Object?>(
+              return DockPage<Object?, Object?>(
                 trailing: [icon('share')],
                 body: const SizedBox.expand(),
               );
@@ -202,7 +203,7 @@ void main() {
       );
       Navigator.of(pageContext).push(
         MaterialPageRoute<void>(
-          builder: (_) => DockPage<Object?>(
+          builder: (_) => DockPage<Object?, Object?>(
             trailing: [icon('edit')],
             body: const SizedBox.expand(),
           ),
@@ -225,7 +226,7 @@ void main() {
       await pump(
         tester,
         shell(
-          DockPage<Object?>(
+          DockPage<Object?, Object?>(
             trailing: actions(taps.add),
             body: const SizedBox.expand(),
           ),
@@ -326,7 +327,7 @@ void main() {
         await pump(
           tester,
           shell(
-            DockPage<Object?>(
+            DockPage<Object?, Object?>(
               leading: DockAction<Object?>.back(icon: null, label: 'Cancel'),
               trailing: [icon('share')],
               body: const SizedBox.expand(),
@@ -346,7 +347,7 @@ void main() {
       await pump(
         tester,
         shell(
-          DockPage<Object?>(
+          DockPage<Object?, Object?>(
             trailing: [
               icon('pinned', hoist: DockHoist.never),
               icon('free'),
@@ -376,7 +377,7 @@ void main() {
       );
       Navigator.of(pageContext).push(
         MaterialPageRoute<void>(
-          builder: (_) => DockPage<Object?>(
+          builder: (_) => DockPage<Object?, Object?>(
             trailing: [
               icon('a'),
               icon('b', order: 1),
@@ -414,7 +415,8 @@ void main() {
       );
       Navigator.of(pageContext).push(
         MaterialPageRoute<void>(
-          builder: (_) => const DockPage<Object?>(body: SizedBox.expand()),
+          builder: (_) =>
+              const DockPage<Object?, Object?>(body: SizedBox.expand()),
         ),
       );
       await tester.pumpAndSettle();
@@ -425,17 +427,17 @@ void main() {
 
   group('typed payloads', () {
     Widget typedShell(List<DockAction<Object?>> actions) =>
-        DockShell<Object?, _Spec>(
+        DockShell<Object?, _Spec, Object?>(
           tabs: _tabs,
           currentIndex: 0,
           onTabSelected: (_) {},
-          builders: DockBuilders<Object?, _Spec>(
+          builders: DockBuilders<Object?, _Spec, Object?>(
             action: (context, action, placement) =>
                 Text('${action.payload!.name} ${placement.name}'),
           ),
           child: Navigator(
             onGenerateRoute: (_) => MaterialPageRoute<void>(
-              builder: (_) => DockPage<Object?>(
+              builder: (_) => DockPage<Object?, Object?>(
                 trailing: actions,
                 body: const SizedBox.expand(),
               ),
@@ -454,17 +456,17 @@ void main() {
               mode: mode,
               child: child!,
             ),
-            home: DockShell<Object?, _Spec>(
+            home: DockShell<Object?, _Spec, Object?>(
               tabs: _tabs,
               currentIndex: 0,
               onTabSelected: (_) {},
-              builders: DockBuilders<Object?, _Spec>(
+              builders: DockBuilders<Object?, _Spec, Object?>(
                 action: (context, action, placement) =>
                     Text('${action.payload!.name} ${placement.name}'),
               ),
               child: Navigator(
                 onGenerateRoute: (_) => MaterialPageRoute<void>(
-                  builder: (_) => DockPage<_Spec>(
+                  builder: (_) => DockPage<_Spec, Object?>(
                     trailing: [
                       DockAction<_Spec>(
                         id: 'share',
@@ -527,7 +529,7 @@ void main() {
         shell(
           ValueListenableBuilder(
             valueListenable: which,
-            builder: (context, id, _) => DockPage<Object?>(
+            builder: (context, id, _) => DockPage<Object?, Object?>(
               trailing: [
                 DockAction<Object?>(
                   id: 'fav',

@@ -82,6 +82,20 @@ Unreleased. A redesign; see the
   an identity or a key cross-fade too. `DockMaterial.morphingIcon` takes a
   `DockIcon`.
 * The core library no longer imports Material anywhere.
+* New `DockPageScope`: the page layer as a piece. It registers a page's
+  title and actions and provides `DockBarData.of(context)`, so pages keep
+  their own `Scaffold`, keys, bottom bar or floating action button.
+  `DockPage` is the scope plus the `page` builder.
+* New `DockAppBar` (`package:nav_dock/material.dart`) reads the page's bar
+  data; the Material page uses it.
+* New `DockBarLayout`: leading, title and actions with start/end mirroring,
+  right-to-left and a centered title, with or without a leading action.
+* **BREAKING** Bar payloads: `DockPageScope.barPayload` / `DockPage.barPayload`
+  reach builders as `DockBarData<A, B>.payload`, typed through
+  `DockBuilders<T, A, B>`, `DockShell<T, A, B>` and `DockModalScope<A, B>`.
+* New `DockHoisting.none` (on `DockNavigationData`, `DockShell`,
+  `DockModalScope` and pages): nothing moves into the column, and the bar data
+  is the same in both modes.
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work

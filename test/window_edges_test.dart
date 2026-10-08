@@ -14,7 +14,7 @@ Widget _app(DockNavigationData data) {
       data: data,
       child: child!,
     ),
-    home: DockShell<Object?, Object?>(
+    home: DockShell<Object?, Object?, Object?>(
       tabs: const [
         DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
         DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),

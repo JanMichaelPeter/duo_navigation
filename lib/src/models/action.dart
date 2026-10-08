@@ -38,6 +38,20 @@ enum DockHoist {
   never,
 }
 
+/// Whether actions move into the side column in wide mode at all. Set on
+/// `DockNavigationData`, overridden by `DockShell`, `DockModalScope` and
+/// `DockPageScope`.
+enum DockHoisting {
+  /// Icon actions move into the column (unless they say
+  /// `hoist: DockHoist.never`). The default.
+  iconActions,
+
+  /// Nothing moves: every page keeps all its actions, leading included, in
+  /// its title bar, and the column holds only the rail. The bar data is the
+  /// same in compact and wide mode.
+  none,
+}
+
 /// A navigation action: back, close, share, "Done", …
 ///
 /// [A] is the type of [payload]: app data for custom builders. Builders get it

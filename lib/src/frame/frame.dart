@@ -29,6 +29,7 @@ class DockScope extends InheritedWidget {
     required this.host,
     required this.isModal,
     required this.side,
+    required this.hoisting,
     required super.child,
   });
 
@@ -45,6 +46,10 @@ class DockScope extends InheritedWidget {
   /// True for an [DockModalScope] (no tabs), false inside an DockShell.
   final bool isModal;
 
+  /// Whether icon actions move into the column, for pages that don't decide
+  /// themselves.
+  final DockHoisting hoisting;
+
   /// The nearest scope, or null outside any shell or modal frame.
   static DockScope? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<DockScope>();
@@ -58,14 +63,15 @@ class DockScope extends InheritedWidget {
       mode != oldWidget.mode ||
       host != oldWidget.host ||
       isModal != oldWidget.isModal ||
-      side != oldWidget.side;
+      side != oldWidget.side ||
+      hoisting != oldWidget.hoisting;
 }
 
 /// Decides whether a tab may be selected; see `DockShell.canSelectTab`.
 typedef DockTabVeto = FutureOr<bool> Function(int index);
 
 /// Shared implementation of the shell and modal frames. Not exported.
-class DockFrame<T, A> extends StatefulWidget {
+class DockFrame<T, A, B> extends StatefulWidget {
   const DockFrame({
     super.key,
     required this.isModal,
@@ -76,6 +82,7 @@ class DockFrame<T, A> extends StatefulWidget {
     this.onTabReselected,
     this.canSelectTab,
     this.bodyMode,
+    this.hoisting,
     this.builders,
   });
 
@@ -90,14 +97,17 @@ class DockFrame<T, A> extends StatefulWidget {
   /// Null: [DockNavigationData.bodyMode].
   final DockBodyMode? bodyMode;
 
+  /// Null: [DockNavigationData.hoisting].
+  final DockHoisting? hoisting;
+
   /// Overrides on top of the builders above; null fields fall back to them.
-  final DockBuilders<T, A>? builders;
+  final DockBuilders<T, A, B>? builders;
 
   @override
-  State<DockFrame<T, A>> createState() => _DockFrameState<T, A>();
+  State<DockFrame<T, A, B>> createState() => _DockFrameState<T, A, B>();
 }
 
-class _DockFrameState<T, A> extends State<DockFrame<T, A>> {
+class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>> {
   final DockActionHost _host = DockActionHost();
 
   @override
@@ -141,7 +151,7 @@ class _DockFrameState<T, A> extends State<DockFrame<T, A>> {
 
   List<Widget> _items(
     BuildContext context,
-    DockBuilders<T, A> builders,
+    DockBuilders<T, A, B> builders,
     DockTabsData<T> data,
   ) {
     final count = data.tabs.length;
@@ -169,7 +179,7 @@ class _DockFrameState<T, A> extends State<DockFrame<T, A>> {
   /// Hands a chip's action to the typed action builder.
   Widget _chip(
     BuildContext context,
-    DockBuilders<T, A> builders,
+    DockBuilders<T, A, B> builders,
     DockAction<Object?> action,
   ) {
     if (action is! DockAction<A>) {
@@ -201,7 +211,7 @@ class _DockFrameState<T, A> extends State<DockFrame<T, A>> {
     final ltr = Directionality.of(context) == TextDirection.ltr;
     final columnOnRight = DockNavigation.sideOnRight(context);
     final side = columnOnRight == ltr ? DockSide.end : DockSide.start;
-    final builders = DockBuilders.of<T, A>(context);
+    final builders = DockBuilders.of<T, A, B>(context);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -223,6 +233,7 @@ class _DockFrameState<T, A> extends State<DockFrame<T, A>> {
           host: _host,
           isModal: widget.isModal,
           side: side,
+          hoisting: widget.hoisting ?? config.hoisting,
           child: DockFrameLayout(
             mode: mode,
             side: side,
