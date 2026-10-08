@@ -237,7 +237,7 @@ void main() {
       expect(rectOf(tester, _safe).bottom, 800 - 120);
     });
 
-    testWidgets('the keyboard is reported where it overlaps the body', (
+    testWidgets('the body ends above the keyboard and sees none', (
       tester,
     ) async {
       await pump(
@@ -245,8 +245,9 @@ void main() {
         _app(viewInsets: const EdgeInsets.only(bottom: 300)),
         size: phone,
       );
-      final bar = tester.getRect(find.byType(NavigationBar));
-      expect(bodyMediaQuery(tester).viewInsets.bottom, 300 - bar.height);
+      expect(rectOf(tester, _safe).bottom, 800 - 300);
+      expect(bodyMediaQuery(tester).viewInsets.bottom, 0);
+      expect(geometry(tester).keyboard, 300);
     });
 
     testWidgets('a short bar under a home indicator is reported', (

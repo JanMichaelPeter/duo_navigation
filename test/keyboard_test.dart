@@ -1,0 +1,268 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:nav_dock/material.dart';
+import 'package:nav_dock/nav_dock.dart';
+import 'package:nav_dock/testing.dart';
+
+const _tabs = <DockTab<Object?>>[
+  DockTab(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
+  DockTab(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+];
+
+const _field = Key('field');
+
+void main() {
+  late ValueNotifier<double> keyboard;
+  setUp(() => keyboard = ValueNotifier(0));
+  tearDown(() => keyboard.dispose());
+
+  /// A shell whose page has a 'save' action and a text field, with the
+  /// keyboard height from [keyboard] reported above the app.
+  Future<void> pump(
+    WidgetTester tester, {
+    DockLayoutMode mode = DockLayoutMode.wide,
+    DockKeyboard behavior = const DockKeyboard(),
+    Size size = const Size(800, 600),
+    bool resizingScaffold = false,
+    DockBodyMode bodyMode = DockBodyMode.inset,
+    int actions = 1,
+  }) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    Widget shell = DockShell<Object?, Object?, Object?>(
+      tabs: _tabs,
+      currentIndex: 0,
+      onTabSelected: (_) {},
+      bodyMode: bodyMode,
+      child: Navigator(
+        onGenerateInitialRoutes: (_, _) => [
+          MaterialPageRoute<void>(builder: (_) => const SizedBox()),
+          MaterialPageRoute<void>(
+            builder: (_) => DockPage<Object?, Object?>(
+              title: const Text('Profile'),
+              trailing: [
+                for (var i = 0; i < actions; i++)
+                  DockAction<Object?>(
+                    id: i == 0 ? 'save' : 'a$i',
+                    icon: const DockIcon(Icons.check),
+                    onPressed: () {},
+                  ),
+              ],
+              body: const Align(
+                alignment: Alignment.bottomCenter,
+                child: TextField(key: _field),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (resizingScaffold) {
+      shell = Scaffold(resizeToAvoidBottomInset: true, body: shell);
+    }
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (context, child) => ValueListenableBuilder(
+          valueListenable: keyboard,
+          builder: (context, height, _) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(viewInsets: EdgeInsets.only(bottom: height)),
+            child: DockTestHarness(
+              builders: const DockMaterialBuilders(),
+              mode: mode,
+              data: DockNavigationData(keyboard: behavior),
+              child: child!,
+            ),
+          ),
+        ),
+        home: shell,
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
+  Rect rect(WidgetTester tester, Key key) => tester.getRect(find.byKey(key));
+  Rect rail(WidgetTester tester) => rect(tester, DockKeys.rail);
+  Rect chip(WidgetTester tester) => rect(tester, DockKeys.action('save'));
+
+  group('the column', () {
+    testWidgets('lifts above the keyboard, and is unchanged without one', (
+      tester,
+    ) async {
+      await pump(tester);
+      final railBefore = rail(tester);
+      final chipBefore = chip(tester);
+
+      keyboard.value = 250;
+      await tester.pumpAndSettle();
+      expect(rail(tester).bottom, lessThanOrEqualTo(600 - 250));
+      expect(chip(tester).bottom, lessThanOrEqualTo(rail(tester).top));
+
+      keyboard.value = 0;
+      await tester.pumpAndSettle();
+      expect(rail(tester), railBefore);
+      expect(chip(tester), chipBefore);
+    });
+
+    testWidgets('moves once when an ancestor Scaffold already made room', (
+      tester,
+    ) async {
+      await pump(tester);
+      keyboard.value = 250;
+      await tester.pumpAndSettle();
+      final lifted = rail(tester);
+
+      keyboard.value = 0;
+      await pump(tester, resizingScaffold: true);
+      keyboard.value = 250;
+      await tester.pumpAndSettle();
+      expect(rail(tester), lifted);
+    });
+
+    testWidgets('ignore: stays where it is, under the keyboard', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        behavior: const DockKeyboard(column: DockKeyboardBehavior.ignore),
+      );
+      final before = rail(tester);
+      keyboard.value = 250;
+      await tester.pumpAndSettle();
+      expect(rail(tester), before);
+      expect(rail(tester).bottom, greaterThan(600 - 250));
+    });
+
+    testWidgets('hide: hides while the keyboard is open', (tester) async {
+      await pump(
+        tester,
+        behavior: const DockKeyboard(column: DockKeyboardBehavior.hide),
+      );
+      keyboard.value = 250;
+      await tester.pumpAndSettle();
+      final geometry = DockGeometry.of(tester.element(find.byKey(_field)));
+      expect(geometry.isHidden, isTrue);
+      keyboard.value = 0;
+      await tester.pumpAndSettle();
+      expect(
+        DockGeometry.of(tester.element(find.byKey(_field))).isHidden,
+        isFalse,
+      );
+    });
+
+    testWidgets('a small space above the keyboard does not overflow', (
+      tester,
+    ) async {
+      await pump(tester, size: const Size(800, 400), actions: 6);
+      keyboard.value = 250; // 150 left above it
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      final column = rect(tester, DockKeys.column);
+      expect(column.height, 150);
+      // The rail keeps its place at the bottom of the column.
+      expect(rail(tester).bottom, lessThanOrEqualTo(column.bottom));
+      expect(rail(tester).top, greaterThanOrEqualTo(column.top));
+    });
+
+    testWidgets('follows the keyboard as it animates, keeping the body '
+        'State', (tester) async {
+      await pump(tester);
+      await tester.enterText(find.byKey(_field), 'kept');
+      final state = tester.state(find.byKey(_field));
+      final bottoms = <double>[];
+      for (final height in [50.0, 125.0, 200.0, 250.0]) {
+        keyboard.value = height;
+        await tester.pump();
+        bottoms.add(rail(tester).bottom);
+      }
+      for (var i = 1; i < bottoms.length; i++) {
+        expect(bottoms[i], lessThan(bottoms[i - 1]));
+      }
+      expect(tester.state(find.byKey(_field)), same(state));
+      expect(find.text('kept'), findsOneWidget);
+    });
+  });
+
+  group('the bar', () {
+    const phone = Size(400, 800);
+    Rect bar(WidgetTester tester) => rect(tester, DockKeys.bar);
+
+    testWidgets('ignore (default): covered, the body ends at the keyboard', (
+      tester,
+    ) async {
+      await pump(tester, mode: DockLayoutMode.compact, size: phone);
+      final before = bar(tester);
+      keyboard.value = 300;
+      await tester.pumpAndSettle();
+      expect(bar(tester), before);
+      expect(rect(tester, _field).bottom, lessThanOrEqualTo(800 - 300));
+    });
+
+    testWidgets('lift: sits on the keyboard, the body ends above it', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        mode: DockLayoutMode.compact,
+        size: phone,
+        behavior: const DockKeyboard(bar: DockKeyboardBehavior.lift),
+      );
+      keyboard.value = 300;
+      await tester.pumpAndSettle();
+      expect(bar(tester).bottom, 800 - 300);
+      expect(rect(tester, _field).bottom, lessThanOrEqualTo(bar(tester).top));
+    });
+
+    testWidgets('hide: hidden while the keyboard is open', (tester) async {
+      await pump(
+        tester,
+        mode: DockLayoutMode.compact,
+        size: phone,
+        behavior: const DockKeyboard(bar: DockKeyboardBehavior.hide),
+      );
+      keyboard.value = 300;
+      await tester.pumpAndSettle();
+      expect(
+        DockGeometry.of(tester.element(find.byKey(_field))).isHidden,
+        isTrue,
+      );
+      expect(rect(tester, _field).bottom, 800 - 300);
+    });
+  });
+
+  testWidgets('a page Scaffold in the inset body does not shrink twice', (
+    tester,
+  ) async {
+    await pump(
+      tester,
+      mode: DockLayoutMode.compact,
+      size: const Size(400, 800),
+    );
+    keyboard.value = 300;
+    await tester.pumpAndSettle();
+    // The field sits at the bottom of the page Scaffold's body, which ends
+    // where the frame's body ends: right above the keyboard.
+    expect(rect(tester, _field).bottom, 800 - 300);
+  });
+
+  testWidgets('overlay mode leaves the keyboard to the page', (tester) async {
+    await pump(
+      tester,
+      mode: DockLayoutMode.compact,
+      size: const Size(400, 800),
+      bodyMode: DockBodyMode.overlay,
+    );
+    keyboard.value = 300;
+    await tester.pumpAndSettle();
+    final geometry = DockGeometry.of(tester.element(find.byKey(_field)));
+    expect(geometry.keyboard, 0);
+    // The page's Scaffold sees the keyboard and makes room itself.
+    expect(
+      MediaQuery.viewInsetsOf(tester.element(find.byType(Scaffold))).bottom,
+      300,
+    );
+    expect(rect(tester, _field).bottom, 800 - 300);
+  });
+}

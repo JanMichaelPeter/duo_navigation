@@ -9,6 +9,7 @@ export 'src/actions/action_host.dart'
 export 'src/actions/clock.dart';
 export 'src/actions/tap_guard.dart';
 export 'src/builders/builders.dart';
+export 'src/config/keyboard.dart';
 export 'src/config/navigation.dart';
 export 'src/config/navigation_data.dart';
 export 'src/frame/frame.dart' show DockScope;

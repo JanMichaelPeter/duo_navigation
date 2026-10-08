@@ -154,11 +154,29 @@ By default (`DockBodyMode.inset`) the frame lays the body out in the free area: 
 * Below the frame, `MediaQuery.padding` is zero on the edges the chrome covers and unchanged on the others, so `SafeArea` adds nothing there and still pads the rest.
 * On its edge, the column sits inside the safe area: after a cutout or gesture strip, not over it.
 * The tab bar builder owns the bottom safe area (home indicator): include `MediaQuery.paddingOf(context).bottom` in the bar's height. A debug error reports a bar that is shorter.
+* The body ends above the software keyboard too; see below.
 * `MediaQuery.size` stays the window size, as with Flutter's own sub-screens; use `LayoutBuilder` for the available size.
 
 `DockGeometry.of(context)` tells a page the frame's layout: mode, side, how much the chrome covers per edge. Pass an `aspect` to rebuild only when that part changes.
 
 **Content under the chrome.** `DockBodyMode.overlay` (on `DockNavigationData`, `DockShell` or `DockModalScope`) lays the body out under the chrome, as nav_dock 0.0.1 did. The chrome is then published as extra `MediaQuery.padding`, so `SafeArea` content stops beside it and everything else (colors, images, maps) runs underneath.
+
+### The software keyboard
+
+```dart
+DockNavigationData(
+  keyboard: DockKeyboard(
+    column: DockKeyboardBehavior.lift,  // default: the column fits above the keyboard
+    bar: DockKeyboardBehavior.ignore,   // default: the tab bar is covered
+  ),
+)
+```
+
+* `lift`: the column is laid out in the height above the keyboard, so the rail and the page's actions (save, done, back) stay reachable while typing; the bar sits on top of the keyboard.
+* `hide`: the column or bar hides while the keyboard is open.
+* `ignore`: it stays and is covered, like `Scaffold.bottomNavigationBar`.
+
+In `DockBodyMode.inset` the frame lays the body out above the keyboard and reports no keyboard below it (`DockGeometry.keyboard` says how much it took), so a page's own `Scaffold` does not shrink twice. If an ancestor already made room (a `Scaffold` with `resizeToAvoidBottomInset`), the frame sees no keyboard and nothing moves twice. When space is short, the column keeps the rail and the bottom actions and scrolls the rest.
 
 ### Hiding the navigation
 

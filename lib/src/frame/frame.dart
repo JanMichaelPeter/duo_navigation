@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import '../actions/action_host.dart';
 import '../builders/builders.dart';
 import '../config/navigation.dart';
+import '../config/keyboard.dart';
 import '../config/navigation_data.dart';
 import '../geometry/body_mode.dart';
 import '../geometry/layout_mode.dart';
@@ -112,7 +113,7 @@ class DockFrame<T, A, B> extends StatefulWidget {
 }
 
 class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final DockActionHost _host = DockActionHost();
 
   /// How far the bar and column are shown. Only ticks while they animate.
@@ -120,6 +121,13 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
   /// touch it (it would look up TickerMode on a deactivated element).
   late final AnimationController _visibility;
   late final CurvedAnimation _curved;
+
+  /// Hides the chrome while the keyboard is open, for
+  /// [DockKeyboardBehavior.hide]. Combined with [_visibility] by product.
+  late final AnimationController _keyboardShown;
+  late final CurvedAnimation _keyboardCurved;
+  late final Animation<double> _shown;
+  bool _keyboardHides = false;
   Duration _visibilityDuration = Duration.zero;
 
   /// The shell's and the active page's wish together.
@@ -134,6 +142,12 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
       value: widget.navigationVisible ? 1 : 0,
     );
     _curved = CurvedAnimation(parent: _visibility, curve: Curves.linear);
+    _keyboardShown = AnimationController(vsync: this, value: 1);
+    _keyboardCurved = CurvedAnimation(
+      parent: _keyboardShown,
+      curve: Curves.linear,
+    );
+    _shown = _Product(_curved, _keyboardCurved);
     _host.addListener(_syncVisibility);
   }
 
@@ -143,6 +157,15 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
     if (widget.navigationVisible != oldWidget.navigationVisible) {
       _syncVisibility();
     }
+  }
+
+  /// Starts hiding or showing the chrome for the keyboard. Called during
+  /// layout, where the mode is known; the render object follows the
+  /// animation without a rebuild.
+  void _hideForKeyboard(bool hide) {
+    if (hide == _keyboardHides) return;
+    _keyboardHides = hide;
+    _keyboardShown.animateTo(hide ? 0 : 1, duration: _visibilityDuration);
   }
 
   void _syncVisibility() {
@@ -160,6 +183,8 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
     _host.removeListener(_syncVisibility);
     _curved.dispose();
     _visibility.dispose();
+    _keyboardCurved.dispose();
+    _keyboardShown.dispose();
     _host.dispose();
     super.dispose();
   }
@@ -264,7 +289,8 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
         ? Duration.zero
         : config.visibilityDuration;
     _curved.curve = config.visibilityCurve;
-    final hidden = !_wantsNavigation;
+    _keyboardCurved.curve = config.visibilityCurve;
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -272,6 +298,11 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
           window: window,
           frame: constraints.biggest,
         );
+        final behavior = mode == DockLayoutMode.compact
+            ? config.keyboard.bar
+            : config.keyboard.column;
+        _hideForKeyboard(keyboard > 0 && behavior == DockKeyboardBehavior.hide);
+        final hidden = !_wantsNavigation || _keyboardHides;
         final tabs = widget.tabs == null
             ? null
             : DockTabsData<T>(
@@ -296,7 +327,10 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
                 textScale.clamp(1.0, config.columnTextScaleLimit),
             bodyMode: widget.bodyMode ?? config.bodyMode,
             systemPadding: padding,
-            visibility: _curved,
+            visibility: _shown,
+            keyboard: keyboard,
+            liftColumn: config.keyboard.column == DockKeyboardBehavior.lift,
+            liftBar: config.keyboard.bar == DockKeyboardBehavior.lift,
             // The body keeps its slot in every mode, so switching modes
             // (rotation, split view) keeps its State.
             body: DockBodyScope(child: widget.child),
@@ -359,4 +393,13 @@ class _Inert extends StatelessWidget {
       child: ExcludeSemantics(excluding: inert, child: child),
     ),
   );
+}
+
+/// The product of two animations: shown only while both are.
+class _Product extends CompoundAnimation<double> {
+  _Product(Animation<double> first, Animation<double> next)
+    : super(first: first, next: next);
+
+  @override
+  double get value => first.value * next.value;
 }
