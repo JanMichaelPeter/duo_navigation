@@ -20,6 +20,10 @@ dependencies:
 
 flutter:
   uses-material-design: true
+  # The same iOS setup on every supported Flutter: without it, Flutter 3.35
+  # falls back to CocoaPods with a deployment target current Xcode rejects.
+  config:
+    enable-swift-package-manager: true
 
 dev_dependencies:
   # Tests fake the plugin's platform side.
