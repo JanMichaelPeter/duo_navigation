@@ -9,6 +9,9 @@ import 'package:flutter/widgets.dart';
 /// * With [actionsAtStart] (the side column is at the start edge, see
 ///   `DockBarData.trailingAtStart`): leading, then the actions, then the
 ///   title, so everything the thumb needs sits on the column's side.
+/// * With [leadingAtEnd] (`DockBarData.leadingAtEnd`): the leading action
+///   sits at the end edge, after the actions (a close action at the top
+///   right).
 /// * With [centerTitle]: the title is centered on the whole bar, as far as
 ///   the actions on either side allow.
 ///
@@ -24,6 +27,7 @@ class DockBarLayout extends StatelessWidget {
     this.trailing = const [],
     this.centerTitle = false,
     this.actionsAtStart = false,
+    this.leadingAtEnd = false,
     this.spacing = 16,
     this.edgePadding = 4,
   });
@@ -43,6 +47,9 @@ class DockBarLayout extends StatelessWidget {
   /// Whether the actions sit at the start, after [leading].
   final bool actionsAtStart;
 
+  /// Whether [leading] sits at the end edge instead of the start.
+  final bool leadingAtEnd;
+
   /// The space between the title and the actions on either side.
   final double spacing;
 
@@ -58,6 +65,7 @@ class DockBarLayout extends StatelessWidget {
         textDirection: Directionality.of(context),
         centerTitle: centerTitle,
         actionsAtStart: actionsAtStart,
+        leadingAtEnd: leadingAtEnd,
         spacing: spacing,
         edgePadding: edgePadding,
       ),
@@ -81,6 +89,7 @@ class _BarLayoutDelegate extends MultiChildLayoutDelegate {
     required this.textDirection,
     required this.centerTitle,
     required this.actionsAtStart,
+    required this.leadingAtEnd,
     required this.spacing,
     required this.edgePadding,
   });
@@ -88,6 +97,7 @@ class _BarLayoutDelegate extends MultiChildLayoutDelegate {
   final TextDirection textDirection;
   final bool centerTitle;
   final bool actionsAtStart;
+  final bool leadingAtEnd;
   final double spacing;
   final double edgePadding;
 
@@ -107,8 +117,13 @@ class _BarLayoutDelegate extends MultiChildLayoutDelegate {
 
     if (hasChild(_Part.leading)) {
       final leading = layoutChild(_Part.leading, loose);
-      place(_Part.leading, leading, startEdge);
-      startEdge += leading.width;
+      if (leadingAtEnd) {
+        place(_Part.leading, leading, size.width - endEdge - leading.width);
+        endEdge += leading.width;
+      } else {
+        place(_Part.leading, leading, startEdge);
+        startEdge += leading.width;
+      }
     }
     if (hasChild(_Part.trailing)) {
       final trailing = layoutChild(_Part.trailing, loose);
@@ -145,6 +160,7 @@ class _BarLayoutDelegate extends MultiChildLayoutDelegate {
       textDirection != oldDelegate.textDirection ||
       centerTitle != oldDelegate.centerTitle ||
       actionsAtStart != oldDelegate.actionsAtStart ||
+      leadingAtEnd != oldDelegate.leadingAtEnd ||
       spacing != oldDelegate.spacing ||
       edgePadding != oldDelegate.edgePadding;
 }

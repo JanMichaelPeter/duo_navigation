@@ -88,7 +88,9 @@ typedef DockActionBuilder<A> =
 /// * **Bar.** In wide mode the actions that moved into the column are in
 ///   `bar.hoisted`, not in `bar.leading` / `bar.trailing`. When
 ///   `bar.trailingAtStart` is true the column is at the start edge and the
-///   bar's actions belong at the start too; `DockBarLayout` does this.
+///   bar's actions belong at the start too. When `bar.leadingAtEnd` is
+///   true the leading action belongs at the end edge. `DockBarLayout` does
+///   both.
 /// * **Actions.** Render them with `bar.buildAction`, which applies the
 ///   action builder and the keys.
 /// * **Context.** Called below the page's `DockPageScope`, so widgets in the

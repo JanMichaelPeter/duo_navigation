@@ -47,6 +47,7 @@ class DockPageScope<A, B> extends StatefulWidget {
     this.trailing = const [],
     this.automaticallyImplyLeading = true,
     this.impliedLeading,
+    this.leadingAtEnd = false,
     this.hoisting,
     this.visible = true,
     this.backdrop,
@@ -88,6 +89,12 @@ class DockPageScope<A, B> extends StatefulWidget {
   /// page of a Navigator inside a `DockModalScope`) gets one too, and it
   /// dismisses the modal.
   final DockImpliedLeading? impliedLeading;
+
+  /// Whether the leading action sits at the end of the title bar, after the
+  /// other actions, instead of at the start: a close action at the top right,
+  /// as in iOS sheets. It keeps its back/close identity, and in wide mode it
+  /// is still the lowest chip in the column.
+  final bool leadingAtEnd;
 
   /// Whether this page's icon actions move into the column in wide mode.
   /// Null: the frame's (`DockShell.hoisting`, `DockModalScope.hoisting`,
@@ -205,6 +212,7 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
           trailing: widget.trailing,
           automaticallyImplyLeading: widget.automaticallyImplyLeading,
           impliedLeading: widget.impliedLeading,
+          leadingAtEnd: widget.leadingAtEnd,
           hoisting: widget.hoisting,
           visible: widget.visible,
           backdrop: widget.backdrop,
@@ -267,6 +275,7 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
       ],
       hoisted: wide ? hoisted.map(registration.guarded).toList() : const [],
       sideColumnSide: moves ? scope.side : null,
+      leadingAtEnd: page.leadingAtEnd,
       buildAction: (a, placement) => KeyedSubtree(
         key: DockKeys.action(a.id),
         child: DockActionItem(

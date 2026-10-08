@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nav_dock/material.dart';
-import 'package:nav_dock/nav_dock.dart';
 
 const _wideWindow = Size(1000, 700);
 

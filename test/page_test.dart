@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nav_dock/material.dart';
-import 'package:nav_dock/nav_dock.dart';
 import 'package:nav_dock/testing.dart';
 
 /// A design system's title spec, carried as the bar payload.
@@ -203,6 +203,7 @@ void main() {
       WidgetTester tester, {
       TextDirection direction = TextDirection.ltr,
       bool actionsAtStart = false,
+      bool leadingAtEnd = false,
       bool centerTitle = false,
       bool withLeading = true,
     }) async {
@@ -221,6 +222,7 @@ void main() {
                 trailing: const [SizedBox(key: a, width: 40, height: 40)],
                 centerTitle: centerTitle,
                 actionsAtStart: actionsAtStart,
+                leadingAtEnd: leadingAtEnd,
                 spacing: 16,
                 edgePadding: 4,
               ),
@@ -252,6 +254,20 @@ void main() {
       expect(rect(tester, title).left, 44 + 40 + 16);
     });
 
+    testWidgets('a leading action at the end follows the actions', (
+      tester,
+    ) async {
+      await layout(tester, leadingAtEnd: true);
+      expect(rect(tester, leading).right, 400 - 4);
+      expect(rect(tester, a).right, 400 - 4 - 40);
+      expect(rect(tester, title).left, 4);
+
+      await layout(tester, leadingAtEnd: true, direction: TextDirection.rtl);
+      expect(rect(tester, leading).left, 4);
+      expect(rect(tester, a).left, 44);
+      expect(rect(tester, title).right, 400 - 4);
+    });
+
     testWidgets('mirrors in right-to-left', (tester) async {
       await layout(tester, direction: TextDirection.rtl);
       expect(rect(tester, leading).right, 400 - 4);
@@ -273,6 +289,79 @@ void main() {
       await layout(tester, withLeading: false, actionsAtStart: true);
       expect(rect(tester, a).left, 4);
       expect(rect(tester, title).left, 4 + 40 + 16);
+    });
+  });
+
+  testWidgets('DockAppBar passes AppBar\'s parameters through', (tester) async {
+    const style = SystemUiOverlayStyle.light;
+    const shape = RoundedRectangleBorder();
+    const space = SizedBox(key: Key('space'));
+    await pump(
+      tester,
+      DockPage<Object?, Object?>.custom(
+        title: const Text('Title'),
+        trailing: [_share()],
+        builder: (context, bar) => const Scaffold(
+          appBar: DockAppBar(
+            foregroundColor: Color(0xFF123456),
+            elevation: 3,
+            scrolledUnderElevation: 5,
+            shape: shape,
+            systemOverlayStyle: style,
+            titleTextStyle: TextStyle(fontSize: 31),
+            flexibleSpace: space,
+          ),
+        ),
+      ),
+      mode: DockLayoutMode.compact,
+    );
+    final appBar = tester.widget<AppBar>(find.byType(AppBar));
+    expect(appBar.foregroundColor, const Color(0xFF123456));
+    expect(appBar.elevation, 3);
+    expect(appBar.scrolledUnderElevation, 5);
+    expect(appBar.shape, shape);
+    expect(appBar.systemOverlayStyle, style);
+    expect(appBar.titleTextStyle?.fontSize, 31);
+    expect(find.byKey(const Key('space')), findsOneWidget);
+    // The foreground color reaches the action icons too.
+    expect(
+      IconTheme.of(tester.element(find.byIcon(Icons.share))).color,
+      const Color(0xFF123456),
+    );
+  });
+
+  group('leading at the end', () {
+    Widget sheet() => DockPage<Object?, Object?>(
+      title: const Text('Sheet'),
+      leading: DockAction<Object?>.close(onPressed: () {}),
+      leadingAtEnd: true,
+      trailing: [_share()],
+      body: const SizedBox.expand(),
+    );
+
+    testWidgets('compact: the close action sits at the end of the bar', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        shellWithPushed(sheet()),
+        mode: DockLayoutMode.compact,
+      );
+      final bar = tester.getRect(find.byType(AppBar));
+      final close = tester.getRect(_inBar(_action(DockAction.backId)));
+      final share = tester.getRect(_inBar(_action('share')));
+      expect(close.right, greaterThan(share.right));
+      expect(close.right, closeTo(bar.right, 8));
+      expect(tester.getRect(find.text('Sheet')).left, lessThan(share.left));
+    });
+
+    testWidgets('wide: it is still the lowest chip in the column', (
+      tester,
+    ) async {
+      await pump(tester, shellWithPushed(sheet()));
+      final close = tester.getRect(_inColumn(_action(DockAction.backId)));
+      final share = tester.getRect(_inColumn(_action('share')));
+      expect(close.top, greaterThan(share.top));
     });
   });
 

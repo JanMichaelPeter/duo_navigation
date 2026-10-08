@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:nav_dock/nav_dock.dart';
 
 /// An immersive page: while it is shown the tab bar or side column hides
-/// (`visible: false`), and comes back when it is popped.
+/// (`visible: false`), and comes back when it is popped. Its close button
+/// sits at the top right (`leadingAtEnd`) and stays in the title bar in wide
+/// mode too (`DockHoisting.none`), since the column is hidden.
 class CameraPage extends StatelessWidget {
   const CameraPage({super.key});
 
@@ -10,6 +12,8 @@ class CameraPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return DockPage(
       visible: false,
+      hoisting: DockHoisting.none,
+      leadingAtEnd: true,
       leading: DockAction.close(
         onPressed: () => Navigator.of(context).pop(),
       ),

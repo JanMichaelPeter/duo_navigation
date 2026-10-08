@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:nav_dock/material.dart';
-import 'package:nav_dock/nav_dock.dart';
 
 /// A complete custom look, built only from the public builder hooks.
 ///

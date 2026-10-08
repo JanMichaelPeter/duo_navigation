@@ -37,8 +37,7 @@ flutter pub add nav_dock_window_placement   # optional: follow the window to the
 ## Quick start
 
 ```dart
-import 'package:nav_dock/material.dart'; // the Material visuals
-import 'package:nav_dock/nav_dock.dart';
+import 'package:nav_dock/material.dart'; // nav_dock and its Material visuals
 
 MaterialApp(
   // Above the root Navigator, so root-level modals see it too.
@@ -142,7 +141,7 @@ GoRoute(
 
 ## Pages and actions
 
-**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. `impliedLeading: DockImpliedLeading.close` on a `DockModalScope` or a page asks for close on any other route (a custom modal route, a sheet-like page). Pass `leading` to change it, for example a text-only `DockAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode.
+**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. `impliedLeading: DockImpliedLeading.close` on a `DockModalScope` or a page asks for close on any other route (a custom modal route, a sheet-like page). Pass `leading` to change it, for example a text-only `DockAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the title bar, after the other actions: the close button at the top right of an iOS-style sheet. In wide mode it is still the lowest chip in the column.
 
 **An action** has an `id` (`find.byKey(DockKeys.action(id))` finds it), an icon as `DockIcon` (`DockIcon.back` and `DockIcon.close` follow the platform) and/or a `label`, and optionally:
 
@@ -170,7 +169,7 @@ DockPageScope(
 )
 ```
 
-`DockPage.custom(builder: (context, bar) => ...)` builds the whole page from `DockBarData` (slivers, large titles, floating bars). `DockBarLayout` lays out a custom bar's leading action, title and actions, with the actions following the column to the start edge (`bar.trailingAtStart`), right-to-left and a centered title. `barPayload` passes page data to the bar builder, typed (`bar.payload`).
+`DockPage.custom(builder: (context, bar) => ...)` builds the whole page from `DockBarData` (slivers, large titles, floating bars). `DockBarLayout` lays out a custom bar's leading action, title and actions, with the actions following the column to the start edge (`bar.trailingAtStart`), the leading action at the end (`bar.leadingAtEnd`), right-to-left and a centered title. `DockAppBar` passes `AppBar`'s colors, elevation, shape, `systemOverlayStyle`, `titleTextStyle`, `flexibleSpace` and `bottom` through. `barPayload` passes page data to the bar builder, typed (`bar.payload`).
 
 **Keeping actions in the bar.** `DockHoisting.none` (on `DockNavigationData`, `DockShell`, `DockModalScope` or a page) moves nothing into the column: every page keeps all its actions, back included, in its title bar, and the bar data is the same in both modes.
 
@@ -303,6 +302,8 @@ DockNavigation(
 * **Contracts.** Each builder typedef documents what it gets and what it owns: constraints, safe area, keys (the package applies `DockKeys`), semantics and animation. Tab containers mark themselves with `DockTabBarSemantics` (Material's `NavigationBar` does it itself); custom `sideColumn` builders can use `DockSideColumnLayout`. A builder that no scope sets fails with an error naming it.
 * **Typed payloads.** `DockShell<MyTab, MyAction, MyBar>` with `DockBuilders<MyTab, MyAction, MyBar>` gives the builders `DockTab<MyTab>`, `DockAction<MyAction>` and `DockBarData<MyAction, MyBar>`, so they read `payload` without a cast. Builders written for `Object?`, such as `DockMaterialBuilders`, work for any payload types; builders for other types fail with an error naming the field.
 * `DockMaterial.*` are the plain functions behind the defaults; wrap them instead of rewriting.
+* **Icons.** `DockIconMorph(icon:, builder:)` cross-fades an action's icon when it changes (back → close) with your own icon rendering; `DockMaterial.morphingIcon` is it with Material icons.
+* **Bars built from data.** A bar that builds its own children from `tabs.tabs` wraps each with `tabs.wrap(i, child)` (the package's keys and semantics) and taps through `tabs.itemData(i).onTap`.
 
 `example/` uses a fully custom look (`example/lib/style/custom_style.dart`): a capsule tab bar, one tab item for bar and rail, square chips, its own column layout and chip transition.
 
@@ -338,7 +339,7 @@ await tester.tap(find.byKey(DockKeys.action('share')));
 |---|---|
 | `package:nav_dock/nav_dock.dart` | everything an app needs: configuration, shell, tabs, pages, actions, builders, keys, semantics; includes `geometry.dart` |
 | `package:nav_dock/geometry.dart` | read-only layout: `DockGeometry`, layout mode, side, body mode, window edges and their source, layout policy, and `DockBleed` / `DockInset` / `DockBleedItem`; no page, action or builder types |
-| `package:nav_dock/material.dart` | the Material visuals: `DockMaterialBuilders`, `DockMaterial`, `DockAppBar` |
+| `package:nav_dock/material.dart` | the Material visuals (`DockMaterialBuilders`, `DockMaterial`, `DockAppBar`), and everything in `nav_dock.dart` |
 | `package:nav_dock/testing.dart` | `DockTestHarness`, `FakeWindowEdgesSource`, `FakeDockClock`, `DockKeys` |
 | `package:nav_dock_window_placement` | `WindowPlacementEdgesSource` (separate package with the native plugin) |
 

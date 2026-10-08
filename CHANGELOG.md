@@ -88,13 +88,19 @@ the design is in the
 * **BREAKING** `DockAction.back` takes a `label` and can be text-only
   ("Cancel"); a text-only leading action stays in the bar in every mode. New
   `DockAction.close`, with the same identity as back, so the two morph.
+  `DockIcon.back` and `DockIcon.close` are resolved by the builders
+  (`DockMaterial.icon`). New `DockIconMorph(icon:, builder:)` cross-fades an
+  icon when it changes, with any icon rendering; `DockMaterial.morphingIcon`
+  uses it.
 * New `DockImpliedLeading` (`impliedLeading` on `DockModalScope`,
   `DockPageScope` and `DockPage`): close or back instead of the default
   (close only for full-screen dialogs). A modal's first page, also the first
   page of a `Navigator` inside a `DockModalScope`, gets an implied action that
   dismisses the modal.
-  `DockIcon.back` and `DockIcon.close` are resolved by the builders
-  (`DockMaterial.icon`).
+* New `leadingAtEnd` on `DockPageScope` and `DockPage`
+  (`DockBarData.leadingAtEnd`): the leading action sits at the end of the
+  title bar, such as a close button at the top right; in wide mode it is
+  still the lowest chip.
 * **BREAKING** The tap guard's cooldown applies per action, so different
   actions no longer block each other. `DockTapGuard.onRejected` reports each
   dropped tap with a reason; rejections are logged in debug mode.
@@ -109,9 +115,16 @@ the design is in the
   their own `Scaffold`, keys, bottom bar or floating action button.
   `DockPage` is the scope plus the `page` builder.
 * New `DockAppBar` (`package:nav_dock/material.dart`) reads the page's bar
-  data; the Material page uses it.
+  data; the Material page uses it. It passes `AppBar`'s `backgroundColor`,
+  `foregroundColor`, `elevation`, `scrolledUnderElevation`, `shape`,
+  `systemOverlayStyle`, `titleTextStyle`, `flexibleSpace` and `bottom`
+  through.
+* `package:nav_dock/material.dart` exports `package:nav_dock/nav_dock.dart`,
+  so a Material app needs one import (drop the second one, the analyzer
+  reports it as unnecessary).
 * New `DockBarLayout`: leading, title and actions with start/end mirroring,
-  right-to-left and a centered title, with or without a leading action.
+  right-to-left and a centered title, with or without a leading action, and
+  the leading action at the end (`leadingAtEnd`).
 * **BREAKING** Bar payloads: `DockPageScope.barPayload` / `DockPage.barPayload`
   reach builders as `DockBarData<A, B>.payload`, typed through
   `DockBuilders<T, A, B>`, `DockShell<T, A, B>` and `DockModalScope<A, B>`.
