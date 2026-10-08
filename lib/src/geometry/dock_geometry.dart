@@ -13,8 +13,8 @@ enum DockGeometryAspect {
   /// [DockGeometry.side] and [DockGeometry.columnOnRight].
   side,
 
-  /// [DockGeometry.chrome], [DockGeometry.strip], [DockGeometry.bodyMode] and
-  /// [DockGeometry.systemPadding].
+  /// [DockGeometry.chrome], [DockGeometry.strip], [DockGeometry.bodyMode],
+  /// [DockGeometry.systemPadding] and [DockGeometry.keyboard].
   chrome,
 
   /// [DockGeometry.visibility].
@@ -38,6 +38,7 @@ class DockGeometry {
     required this.systemPadding,
     required this.chrome,
     this.visibility = 1,
+    this.keyboard = 0,
   });
 
   /// Compact (bottom bar) or wide (side column).
@@ -59,13 +60,20 @@ class DockGeometry {
 
   /// The area of the frame the bar or column covers, per edge. In wide mode
   /// the column sits after the system inset on its edge, so its entry is the
-  /// system inset plus the column width. It shrinks with [visibility] and is
-  /// zero while the navigation is hidden.
+  /// system inset plus the column width. For a bar lifted above the keyboard,
+  /// the bottom entry reaches from the frame's bottom to the bar's top. It
+  /// shrinks with [visibility] and is zero while the navigation is hidden.
   final EdgeInsets chrome;
 
   /// How far the navigation is shown: 1 shown, 0 hidden, in between while it
   /// animates (`DockShell.navigationVisible`, `DockPageScope.visible`).
   final double visibility;
+
+  /// The keyboard height the frame took from the body: the open software
+  /// keyboard in [DockBodyMode.inset], zero in [DockBodyMode.overlay] (there
+  /// the page's `Scaffold` handles it). Below the frame, `MediaQuery` reports
+  /// no keyboard in inset mode.
+  final double keyboard;
 
   /// Whether the navigation is fully hidden.
   bool get isHidden => visibility == 0;
@@ -112,7 +120,8 @@ class DockGeometry {
       other.bodyMode == bodyMode &&
       other.systemPadding == systemPadding &&
       other.chrome == chrome &&
-      other.visibility == visibility;
+      other.visibility == visibility &&
+      other.keyboard == keyboard;
 
   @override
   int get hashCode => Object.hash(
@@ -123,6 +132,7 @@ class DockGeometry {
     systemPadding,
     chrome,
     visibility,
+    keyboard,
   );
 
   @override
@@ -130,7 +140,7 @@ class DockGeometry {
       'DockGeometry(${mode.name}, side: ${side.name}, '
       'columnOnRight: $columnOnRight, bodyMode: ${bodyMode.name}, '
       'systemPadding: $systemPadding, chrome: $chrome, '
-      'visibility: $visibility)';
+      'visibility: $visibility, keyboard: $keyboard)';
 }
 
 /// Provides a [DockGeometry] to a frame's body. Frames insert it; it is not
@@ -164,7 +174,8 @@ class DockGeometryScope extends InheritedModel<DockGeometryAspect> {
         DockGeometryAspect.chrome =>
           a.chrome != b.chrome ||
               a.bodyMode != b.bodyMode ||
-              a.systemPadding != b.systemPadding,
+              a.systemPadding != b.systemPadding ||
+              a.keyboard != b.keyboard,
         DockGeometryAspect.visibility => a.visibility != b.visibility,
       },
     );

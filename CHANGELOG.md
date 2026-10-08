@@ -103,6 +103,13 @@ Unreleased. A redesign; see the
   body gets the whole frame, and hidden chrome takes no taps, focus or
   semantics. `DockGeometry.visibility` and `DockGeometryAspect.visibility`
   follow the animation.
+* The software keyboard: `DockNavigationData.keyboard` with a
+  `DockKeyboardBehavior` (`lift`, `hide`, `ignore`) for the column (default
+  `lift`: rail and chips stay above the keyboard) and the bar (default
+  `ignore`). In `DockBodyMode.inset` the frame lays the body out above the
+  keyboard and reports none below it, so a page `Scaffold` does not shrink
+  twice; `DockGeometry.keyboard` tells how much it took. An ancestor that
+  already made room is respected.
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work

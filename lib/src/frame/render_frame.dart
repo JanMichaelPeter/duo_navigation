@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -56,6 +58,9 @@ class DockFrameLayout
     required this.bodyMode,
     required this.systemPadding,
     required this.visibility,
+    this.keyboard = 0,
+    this.liftColumn = false,
+    this.liftBar = false,
     required this.body,
     this.bar,
     this.column,
@@ -82,6 +87,16 @@ class DockFrameLayout
   /// How far the bar and column are shown, from 0 (hidden) to 1. The render
   /// object follows it on every tick without a rebuild.
   final Animation<double> visibility;
+
+  /// The software keyboard's height (`MediaQuery.viewInsets.bottom` above the
+  /// frame).
+  final double keyboard;
+
+  /// Whether the column is laid out in the height above the keyboard.
+  final bool liftColumn;
+
+  /// Whether the bar sits on top of the keyboard.
+  final bool liftBar;
 
   /// The page subtree.
   final Widget body;
@@ -111,6 +126,9 @@ class DockFrameLayout
     bodyMode: bodyMode,
     systemPadding: systemPadding,
     visibility: visibility,
+    keyboard: keyboard,
+    liftColumn: liftColumn,
+    liftBar: liftBar,
   );
 
   @override
@@ -122,7 +140,10 @@ class DockFrameLayout
       ..columnWidth = columnWidth
       ..bodyMode = bodyMode
       ..systemPadding = systemPadding
-      ..visibility = visibility;
+      ..visibility = visibility
+      ..keyboard = keyboard
+      ..liftColumn = liftColumn
+      ..liftBar = liftBar;
   }
 }
 
@@ -138,7 +159,13 @@ class RenderDockFrame extends RenderBox
     required DockBodyMode bodyMode,
     required EdgeInsets systemPadding,
     required Animation<double> visibility,
+    double keyboard = 0,
+    bool liftColumn = false,
+    bool liftBar = false,
   }) : _visibility = visibility,
+       _keyboard = keyboard,
+       _liftColumn = liftColumn,
+       _liftBar = liftBar,
        _mode = mode,
        _side = side,
        _columnOnRight = columnOnRight,
@@ -200,6 +227,33 @@ class RenderDockFrame extends RenderBox
     markNeedsLayout();
   }
 
+  /// See [DockFrameLayout.keyboard].
+  double get keyboard => _keyboard;
+  double _keyboard;
+  set keyboard(double value) {
+    if (value == _keyboard) return;
+    _keyboard = value;
+    markNeedsLayout();
+  }
+
+  /// See [DockFrameLayout.liftColumn].
+  bool get liftColumn => _liftColumn;
+  bool _liftColumn;
+  set liftColumn(bool value) {
+    if (value == _liftColumn) return;
+    _liftColumn = value;
+    markNeedsLayout();
+  }
+
+  /// See [DockFrameLayout.liftBar].
+  bool get liftBar => _liftBar;
+  bool _liftBar;
+  set liftBar(bool value) {
+    if (value == _liftBar) return;
+    _liftBar = value;
+    markNeedsLayout();
+  }
+
   /// See [DockFrameLayout.visibility].
   Animation<double> get visibility => _visibility;
   Animation<double> _visibility;
@@ -245,12 +299,20 @@ class RenderDockFrame extends RenderBox
 
     var chrome = EdgeInsets.zero;
     final shown = _shown;
+    final keyboard = math.min(_keyboard, size.height);
     final column = _column;
     final bar = _bar;
     if (column != null) {
       final inset = _columnOnRight ? _systemPadding.right : _systemPadding.left;
       final width = inset + _columnWidth;
-      column.layout(BoxConstraints.tightFor(width: width, height: size.height));
+      // Lifted, the column fits above the keyboard, so its bottom-anchored
+      // rail and chips ride up with it.
+      column.layout(
+        BoxConstraints.tightFor(
+          width: width,
+          height: _liftColumn ? size.height - keyboard : size.height,
+        ),
+      );
       // Hiding slides the column off its edge.
       final visible = width * shown;
       _offset(
@@ -270,9 +332,10 @@ class RenderDockFrame extends RenderBox
         parentUsesSize: true,
       );
       final height = bar.size.height;
-      // Hiding slides the bar down.
-      _offset(bar, Offset(0, size.height - height * shown));
-      chrome = EdgeInsets.only(bottom: height * shown);
+      // Lifted, the bar sits on top of the keyboard. Hiding slides it down.
+      final base = _liftBar ? keyboard : 0.0;
+      _offset(bar, Offset(0, size.height - base - height * shown));
+      chrome = EdgeInsets.only(bottom: shown == 0 ? 0 : base + height * shown);
       assert(() {
         if (!_reportedShortBar &&
             height > 0 &&
@@ -311,10 +374,15 @@ class RenderDockFrame extends RenderBox
       systemPadding: _systemPadding,
       chrome: chrome,
       visibility: shown,
+      keyboard: _bodyMode == DockBodyMode.inset ? keyboard : 0,
     );
     final body = _body;
     if (body != null) {
-      final rect = geometry.strip.deflateRect(Offset.zero & size);
+      // In inset mode the body ends above the chrome and above the keyboard.
+      final strip = geometry.strip;
+      final rect = strip
+          .copyWith(bottom: math.max(strip.bottom, geometry.keyboard))
+          .deflateRect(Offset.zero & size);
       body.layout(DockFrameConstraints.tight(rect.size, geometry: geometry));
       _offset(body, rect.topLeft);
     }
@@ -402,6 +470,7 @@ class RenderDockFrame extends RenderBox
       )
       ..add(DoubleProperty('columnWidth', _columnWidth))
       ..add(DiagnosticsProperty<EdgeInsets>('systemPadding', _systemPadding))
-      ..add(DoubleProperty('visibility', _shown));
+      ..add(DoubleProperty('visibility', _shown))
+      ..add(DoubleProperty('keyboard', _keyboard));
   }
 }
