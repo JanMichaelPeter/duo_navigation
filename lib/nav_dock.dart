@@ -12,6 +12,7 @@ export 'src/config/column_inset.dart';
 export 'src/config/keyboard.dart';
 export 'src/config/navigation.dart';
 export 'src/config/navigation_data.dart';
+export 'src/config/standalone.dart';
 export 'src/frame/modal_scope.dart';
 export 'src/frame/shell.dart';
 export 'src/frame/side_column_layout.dart';

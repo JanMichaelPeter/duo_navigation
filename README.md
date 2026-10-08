@@ -85,6 +85,8 @@ Each level works without the ones above it, so an app can adopt nav_dock step by
 | 2 | `DockPage` / `DockPageScope` and actions | actions moving into the column, or not (`DockHoisting.none`) |
 | 3 | custom builders, typed payloads, backdrops, bleed | your design system |
 
+Pages, shells and modal frames need a `DockNavigation` above them and fail loudly without one. Where a migrated page can also be shown outside the migrated part of the app (a route pushed by a plugin or a second `MaterialApp`), wrap it in `DockStandalone(builders: const DockMaterialBuilders(), child: page)`: it provides a compact `DockNavigation` there, and does nothing below the app's own.
+
 ## Tabs
 
 A `DockTab` has an `id` (`find.byKey(DockKeys.tab(id))` finds it), icons as `DockIcon` descriptors (`DockIcon(Icons.x)`, `.image`, `.widget`), and optionally a `badge` (`DockBadge.count`, `.text`, `.dot`), `tooltip`, `semanticLabel`, `key` and a typed `payload` for custom builders.
@@ -315,7 +317,7 @@ edges.push(const DockWindowEdges(left: true, right: false)); // split screen
 await tester.tap(find.byKey(DockKeys.action('share')));
 ```
 
-`DockTestHarness` replaces `DockNavigation` in a test. Its tap guard follows the frames, so `tester.pump(duration)` lets the cooldown pass and tests never wait on real time (`DockTapGuard.disabled` turns it off, `FakeDockClock` controls it directly). `DockKeys.bar`, `.column`, `.rail`, `.tab(id)` and `.action(id)` find the chrome whatever builder draws it.
+`DockTestHarness` replaces `DockNavigation` in a test (also for pages that use `DockStandalone`: below the harness it does nothing). Its tap guard follows the frames, so `tester.pump(duration)` lets the cooldown pass and tests never wait on real time (`DockTapGuard.disabled` turns it off, `FakeDockClock` controls it directly). `DockKeys.bar`, `.column`, `.rail`, `.tab(id)` and `.action(id)` find the chrome whatever builder draws it.
 
 ## Libraries and API stability
 

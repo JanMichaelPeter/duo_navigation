@@ -16,7 +16,9 @@ the design is in the
   your own source. Without a source the preferred `side` is used.
 * **BREAKING** `DockNavigation.of` throws a `FlutterError` when there is no
   `DockNavigation` above, instead of silently using defaults. Use
-  `DockNavigation.maybeOf` where none is expected.
+  `DockNavigation.maybeOf` where none is expected, and the new
+  `DockStandalone` around content that may be shown without one: it provides
+  a compact `DockNavigation` there and does nothing below an existing one.
 * **BREAKING** The body is laid out beside the tab bar and side column
   (`DockBodyMode.inset`, the new default) instead of under them. Plain
   `Scaffold` pages no longer need `SafeArea` to stay clear of the chrome.
