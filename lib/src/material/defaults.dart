@@ -8,6 +8,7 @@ import '../tabs/tab_item.dart';
 import '../models/action.dart';
 import '../models/dock_badge.dart';
 import '../models/dock_icon.dart';
+import '../models/icon_morph.dart';
 import '../models/bar_data.dart';
 import '../models/enums.dart';
 import '../models/tabs_data.dart';
@@ -226,12 +227,13 @@ abstract final class DockMaterial {
     };
   }
 
-  /// [icon] that cross-fades when it changes (back → close, star → filled
-  /// star). Icons are told apart by [DockIcon.identity], so rebuilding the
-  /// same icon doesn't restart the animation; give custom widget icons an
-  /// identity (`DockIcon.widget(w, identity: ...)`) or a key. With reduced
-  /// motion it swaps without animating.
-  static Widget morphingIcon(DockIcon icon) => _MorphingIcon(icon);
+  /// [icon] as a Material icon that cross-fades when it changes (back →
+  /// close, star → filled star): [DockIconMorph] with [DockMaterial.icon].
+  /// Use [DockIconMorph] directly to render the icons your own way.
+  static Widget morphingIcon(DockIcon icon) => DockIconMorph(
+    icon: icon,
+    builder: (context, icon) => DockMaterial.icon(icon),
+  );
 
   /// A [Scaffold] with a [DockAppBar]. When the side column is at the start
   /// edge, the bar's actions move to the start too, so everything sits on
@@ -288,27 +290,4 @@ abstract final class DockMaterial {
   /// the pages.
   static Widget backdrop(BuildContext context) =>
       ColoredBox(color: Theme.of(context).scaffoldBackgroundColor);
-}
-
-class _MorphingIcon extends StatelessWidget {
-  const _MorphingIcon(this.icon);
-
-  final DockIcon icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: MediaQuery.disableAnimationsOf(context)
-          ? Duration.zero
-          : const Duration(milliseconds: 200),
-      transitionBuilder: (child, animation) => ScaleTransition(
-        scale: animation,
-        child: FadeTransition(opacity: animation, child: child),
-      ),
-      child: KeyedSubtree(
-        key: ValueKey<Object>(icon.identity),
-        child: DockMaterial.icon(icon),
-      ),
-    );
-  }
 }

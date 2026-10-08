@@ -22,6 +22,7 @@ export 'src/models/bar_data.dart' show DockActionWidgetBuilder, DockBarData;
 export 'src/models/dock_badge.dart';
 export 'src/models/dock_icon.dart';
 export 'src/models/enums.dart';
+export 'src/models/icon_morph.dart';
 export 'src/models/tab.dart';
 export 'src/models/tabs_data.dart';
 export 'src/page.dart';

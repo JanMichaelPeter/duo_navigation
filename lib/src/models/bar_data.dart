@@ -31,6 +31,7 @@ class DockBarData<A, B> {
     required this.trailing,
     required this.hoisted,
     this.sideColumnSide,
+    this.leadingAtEnd = false,
     required DockActionWidgetBuilder<A> buildAction,
   }) : _buildAction = buildAction;
 
@@ -59,6 +60,12 @@ class DockBarData<A, B> {
   /// Edge the side column is on when actions move into it; null otherwise
   /// (compact mode, or hoisting off).
   final DockSide? sideColumnSide;
+
+  /// Whether [leading] belongs at the end of the bar, after the actions (a
+  /// close action at the top right, as in iOS sheets), from
+  /// `DockPageScope.leadingAtEnd`. `DockBarLayout` handles it.
+  final bool leadingAtEnd;
+
   final DockActionWidgetBuilder<A> _buildAction;
 
   /// Whether the layout is [DockLayoutMode.wide].

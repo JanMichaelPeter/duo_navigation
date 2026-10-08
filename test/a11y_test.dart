@@ -3,7 +3,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nav_dock/material.dart';
-import 'package:nav_dock/nav_dock.dart';
 import 'package:nav_dock/testing.dart';
 
 const _tabs = <DockTab<Object?>>[

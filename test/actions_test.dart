@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nav_dock/material.dart';
-import 'package:nav_dock/nav_dock.dart';
 import 'package:nav_dock/testing.dart';
 
 /// A design system's action spec, carried as a typed payload.
@@ -549,6 +548,45 @@ void main() {
       expect(find.text('icon b'), findsOneWidget);
       await tester.pumpAndSettle();
       expect(find.text('icon a'), findsNothing);
+    });
+
+    group('DockIconMorph', () {
+      Widget morph(String id, {bool reduceMotion = false}) => MediaQuery(
+        data: MediaQueryData(disableAnimations: reduceMotion),
+        child: Directionality(
+          textDirection: TextDirection.ltr,
+          child: DockIconMorph(
+            icon: DockIcon.widget(const SizedBox(), identity: id),
+            // A design system's own rendering.
+            builder: (context, icon) => Text('drawn ${icon.identity}'),
+          ),
+        ),
+      );
+
+      testWidgets('uses the builder and cross-fades a new identity', (
+        tester,
+      ) async {
+        await tester.pumpWidget(morph('a'));
+        expect(find.text('drawn a'), findsOneWidget);
+
+        await tester.pumpWidget(morph('a')); // same identity: no animation
+        expect(tester.binding.hasScheduledFrame, isFalse);
+
+        await tester.pumpWidget(morph('b'));
+        await tester.pump(const Duration(milliseconds: 100));
+        expect(find.text('drawn a'), findsOneWidget);
+        expect(find.text('drawn b'), findsOneWidget);
+        await tester.pumpAndSettle();
+        expect(find.text('drawn a'), findsNothing);
+      });
+
+      testWidgets('swaps at once with reduced motion', (tester) async {
+        await tester.pumpWidget(morph('a', reduceMotion: true));
+        await tester.pumpWidget(morph('b', reduceMotion: true));
+        await tester.pump();
+        expect(find.text('drawn a'), findsNothing);
+        expect(find.text('drawn b'), findsOneWidget);
+      });
     });
 
     test('platform icons have no widget of their own', () {

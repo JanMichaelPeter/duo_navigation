@@ -18,7 +18,7 @@ between the compact and the wide layout.
 | **Map** | `DockPage.custom`: the map runs under the tab bar and the side column (`DockBleed`), the floating title bar uses `DockBarLayout` |
 | **Profile** | `DockPageScope` with its own `Scaffold` and `DockAppBar`, a gradient `backdrop` under the chrome |
 | Profile → **Settings** | a plain `Scaffold` page with its own `AppBar`, no page layer; it reads the layout from `geometry.dart` |
-| Profile → **Camera** | an immersive page: `DockPage(visible: false)` hides the navigation |
+| Profile → **Camera** | an immersive page: `DockPage(visible: false)` hides the navigation; the close button sits at the top right (`leadingAtEnd`) and stays in the bar (`DockHoisting.none`) |
 | Profile → **Edit** | a modal with a text "Cancel" leading action and text fields (the column lifts above the keyboard) |
 | Profile → **Setup flow** | a multi-step modal with its own navigator (`DockModalScope`): the close chip morphs into back |
 | `tabs_home.dart` | typed tab payloads (`DockTab<TabAccent>`) and builders for one shell (`DockShell(builders: ...)`) |

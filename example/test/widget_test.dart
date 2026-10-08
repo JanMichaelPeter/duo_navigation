@@ -136,7 +136,11 @@ void main() {
     final camera = tester.element(find.byIcon(Icons.camera_alt_outlined));
     expect(DockGeometry.of(camera).isHidden, isTrue);
 
-    Navigator.of(camera).pop();
+    // The close button stays reachable in the bar, at the top right.
+    final close = inAppBar(find.byIcon(Icons.close));
+    expect(tester.getRect(close).right,
+        greaterThan(tester.getRect(find.byType(AppBar)).width - 64));
+    await tester.tap(close);
     await tester.pumpAndSettle();
     expect(
       DockGeometry.of(tester.element(find.text('Camera'))).isHidden,

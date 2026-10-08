@@ -30,6 +30,7 @@ class DockPage<A, B> extends StatelessWidget {
     this.trailing = const [],
     this.automaticallyImplyLeading = true,
     this.impliedLeading,
+    this.leadingAtEnd = false,
     this.hoisting,
     this.visible = true,
     this.backdrop,
@@ -45,6 +46,7 @@ class DockPage<A, B> extends StatelessWidget {
     this.trailing = const [],
     this.automaticallyImplyLeading = true,
     this.impliedLeading,
+    this.leadingAtEnd = false,
     this.hoisting,
     this.visible = true,
     this.backdrop,
@@ -68,6 +70,9 @@ class DockPage<A, B> extends StatelessWidget {
 
   /// See [DockPageScope.impliedLeading].
   final DockImpliedLeading? impliedLeading;
+
+  /// See [DockPageScope.leadingAtEnd].
+  final bool leadingAtEnd;
 
   /// See [DockPageScope.hoisting].
   final DockHoisting? hoisting;
@@ -93,6 +98,7 @@ class DockPage<A, B> extends StatelessWidget {
       trailing: trailing,
       automaticallyImplyLeading: automaticallyImplyLeading,
       impliedLeading: impliedLeading,
+      leadingAtEnd: leadingAtEnd,
       hoisting: hoisting,
       visible: visible,
       backdrop: backdrop,
