@@ -1,6 +1,6 @@
 # nav_dock 0.1.0 architecture
 
-Status: proposed · Tracking: #42 · This document: #4
+Status: accepted, implemented in 0.1.0 · Tracking: #42 · This document: #4
 
 0.1.0 is a redesign of nav_dock. This document fixes the model the 0.1.0 issues build on: what the package owns, how
 the frame lays out the body and the chrome, how configuration and visuals are provided, and how payloads are typed.
