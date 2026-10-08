@@ -4,6 +4,7 @@
 library;
 
 export 'geometry.dart';
+export 'src/a11y/semantics.dart';
 export 'src/actions/action_host.dart'
     show DockActionHost, DockActionRegistration;
 export 'src/actions/clock.dart';

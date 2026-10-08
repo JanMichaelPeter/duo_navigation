@@ -8,6 +8,7 @@ import '../config/navigation.dart';
 import '../models/action.dart';
 import '../keys.dart';
 import 'action_host.dart';
+import 'action_item.dart';
 import 'action_presence.dart';
 import 'merge_order.dart';
 
@@ -124,6 +125,9 @@ class _DockActionColumnState extends State<DockActionColumn> {
     return result;
   }
 
+  Widget _chip(BuildContext context, DockAction<Object?> action) =>
+      _chipItem(widget.buildChip(context, action), action);
+
   void _remove(Object key) {
     if (!mounted) return;
     setState(() => _items.removeWhere((i) => i.key == key && !i.visible));
@@ -145,7 +149,9 @@ class _DockActionColumnState extends State<DockActionColumn> {
                 key: ValueKey<Object>(item.key),
                 visible: item.visible,
                 animateIn: item.animateIn,
-                duration: config.actionAnimationDuration,
+                duration: MediaQuery.disableAnimationsOf(context)
+                    ? Duration.zero
+                    : config.actionAnimationDuration,
                 curve: config.actionAnimationCurve,
                 transitionBuilder: builders.buildActionTransition,
                 onDismissed: () => _remove(item.key),
@@ -158,13 +164,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
                   child: Center(
                     child: KeyedSubtree(
                       key: DockKeys.action(item.action.id),
-                      child: _withAppKey(
-                        item.action,
-                        widget.buildChip(
-                          context,
-                          item.owner.guarded(item.action),
-                        ),
-                      ),
+                      child: _chip(context, item.owner.guarded(item.action)),
                     ),
                   ),
                 ),
@@ -176,8 +176,5 @@ class _DockActionColumnState extends State<DockActionColumn> {
   }
 }
 
-/// Puts the action's own key (`DockAction.key`) around [child].
-Widget _withAppKey(DockAction<Object?> action, Widget child) {
-  final key = action.key;
-  return key == null ? child : KeyedSubtree(key: key, child: child);
-}
+Widget _chipItem(Widget chip, DockAction<Object?> action) =>
+    DockActionItem(action: action, child: chip);

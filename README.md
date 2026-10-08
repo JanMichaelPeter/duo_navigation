@@ -209,6 +209,15 @@ In `DockBodyMode.inset` the frame lays the body out above the keyboard and repor
 
 `DockNavigationData.visibilityDuration` and `visibilityCurve` set the animation; with reduced motion (`MediaQuery.disableAnimations`) it jumps.
 
+### Accessibility
+
+* **Semantics are the package's.** Every tab item gets the tab role, its selected state, its label, the badge as value, its position ("Tab 2 of 3") and a tap action; every action is a button with its label, enabled state, badge and tap action. The package replaces whatever semantics the builder draws, so custom builders can't drop them by mistake (such as the tap action lost by `Semantics(excludeSemantics: true, ...)`). `DockSemantics.tab` and `DockSemantics.action` build the same nodes for items you draw outside the package's wrappers.
+* **Localized strings** come from the builders: `DockBuilders.tabPosition` and `DockBuilders.actionLabel` (labels for the implied back and close actions). `DockMaterialBuilders` uses `MaterialLocalizations`.
+* **Order.** Focus traversal and the semantics order are the same in both modes: the page first, then the column's actions (top to bottom) and the rail, or the tab bar.
+* **Layout switches keep focus.** When rotating or unfolding switches the layout, focus moves from a rail tab to the same tab in the bar (and back), and from a column chip to the same action in the title bar.
+* **Reduced motion** (`MediaQuery.disableAnimations`) turns the package's animations off: hiding, chips, icon morphs, backdrops.
+* The Material defaults meet the Android tap-target (48 dp) and labeled-tap-target guidelines in both modes, and the column grows with the text scale.
+
 ### Action identity and animation
 
 * `DockAction.back` (and any action with `shared: true`) is matched by `id` across pages. Its widget State survives navigation: no flicker going 4 levels deep and back, and back ↔ close morphs.

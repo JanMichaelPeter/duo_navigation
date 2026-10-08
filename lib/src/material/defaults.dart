@@ -36,6 +36,8 @@ class DockMaterialBuilders<T, A, B> extends DockBuilders<T, A, B> {
         page: DockMaterial.page,
         sideColumn: DockMaterial.sideColumn,
         actionTransition: DockMaterial.actionTransition,
+        tabPosition: DockMaterial.tabPosition,
+        actionLabel: DockMaterial.actionLabel,
       );
 }
 
@@ -206,23 +208,29 @@ abstract final class DockMaterial {
         _ => icon.toWidget(size: size, color: color),
       };
 
+  /// "Tab 2 of 3", from [MaterialLocalizations.tabLabel].
+  static String tabPosition(BuildContext context, int index, int count) =>
+      MaterialLocalizations.of(
+        context,
+      ).tabLabel(tabIndex: index + 1, tabCount: count);
+
+  /// "Back" or "Close" for the implied leading actions, from
+  /// [MaterialLocalizations]; null for other actions without a label.
+  static String? actionLabel(BuildContext context, DockAction<Object?> action) {
+    final l10n = MaterialLocalizations.of(context);
+    return switch (action.role) {
+      DockActionRole.back => l10n.backButtonTooltip,
+      DockActionRole.close => l10n.closeButtonTooltip,
+      _ => null,
+    };
+  }
+
   /// [icon] that cross-fades when it changes (back → close, star → filled
   /// star). Icons are told apart by [DockIcon.identity], so rebuilding the
   /// same icon doesn't restart the animation; give custom widget icons an
-  /// identity (`DockIcon.widget(w, identity: ...)`) or a key.
-  static Widget morphingIcon(DockIcon icon) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 200),
-      transitionBuilder: (child, animation) => ScaleTransition(
-        scale: animation,
-        child: FadeTransition(opacity: animation, child: child),
-      ),
-      child: KeyedSubtree(
-        key: ValueKey<Object>(icon.identity),
-        child: DockMaterial.icon(icon),
-      ),
-    );
-  }
+  /// identity (`DockIcon.widget(w, identity: ...)`) or a key. With reduced
+  /// motion it swaps without animating.
+  static Widget morphingIcon(DockIcon icon) => _MorphingIcon(icon);
 
   /// A [Scaffold] with a [DockAppBar]. When the side column is at the start
   /// edge, the bar's actions move to the start too, so everything sits on
@@ -271,6 +279,29 @@ abstract final class DockMaterial {
             child: child,
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _MorphingIcon extends StatelessWidget {
+  const _MorphingIcon(this.icon);
+
+  final DockIcon icon;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 200),
+      transitionBuilder: (child, animation) => ScaleTransition(
+        scale: animation,
+        child: FadeTransition(opacity: animation, child: child),
+      ),
+      child: KeyedSubtree(
+        key: ValueKey<Object>(icon.identity),
+        child: DockMaterial.icon(icon),
       ),
     );
   }

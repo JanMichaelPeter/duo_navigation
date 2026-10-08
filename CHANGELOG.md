@@ -118,6 +118,14 @@ Unreleased. A redesign; see the
   (also in `geometry.dart`): single components run under the column and the
   bar while the body stays beside them; `DockBleed.insetOf(context)` returns
   the strip. A debug message names an ancestor that clips a bleed.
+* Accessibility: actions get package-owned semantics like tabs (button,
+  label, enabled, badge, tap); tabs announce their position. New
+  `DockSemantics.tab` / `DockSemantics.action` and the localizable
+  `DockBuilders.tabPosition` / `DockBuilders.actionLabel` (Material uses
+  `MaterialLocalizations`). Focus and semantics order is page, then column
+  actions and rail, or the tab bar, in both modes. A layout switch keeps
+  focus on the same tab or action. Reduced motion turns off the chips' and
+  the icon morph's animations too.
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work

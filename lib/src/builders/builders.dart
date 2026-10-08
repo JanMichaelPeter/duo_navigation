@@ -124,6 +124,17 @@ typedef DockActionTransitionBuilder =
       Widget child,
     );
 
+/// The position of a tab for assistive technology, such as "Tab 2 of 3".
+/// [index] counts from 0.
+typedef DockTabPositionLabel =
+    String Function(BuildContext context, int index, int count);
+
+/// A label for assistive technology for an action that has no
+/// `semanticLabel`, `tooltip` or `label` of its own (such as the implied back
+/// and close actions), or null.
+typedef DockActionLabel =
+    String? Function(BuildContext context, DockAction<Object?> action);
+
 /// Every visual of nav_dock: tab items, the tab bar, the rail, actions, the
 /// page's scaffold, the side column's arrangement and the chips' transition.
 ///
@@ -151,6 +162,8 @@ class DockBuilders<T, A, B> {
     this.page,
     this.sideColumn,
     this.actionTransition,
+    this.tabPosition,
+    this.actionLabel,
   });
 
   /// One tab item, in the bar or in the rail.
@@ -173,6 +186,12 @@ class DockBuilders<T, A, B> {
 
   /// How chips appear in and disappear from the column.
   final DockActionTransitionBuilder? actionTransition;
+
+  /// The localized position of a tab, read after its label. Null: none.
+  final DockTabPositionLabel? tabPosition;
+
+  /// Localized labels for actions without one of their own. Null: none.
+  final DockActionLabel? actionLabel;
 
   /// These builders with [other]'s non-null fields on top.
   ///
@@ -205,6 +224,8 @@ class DockBuilders<T, A, B> {
         page: page ?? below.page,
         sideColumn: sideColumn ?? below.sideColumn,
         actionTransition: actionTransition ?? below.actionTransition,
+        tabPosition: tabPosition ?? below.tabPosition,
+        actionLabel: actionLabel ?? below.actionLabel,
       );
 
   /// These builders for tabs of type [S], actions of type [P] and bar
@@ -231,6 +252,8 @@ class DockBuilders<T, A, B> {
       page: fit<DockPageScaffoldBuilder<P, Q>>(page, 'page'),
       sideColumn: sideColumn,
       actionTransition: actionTransition,
+      tabPosition: tabPosition,
+      actionLabel: actionLabel,
     );
   }
 
@@ -242,6 +265,8 @@ class DockBuilders<T, A, B> {
     page,
     sideColumn,
     actionTransition,
+    tabPosition,
+    actionLabel,
   ];
 
   /// The effective builders at [context] for tabs of type [T], actions of
@@ -371,6 +396,8 @@ class _WithDropped<T, A, B> extends DockBuilders<T, A, B> {
         page: builders.page,
         sideColumn: builders.sideColumn,
         actionTransition: builders.actionTransition,
+        tabPosition: builders.tabPosition,
+        actionLabel: builders.actionLabel,
       );
 
   final Map<String, Type> _droppedFields;

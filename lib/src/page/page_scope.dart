@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../actions/action_host.dart';
+import '../actions/action_item.dart';
 import '../builders/builders.dart';
 import '../frame/frame.dart';
 import '../frame/modal_scope.dart';
@@ -220,14 +221,13 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
       ],
       hoisted: wide ? hoisted.map(registration.guarded).toList() : const [],
       sideColumnSide: moves ? scope.side : null,
-      buildAction: (a, placement) {
-        final key = a.key;
-        final built = builders.buildAction(context, a, placement);
-        return KeyedSubtree(
-          key: DockKeys.action(a.id),
-          child: key == null ? built : KeyedSubtree(key: key, child: built),
-        );
-      },
+      buildAction: (a, placement) => KeyedSubtree(
+        key: DockKeys.action(a.id),
+        child: DockActionItem(
+          action: a,
+          child: builders.buildAction(context, a, placement),
+        ),
+      ),
     );
     return DockBarDataScope(data: bar, child: page.child);
   }
