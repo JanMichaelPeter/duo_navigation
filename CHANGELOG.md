@@ -2,6 +2,8 @@
 
 A redesign of nav_dock. Upgrading: see the
 [migration guide](https://github.com/JanMichaelPeter/nav_dock/blob/main/doc/migration_0.1.md);
+adding it to an existing app: see
+[adopting nav_dock](https://github.com/JanMichaelPeter/nav_dock/blob/main/doc/adopting.md);
 the design is in the
 [architecture document](https://github.com/JanMichaelPeter/nav_dock/blob/main/doc/design/architecture.md).
 

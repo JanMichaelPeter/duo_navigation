@@ -1,5 +1,7 @@
 # Migrating from nav_dock 0.0.1 to 0.1.0
 
+(Adding nav_dock to an app that didn't use it? See [adopting nav_dock in an existing app](adopting.md).)
+
 0.1.0 is a redesign. Most apps change their setup, their tab and action declarations, and their custom builders;
 pages built with `DockPage` mostly keep working. Work through the sections below in order.
 
