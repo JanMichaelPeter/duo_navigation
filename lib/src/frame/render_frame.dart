@@ -11,6 +11,9 @@ import '../geometry/side.dart';
 
 /// The frame's children.
 enum DockFrameSlot {
+  /// Painted across the whole frame, under the body and the chrome.
+  backdrop,
+
   /// The page subtree. Always present, so a mode switch never remounts it.
   body,
 
@@ -62,6 +65,7 @@ class DockFrameLayout
     this.liftColumn = false,
     this.liftBar = false,
     required this.body,
+    this.backdrop,
     this.bar,
     this.column,
   });
@@ -101,6 +105,9 @@ class DockFrameLayout
   /// The page subtree.
   final Widget body;
 
+  /// The backdrop, under everything.
+  final Widget? backdrop;
+
   /// The tab bar, compact mode.
   final Widget? bar;
 
@@ -112,6 +119,7 @@ class DockFrameLayout
 
   @override
   Widget? childForSlot(DockFrameSlot slot) => switch (slot) {
+    DockFrameSlot.backdrop => backdrop,
     DockFrameSlot.body => body,
     DockFrameSlot.bar => mode == DockLayoutMode.compact ? bar : null,
     DockFrameSlot.column => mode == DockLayoutMode.wide ? column : null,
@@ -279,12 +287,13 @@ class RenderDockFrame extends RenderBox
 
   double get _shown => _visibility.value.clamp(0.0, 1.0);
 
+  RenderBox? get _backdrop => childForSlot(DockFrameSlot.backdrop);
   RenderBox? get _body => childForSlot(DockFrameSlot.body);
   RenderBox? get _bar => childForSlot(DockFrameSlot.bar);
   RenderBox? get _column => childForSlot(DockFrameSlot.column);
 
-  /// Children in paint order: the body first, so the chrome is drawn over it.
-  List<RenderBox> get _paintOrder => [?_body, ?_bar, ?_column];
+  /// Children in paint order: backdrop, body, then the chrome over them.
+  List<RenderBox> get _paintOrder => [?_backdrop, ?_body, ?_bar, ?_column];
 
   bool _reportedShortBar = false;
 
@@ -296,6 +305,11 @@ class RenderDockFrame extends RenderBox
       'bounded constraints. Got $constraints.',
     );
     size = constraints.biggest;
+    final backdrop = _backdrop;
+    if (backdrop != null) {
+      backdrop.layout(BoxConstraints.tight(size));
+      _offset(backdrop, Offset.zero);
+    }
 
     var chrome = EdgeInsets.zero;
     final shown = _shown;
@@ -396,6 +410,8 @@ class RenderDockFrame extends RenderBox
 
   @override
   void paint(PaintingContext context, Offset offset) {
+    final backdrop = _backdrop;
+    if (backdrop != null) _paintChild(context, backdrop, offset);
     final body = _body;
     if (body != null) _paintChild(context, body, offset);
     final shown = _shown;
@@ -441,7 +457,7 @@ class RenderDockFrame extends RenderBox
 
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    final children = _shown == 0 ? [?_body] : _paintOrder;
+    final children = _shown == 0 ? [?_backdrop, ?_body] : _paintOrder;
     for (final child in children.reversed) {
       final offset = (child.parentData! as BoxParentData).offset;
       final hit = result.addWithPaintOffset(

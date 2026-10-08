@@ -86,6 +86,7 @@ class DockFrame<T, A, B> extends StatefulWidget {
     this.hoisting,
     this.builders,
     this.navigationVisible = true,
+    this.backdrop,
   });
 
   final bool isModal;
@@ -107,6 +108,10 @@ class DockFrame<T, A, B> extends StatefulWidget {
 
   /// Whether the bar and column show; pages can hide them too.
   final bool navigationVisible;
+
+  /// Painted across the whole frame under everything, unless the active page
+  /// has its own.
+  final Widget? backdrop;
 
   @override
   State<DockFrame<T, A, B>> createState() => _DockFrameState<T, A, B>();
@@ -157,6 +162,27 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
     if (widget.navigationVisible != oldWidget.navigationVisible) {
       _syncVisibility();
     }
+  }
+
+  /// The active page's backdrop, else the frame's; a change of owner
+  /// cross-fades.
+  Widget _backdrop(DockNavigationData config) {
+    final page = _host.active;
+    final pageBackdrop = page?.backdrop;
+    final Object owner = pageBackdrop != null ? page! : 'frame';
+    final child = pageBackdrop ?? widget.backdrop;
+    return AnimatedSwitcher(
+      duration: _visibilityDuration == Duration.zero
+          ? Duration.zero
+          : config.actionAnimationDuration,
+      // Backdrops fill the frame, also while two of them cross-fade.
+      layoutBuilder: (current, previous) =>
+          Stack(fit: StackFit.expand, children: [...previous, ?current]),
+      child: KeyedSubtree(
+        key: ValueKey<Object>(child == null ? 'none' : owner),
+        child: child ?? const SizedBox.expand(),
+      ),
+    );
   }
 
   /// Starts hiding or showing the chrome for the keyboard. Called during
@@ -334,6 +360,10 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
             // The body keeps its slot in every mode, so switching modes
             // (rotation, split view) keeps its State.
             body: DockBodyScope(child: widget.child),
+            backdrop: ListenableBuilder(
+              listenable: _host,
+              builder: (context, _) => _backdrop(config),
+            ),
             bar: tabs == null || mode != DockLayoutMode.compact
                 ? null
                 : KeyedSubtree(

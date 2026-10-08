@@ -31,6 +31,7 @@ class DockPage<A, B> extends StatelessWidget {
     this.automaticallyImplyLeading = true,
     this.hoisting,
     this.visible = true,
+    this.backdrop,
     required Widget this.body,
   }) : builder = null;
 
@@ -44,6 +45,7 @@ class DockPage<A, B> extends StatelessWidget {
     this.automaticallyImplyLeading = true,
     this.hoisting,
     this.visible = true,
+    this.backdrop,
     required DockPageBuilder<A, B> this.builder,
   }) : body = null;
 
@@ -68,6 +70,9 @@ class DockPage<A, B> extends StatelessWidget {
   /// See [DockPageScope.visible].
   final bool visible;
 
+  /// See [DockPageScope.backdrop].
+  final Widget? backdrop;
+
   /// Page content below the title bar (default constructor).
   final Widget? body;
 
@@ -84,6 +89,7 @@ class DockPage<A, B> extends StatelessWidget {
       automaticallyImplyLeading: automaticallyImplyLeading,
       hoisting: hoisting,
       visible: visible,
+      backdrop: backdrop,
       child: Builder(
         builder: (context) {
           final bar = DockBarData.of<A, B>(context);

@@ -110,6 +110,14 @@ Unreleased. A redesign; see the
   keyboard and reports none below it, so a page `Scaffold` does not shrink
   twice; `DockGeometry.keyboard` tells how much it took. An ancestor that
   already made room is respected.
+* Backdrops: `DockShell.backdrop`, `DockModalScope.backdrop` and per page
+  `DockPageScope.backdrop` / `DockPage.backdrop` paint one widget across the
+  whole frame, under body and chrome; a page's replaces the frame's while it
+  is shown and cross-fades.
+* New `DockBleed`, `DockInset`, `DockBleedItem` and `DockInset.wrapAll`
+  (also in `geometry.dart`): single components run under the column and the
+  bar while the body stays beside them; `DockBleed.insetOf(context)` returns
+  the strip. A debug message names an ancestor that clips a bleed.
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work
