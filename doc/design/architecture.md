@@ -557,16 +557,17 @@ activation, not an interactive back swipe.
 - It is a no-op when the strip is zero (overlay mode, hidden navigation, outside a frame) and inside another bleed.
   The tree shape never changes, so state survives mode switches.
 - It is a `RenderShiftedBox`, with intrinsics and dry layout. It adds no layers and no `saveLayer`.
-- Pointer events in the strip go to the chrome (it paints above). `DockBleed(hitTestStrip: true)` lets them reach
-  the child where the chrome is transparent or hidden.
+- Pointer events in the strip go to the chrome (it paints above), not to the child: the frame hit-tests its body
+  only within the body's bounds. Interactive content belongs in a `DockInset`.
+- `column` and `bar` turn the two directions off for content that doesn't touch that edge.
 
 **Inset.** `DockInset` is the inverse: inside a bleed, it pads its child back by the strip and removes that padding
 from `MediaQuery`. It is a no-op outside a bleed.
 
-**Scroll views** clip at their bounds. `DockBleed.scroll(child: ListView(clipBehavior: Clip.none, ...))` clips the
-scroll view to its own rect widened by the strip on the chrome side only. `DockInset.wrapAll(children)` insets
-every child except the ones wrapped in `DockBleedItem`, so a bleeding header in a list of inset rows needs no custom
-render object.
+**Scroll views** clip at their bounds, so one item can't bleed out of a list. Wrap the scroll view instead:
+`DockBleed(child: ListView(...))` lays the whole viewport out widened, and its own clip then includes the strip.
+`DockInset.wrapAll(children)` insets every child except the ones wrapped in `DockBleedItem`, so a bleeding header in a
+list of inset rows needs no custom render object.
 
 **What clips a bleed:** `ClipRect`, scroll views with their default clip, `Material` with a clip, and `Navigator`
 (`clipBehavior` defaults to `Clip.hardEdge`). `Stack` and `IndexedStack` don't. `DockTabStack` doesn't clip. A

@@ -161,6 +161,27 @@ By default (`DockBodyMode.inset`) the frame lays the body out in the free area: 
 
 **Content under the chrome.** `DockBodyMode.overlay` (on `DockNavigationData`, `DockShell` or `DockModalScope`) lays the body out under the chrome, as nav_dock 0.0.1 did. The chrome is then published as extra `MediaQuery.padding`, so `SafeArea` content stops beside it and everything else (colors, images, maps) runs underneath.
 
+### Content under the chrome
+
+With the body beside the chrome, three things run under it on purpose:
+
+* **A backdrop** for the whole frame: `DockShell(backdrop: ...)` (and `DockModalScope`) paints one widget across the window, under the body, the bar and the column. A page's own `DockPage(backdrop: ...)` / `DockPageScope(backdrop: ...)` replaces it while the page is shown, cross-fading. It covers background gradients and pictures, and no clip can cut it.
+* **A bleed** for single components: `DockBleed(child: ...)` widens its child toward the column and the bar while keeping its own size, so a hero image, a carousel or a map runs to the window edge and its siblings stay beside the chrome. Inside it, `MediaQuery.padding` covers the strip, so `SafeArea` and list padding keep text clear; `DockInset` does the same for one child. It does nothing in overlay mode, while the navigation is hidden, or inside another bleed. `DockBleed.insetOf(context)` returns the strip for painters and custom layouts.
+* **A bleeding list**: wrap the scroll view, not an item in it, and mark what bleeds:
+
+```dart
+DockBleed(
+  child: ListView(
+    children: DockInset.wrapAll([
+      DockBleedItem(child: Image.asset('hero.webp', fit: BoxFit.cover)), // runs to the edge
+      const ListTile(title: Text('Details')),                           // stays beside the column
+    ]),
+  ),
+)
+```
+
+What clips a bleed: `ClipRect` and other clips, scroll views around it, and a `Navigator` (give it `clipBehavior: Clip.none`). `Stack`, `IndexedStack` and `DockTabStack` don't. In debug mode a message names the first clipping ancestor. Taps in the strip go to the chrome, so keep interactive content in a `DockInset`.
+
 ### The software keyboard
 
 ```dart

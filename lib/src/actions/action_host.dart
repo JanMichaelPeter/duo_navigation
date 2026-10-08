@@ -127,11 +127,15 @@ class DockActionRegistration {
   Route<dynamic>? _route;
   bool _active = false;
   bool _navigationVisible = true;
+  Widget? _backdrop;
   int _serial = 0;
   bool _disposed = false;
 
   /// Whether this page wants the navigation shown (`DockPageScope.visible`).
   bool get navigationVisible => _navigationVisible;
+
+  /// The page's backdrop (`DockPageScope.backdrop`), or null.
+  Widget? get backdrop => _backdrop;
 
   /// Actions this page wants in the side column (icon actions, top to bottom).
   List<DockAction<Object?>> get actions => _actions;
@@ -146,16 +150,25 @@ class DockActionRegistration {
     required bool active,
     Route<dynamic>? route,
     bool navigationVisible = true,
+    Widget? backdrop,
   }) {
     if (_disposed) return;
     final wasActive = _active;
     final visibilityChanged = navigationVisible != _navigationVisible;
+    // A page with a backdrop reports each rebuild, so the frame shows the
+    // new configuration; pages without one never notify for it.
+    final backdropChanged =
+        !identical(backdrop, _backdrop) &&
+        (backdrop != null || _backdrop != null);
     _navigationVisible = navigationVisible;
+    _backdrop = backdrop;
     _actions = actions;
     _route = route;
     _active = active;
     if (active && !wasActive) _serial = ++host._serial;
-    if (active || wasActive || visibilityChanged) host._markDirty();
+    if (active || wasActive || visibilityChanged || backdropChanged) {
+      host._markDirty();
+    }
   }
 
   /// [action] as builders get it: `onPressed` is null while the action is

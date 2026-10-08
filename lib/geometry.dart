@@ -1,7 +1,9 @@
 /// Read-only layout information from nav_dock: the layout mode, the side of
-/// the column and the window edges, without the page, action or builder types.
+/// the column, the window edges and the frame's geometry, plus the bleed
+/// widgets, without the page, action or builder types.
 library;
 
+export 'src/bleed/bleed.dart' show DockBleed, DockBleedItem, DockInset;
 export 'src/geometry/body_mode.dart';
 export 'src/geometry/dock_geometry.dart' show DockGeometry, DockGeometryAspect;
 export 'src/geometry/layout_mode.dart';

@@ -46,6 +46,7 @@ class DockPageScope<A, B> extends StatefulWidget {
     this.automaticallyImplyLeading = true,
     this.hoisting,
     this.visible = true,
+    this.backdrop,
     required this.child,
   });
 
@@ -81,6 +82,12 @@ class DockPageScope<A, B> extends StatefulWidget {
   /// on top. False hides it with an animation, for example for a camera, a
   /// video or reading. The shell can hide it too (`navigationVisible`).
   final bool visible;
+
+  /// Painted across the whole frame, under the body, the bar and the column,
+  /// while this page is shown: a gradient or picture behind the page that is
+  /// not affected by clips. It replaces the shell's backdrop and cross-fades
+  /// when the page changes (not during an interactive back swipe).
+  final Widget? backdrop;
 
   /// The page.
   final Widget child;
@@ -157,6 +164,7 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
           automaticallyImplyLeading: widget.automaticallyImplyLeading,
           hoisting: widget.hoisting,
           visible: widget.visible,
+          backdrop: widget.backdrop,
           child: widget.child,
         ),
       );
@@ -194,6 +202,7 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
       active: _shows(route) && TickerMode.of(context),
       route: route,
       navigationVisible: page.visible,
+      backdrop: page.backdrop,
     );
 
     final wide = scope.mode == DockLayoutMode.wide;

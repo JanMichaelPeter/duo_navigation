@@ -20,6 +20,7 @@ class DockModalScope<A, B> extends StatelessWidget {
     this.hoisting,
     this.builders,
     this.navigationVisible = true,
+    this.backdrop,
     required this.child,
   });
 
@@ -39,6 +40,10 @@ class DockModalScope<A, B> extends StatelessWidget {
   /// can hide it too (`DockPageScope.visible`).
   final bool navigationVisible;
 
+  /// Painted across the whole frame, under the body and the column. A page's
+  /// own `DockPageScope.backdrop` replaces it while that page is shown.
+  final Widget? backdrop;
+
   /// The modal content, typically its own Navigator.
   final Widget child;
 
@@ -49,6 +54,7 @@ class DockModalScope<A, B> extends StatelessWidget {
     hoisting: hoisting,
     builders: builders,
     navigationVisible: navigationVisible,
+    backdrop: backdrop,
     child: child,
   );
 }
