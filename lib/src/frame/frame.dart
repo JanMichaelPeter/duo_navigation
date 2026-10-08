@@ -170,13 +170,16 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
     }
   }
 
-  /// The active page's backdrop, else the frame's; a change of owner
-  /// cross-fades.
-  Widget _backdrop(DockNavigationData config) {
+  /// The active page's backdrop, else the frame's, else the builders'
+  /// default; a change of owner cross-fades.
+  Widget _backdrop(BuildContext context, DockNavigationData config) {
     final page = _host.active;
     final pageBackdrop = page?.backdrop;
     final Object owner = pageBackdrop != null ? page! : 'frame';
-    final child = pageBackdrop ?? widget.backdrop;
+    final child =
+        pageBackdrop ??
+        widget.backdrop ??
+        DockBuilders.of<T, A, B>(context).backdrop?.call(context);
     return AnimatedSwitcher(
       duration: _visibilityDuration == Duration.zero
           ? Duration.zero
@@ -386,7 +389,7 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
               ),
               backdrop: ListenableBuilder(
                 listenable: _host,
-                builder: (context, _) => _backdrop(config),
+                builder: (context, _) => _backdrop(context, config),
               ),
               bar: tabs == null || mode != DockLayoutMode.compact
                   ? null

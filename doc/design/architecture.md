@@ -303,6 +303,7 @@ class DockBuilders<T, A, B> {
     this.action, this.actionTransition,           // actions
     this.sideColumn,                              // column arrangement
     this.page,                                    // DockPage's scaffold
+    this.backdrop,                                // a frame's default backdrop
   });
   final DockTabItemBuilder<T>? tabItem;
   final DockTabsBuilder<T>? tabBar;
@@ -311,6 +312,7 @@ class DockBuilders<T, A, B> {
   final DockActionTransitionBuilder? actionTransition;
   final DockSideColumnBuilder? sideColumn;
   final DockPageBuilder<A, B>? page;
+  final WidgetBuilder? backdrop; // shows in the strip around the chrome
 
   /// [other]'s non-null fields win.
   DockBuilders<T, A, B> merge(DockBuilders<T, A, B>? other);

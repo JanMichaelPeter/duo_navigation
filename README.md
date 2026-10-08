@@ -182,7 +182,7 @@ By default (`DockBodyMode.inset`) the frame lays the body out in the free area: 
 
 ### Content under the chrome
 
-* **A backdrop** for the whole frame: `DockShell(backdrop: ...)` (and `DockModalScope`) paints one widget across the window, under the body, the bar and the column. A page's own `backdrop` replaces it while the page is shown, cross-fading. It covers background gradients and pictures, and no clip can cut it.
+* **A backdrop** for the whole frame: `DockShell(backdrop: ...)` (and `DockModalScope`) paints one widget across the window, under the body, the bar and the column. A page's own `backdrop` replaces it while the page is shown, cross-fading. It covers background gradients and pictures, and no clip can cut it. Without one, the frame paints the builders' default `backdrop` (Material: the theme's scaffold background). The body stops beside the chrome, so this is what shows around a floating bar or round chips. A fully custom `DockBuilders` without a `backdrop` leaves that strip unpainted.
 * **A bleed** for single components: `DockBleed(child: ...)` widens its child toward the column and the bar while keeping its own size, so a hero image, a carousel or a map runs to the window edge and its siblings stay beside the chrome. Inside it, `MediaQuery.padding` covers the strip, so `SafeArea` and list padding keep text clear; `DockInset` does the same for one child. `DockBleed.insetOf(context)` returns the strip for painters and custom layouts.
 * **A bleeding list**: wrap the scroll view, not an item in it, and mark what bleeds:
 
@@ -273,6 +273,7 @@ DockNavigation(
     page: (context, bar, body) => MyScaffold(...),        // a DockPage's scaffold
     sideColumn: (context, actions, rail, hasActions) => ..., // column arrangement
     actionTransition: (context, animation, child) => ...,
+    backdrop: (context) => ColoredBox(color: myBackground), // behind the chrome
   )),
   data: const DockNavigationData(
     sideColumnWidth: 76,

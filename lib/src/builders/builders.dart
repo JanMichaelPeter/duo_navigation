@@ -124,6 +124,19 @@ typedef DockActionTransitionBuilder =
       Widget child,
     );
 
+/// Paints a frame's default backdrop: the background under the body, the
+/// tab bar and the side column.
+///
+/// Contract:
+/// * **Constraints.** Tight to the whole frame, system insets included.
+/// * **Why.** In `DockBodyMode.inset` the body stops at the chrome, so the
+///   strip behind a bar or column that doesn't fill it edge to edge (a
+///   floating capsule, round chips) shows this backdrop. Without one it shows
+///   whatever is behind the frame, often the bare (black) window.
+/// * **Replaced** by `DockShell.backdrop`, `DockModalScope.backdrop` and a
+///   page's own backdrop while they are set.
+typedef DockBackdropBuilder = Widget Function(BuildContext context);
+
 /// The position of a tab for assistive technology, such as "Tab 2 of 3".
 /// [index] counts from 0.
 typedef DockTabPositionLabel =
@@ -136,7 +149,8 @@ typedef DockActionLabel =
     String? Function(BuildContext context, DockAction<Object?> action);
 
 /// Every visual of nav_dock: tab items, the tab bar, the rail, actions, the
-/// page's scaffold, the side column's arrangement and the chips' transition.
+/// page's scaffold, the side column's arrangement, the chips' transition and
+/// the frame's default backdrop.
 ///
 /// [T] is the tabs' payload type (`DockTab<T>`), [A] the actions'
 /// (`DockAction<A>`) and [B] the title bar's (`DockBarData<A, B>.payload`);
@@ -162,6 +176,7 @@ class DockBuilders<T, A, B> {
     this.page,
     this.sideColumn,
     this.actionTransition,
+    this.backdrop,
     this.tabPosition,
     this.actionLabel,
   });
@@ -186,6 +201,10 @@ class DockBuilders<T, A, B> {
 
   /// How chips appear in and disappear from the column.
   final DockActionTransitionBuilder? actionTransition;
+
+  /// The background of every frame without a backdrop of its own. Null: none,
+  /// the frame paints nothing behind its chrome.
+  final DockBackdropBuilder? backdrop;
 
   /// The localized position of a tab, read after its label. Null: none.
   final DockTabPositionLabel? tabPosition;
@@ -224,6 +243,7 @@ class DockBuilders<T, A, B> {
         page: page ?? below.page,
         sideColumn: sideColumn ?? below.sideColumn,
         actionTransition: actionTransition ?? below.actionTransition,
+        backdrop: backdrop ?? below.backdrop,
         tabPosition: tabPosition ?? below.tabPosition,
         actionLabel: actionLabel ?? below.actionLabel,
       );
@@ -252,6 +272,7 @@ class DockBuilders<T, A, B> {
       page: fit<DockPageScaffoldBuilder<P, Q>>(page, 'page'),
       sideColumn: sideColumn,
       actionTransition: actionTransition,
+      backdrop: backdrop,
       tabPosition: tabPosition,
       actionLabel: actionLabel,
     );
@@ -265,6 +286,7 @@ class DockBuilders<T, A, B> {
     page,
     sideColumn,
     actionTransition,
+    backdrop,
     tabPosition,
     actionLabel,
   ];
@@ -396,6 +418,7 @@ class _WithDropped<T, A, B> extends DockBuilders<T, A, B> {
         page: builders.page,
         sideColumn: builders.sideColumn,
         actionTransition: builders.actionTransition,
+        backdrop: builders.backdrop,
         tabPosition: builders.tabPosition,
         actionLabel: builders.actionLabel,
       );

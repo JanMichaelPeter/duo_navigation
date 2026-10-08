@@ -36,6 +36,7 @@ class DockMaterialBuilders<T, A, B> extends DockBuilders<T, A, B> {
         page: DockMaterial.page,
         sideColumn: DockMaterial.sideColumn,
         actionTransition: DockMaterial.actionTransition,
+        backdrop: DockMaterial.backdrop,
         tabPosition: DockMaterial.tabPosition,
         actionLabel: DockMaterial.actionLabel,
       );
@@ -282,6 +283,11 @@ abstract final class DockMaterial {
       ),
     );
   }
+
+  /// The theme's scaffold background, so the strip around the chrome matches
+  /// the pages.
+  static Widget backdrop(BuildContext context) =>
+      ColoredBox(color: Theme.of(context).scaffoldBackgroundColor);
 }
 
 class _MorphingIcon extends StatelessWidget {

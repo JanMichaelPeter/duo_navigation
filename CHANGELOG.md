@@ -37,7 +37,7 @@ the design is in the
   package around the builders' output.
 * **BREAKING** The visuals moved out of `DockNavigationData` into
   `DockBuilders` (`tabBar`, `rail`, `action`, `page`, `sideColumn`,
-  `actionTransition`), passed as `DockNavigation(builders: ...)`.
+  `actionTransition`, and the new `backdrop`), passed as `DockNavigation(builders: ...)`.
   `DockShell(builders:)`, `DockModalScope(builders:)` and `DockBuildersScope`
   override them per frame or subtree, field by field. A builder that no scope
   sets fails with an error naming it.
@@ -115,7 +115,10 @@ the design is in the
 * Backdrops: `DockShell.backdrop`, `DockModalScope.backdrop` and per page
   `DockPageScope.backdrop` / `DockPage.backdrop` paint one widget across the
   whole frame, under body and chrome; a page's replaces the frame's while it
-  is shown and cross-fades.
+  is shown and cross-fades. Without one, a frame paints
+  `DockBuilders.backdrop` (the Material defaults: the theme's scaffold
+  background), so the strip around a floating bar or round chips is not the
+  bare window.
 * New `DockBleed`, `DockInset`, `DockBleedItem` and `DockInset.wrapAll`
   (also in `geometry.dart`): single components run under the column and the
   bar while the body stays beside them; `DockBleed.insetOf(context)` returns

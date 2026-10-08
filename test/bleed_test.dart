@@ -352,6 +352,30 @@ void main() {
       expect(bodyTaps, 1);
     });
 
+    for (final frame in _Frame.values) {
+      testWidgets('${frame.name}: the builders\' backdrop fills the strip '
+          'when none is set', (tester) async {
+        final material = find.byWidgetPredicate(
+          (w) =>
+              w is ColoredBox && w.color == ThemeData().scaffoldBackgroundColor,
+        );
+        await pump(tester, const SizedBox.expand(), frame: frame);
+        expect(
+          tester.getRect(material.first),
+          Offset.zero & const Size(1000, 700),
+        );
+
+        await pump(
+          tester,
+          const SizedBox.expand(),
+          frame: frame,
+          backdrop: const SizedBox.expand(key: backdrop),
+        );
+        expect(find.byKey(backdrop), findsOneWidget);
+        expect(material, findsNothing);
+      });
+    }
+
     testWidgets('a page backdrop replaces the frame\'s while it is shown', (
       tester,
     ) async {

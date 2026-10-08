@@ -216,6 +216,7 @@ void main() {
           page: DockMaterial.page,
           sideColumn: DockMaterial.sideColumn,
           actionTransition: DockMaterial.actionTransition,
+          backdrop: DockMaterial.backdrop,
           tabPosition: DockMaterial.tabPosition,
           actionLabel: DockMaterial.actionLabel,
         ),

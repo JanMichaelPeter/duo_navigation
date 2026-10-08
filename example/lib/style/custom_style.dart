@@ -29,6 +29,7 @@ abstract final class CustomStyle {
     page: page,
     sideColumn: sideColumn,
     actionTransition: actionTransition,
+    backdrop: DockMaterial.backdrop, // the strip around the chrome
   );
 
   /// The sizes and timings the custom look is designed for.

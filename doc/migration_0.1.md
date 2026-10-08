@@ -36,7 +36,7 @@ DockNavigation(
 | `breakpoint: 600` | `layoutPolicy: DockLayoutPolicy.breakpoint(600)`; the breakpoint now applies to the **window** width |
 | detection built in; `windowEdges:` / `detectWindowEdges:` | `windowEdgesSource:` with `WindowPlacementEdgesSource()` (`nav_dock_window_placement`), `DockWindowEdgesSource.fixed(...)`, or none (always `side`) |
 | `tapCooldown:` | `tapGuard: DockTapGuard(cooldown: ...)`; the cooldown now applies per action |
-| `tabBarBuilder:`, `railBuilder:`, `actionBuilder:`, `pageBuilder:`, `sideColumnBuilder:`, `actionTransitionBuilder:` | `DockNavigation(builders: DockBuilders(tabBar:, rail:, action:, page:, sideColumn:, actionTransition:))`, see section 5 |
+| `tabBarBuilder:`, `railBuilder:`, `actionBuilder:`, `pageBuilder:`, `sideColumnBuilder:`, `actionTransitionBuilder:` | `DockNavigation(builders: DockBuilders(tabBar:, rail:, action:, page:, sideColumn:, actionTransition:, backdrop:))`, see section 5 |
 | `DockDefaults.*` | `DockMaterial.*` in `package:nav_dock/material.dart`; `DockMaterialBuilders()` sets all of them |
 | `DockNavigation.of` fell back to defaults | it throws without a `DockNavigation`; use `maybeOf` where none is expected, and `DockTestHarness` in tests |
 
@@ -49,6 +49,9 @@ lays the body out beside them (`DockBodyMode.inset`).
 * Content that ran under the chrome on purpose (a map, a background) now stops beside it. Use a backdrop
   (`DockShell.backdrop`, `DockPage.backdrop`) for backgrounds and `DockBleed` for components; give tab navigators
   `clipBehavior: Clip.none` so a bleed isn't clipped.
+* The strip beside the chrome now shows the frame's backdrop instead of your page. `DockMaterialBuilders` paints the
+  theme's scaffold background there. With fully custom builders, set `DockBuilders.backdrop`, or a bar or column that
+  doesn't fill its strip edge to edge (a floating capsule, round chips) sits on the bare, often black, window.
 * To keep the 0.0.1 layout, set `bodyMode: DockBodyMode.overlay` on `DockNavigationData`, a `DockShell` or a
   `DockModalScope`.
 * On its edge, the column now sits after the system inset (cutout, gesture strip) instead of overlapping it, so it
