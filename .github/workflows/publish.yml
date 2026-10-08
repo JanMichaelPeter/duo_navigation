@@ -18,8 +18,32 @@ env:
   FLUTTER_VERSION: 3.35.6
 
 jobs:
+  # The released version may need a newer SDK than the floor, so the API
+  # comparison runs on the current stable Flutter.
+  api:
+    name: Check the version against the API changes
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Compare with the version on pub.dev
+        run: |
+          package=${GITHUB_REF_NAME%-v*}
+          cd "$(tool/release.sh dir "$package")"
+          if curl -sf "https://pub.dev/api/packages/$package" >/dev/null; then
+            dart pub global activate dart_apitool
+            dart pub global run dart_apitool:main diff --old "pub://$package" --new . --version-check-mode=fully
+          else
+            echo "$package is not on pub.dev yet; nothing to compare."
+          fi
+
   publish:
     name: Publish
+    needs: api
     runs-on: ubuntu-latest
     environment: pub.dev
     permissions:
@@ -46,16 +70,6 @@ jobs:
         run: |
           flutter analyze
           flutter test
-      - name: Check the version against the API changes
-        working-directory: ${{ steps.package.outputs.dir }}
-        run: |
-          package=${GITHUB_REF_NAME%-v*}
-          if curl -sf "https://pub.dev/api/packages/$package" >/dev/null; then
-            dart pub global activate dart_apitool
-            dart pub global run dart_apitool:main diff --old "pub://$package" --new . --version-check-mode=fully
-          else
-            echo "$package is not on pub.dev yet; nothing to compare."
-          fi
       - name: Publish
         working-directory: ${{ steps.package.outputs.dir }}
         run: |

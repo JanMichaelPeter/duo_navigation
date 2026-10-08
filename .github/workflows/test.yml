@@ -39,12 +39,6 @@ jobs:
             (cd "$dir" && dart doc --dry-run . 2>&1 | tee /tmp/doc.log)
             grep -q "Found 0 warnings and 0 errors." /tmp/doc.log
           done
-      - name: Public API diff against the last release
-        run: |
-          dart pub global activate dart_apitool
-          dart pub global run dart_apitool:main diff --old pub://nav_dock --new . \
-            --version-check-mode=none --report-format=markdown --report-file-path=api.md
-          { echo "## nav_dock public API changes"; cat api.md; } >> "$GITHUB_STEP_SUMMARY"
       - name: Check publishable packages
         run: |
           for dir in . packages/nav_dock_window_placement; do
@@ -54,6 +48,26 @@ jobs:
               (cd "$dir" && flutter pub publish --dry-run)
             fi
           done
+
+  # Compares the public API with the last release on pub.dev. Runs on the
+  # current stable Flutter: the released version may need a newer SDK than
+  # the floor above.
+  api:
+    name: API diff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Public API diff against the last release
+        run: |
+          dart pub global activate dart_apitool
+          dart pub global run dart_apitool:main diff --old pub://nav_dock --new . \
+            --version-check-mode=none --report-format=markdown --report-file-path=api.md
+          { echo "## nav_dock public API changes"; cat api.md; } >> "$GITHUB_STEP_SUMMARY"
 
   # nav_dock has no native code; building the example checks that it and
   # window_placement compile on each platform.
