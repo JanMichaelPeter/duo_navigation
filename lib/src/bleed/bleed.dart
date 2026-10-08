@@ -14,8 +14,10 @@ import '../geometry/dock_geometry.dart';
 /// touches the body's edge on that side: use it for full-width (or, toward the
 /// bar, full-height) content, and turn an edge off with [column] or [bar].
 ///
-/// Inside the child, `MediaQuery.padding` on the covered edges equals the
-/// strip, so `SafeArea` and list padding keep content clear of the chrome;
+/// Inside the child, `MediaQuery.padding` on the covered edges grows by the
+/// strip (plus any system inset the body still had there, such as the part
+/// of a cutout wider than the column), so `SafeArea` and list padding keep
+/// content clear of the chrome;
 /// [DockInset] does the same for single children.
 ///
 /// It is a no-op where there is no strip: outside a frame, in
@@ -77,25 +79,21 @@ class DockBleed extends StatelessWidget {
         extension: extension,
         child: MediaQuery(
           data: mediaQuery.copyWith(
-            padding: _max(mediaQuery.padding, extension),
-            viewPadding: _max(mediaQuery.viewPadding, extension),
+            // The child starts the strip further out, so whatever inset the
+            // body still had on that edge comes on top of it.
+            padding: mediaQuery.padding + extension,
+            viewPadding: mediaQuery.viewPadding + extension,
           ),
           child: child,
         ),
       ),
     );
   }
-
-  static EdgeInsets _max(EdgeInsets a, EdgeInsets b) => EdgeInsets.fromLTRB(
-    math.max(a.left, b.left),
-    math.max(a.top, b.top),
-    math.max(a.right, b.right),
-    math.max(a.bottom, b.bottom),
-  );
 }
 
 /// Keeps [child] beside the chrome inside a [DockBleed]: pads it by the strip
-/// the bleed widened into, and removes that padding from `MediaQuery` again.
+/// the bleed widened into, and takes that padding out of `MediaQuery` again,
+/// so the child sees what the body sees.
 /// A no-op outside a bleed.
 ///
 /// ```dart
@@ -129,10 +127,10 @@ class DockInset extends StatelessWidget {
     if (extension == null || extension == EdgeInsets.zero) return child;
     final mediaQuery = MediaQuery.of(context);
     EdgeInsets without(EdgeInsets padding) => EdgeInsets.fromLTRB(
-      extension.left > 0 ? 0 : padding.left,
+      math.max(0.0, padding.left - extension.left),
       padding.top,
-      extension.right > 0 ? 0 : padding.right,
-      extension.bottom > 0 ? 0 : padding.bottom,
+      math.max(0.0, padding.right - extension.right),
+      math.max(0.0, padding.bottom - extension.bottom),
     );
     return Padding(
       padding: extension,

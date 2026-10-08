@@ -172,7 +172,7 @@ DockPageScope(
 By default (`DockBodyMode.inset`) the frame lays the body out in the free area: beside the column in wide mode, above the tab bar in compact mode. A plain `Scaffold` page works unchanged, and a button at the bottom of a `Column` never ends up under the tab bar.
 
 * Below the frame, `MediaQuery.padding` is zero on the edges the chrome covers and unchanged on the others.
-* On its edge, the column sits inside the safe area: after a cutout or gesture strip, not over it.
+* On its edge, the column sits at the window edge, over the system inset (`DockColumnInset.overlap`). With `DockNavigationData(columnInset: DockColumnInset.safeArea)` it sits after a cutout or Android's button bar instead, and its builder can paint a background under it. Overlap keeps the column at the edge (iOS reports a landscape inset on both sides, not only the camera side); safeArea keeps chips clear of cutouts and system buttons.
 * The tab bar builder owns the bottom safe area (home indicator): include `MediaQuery.paddingOf(context).bottom` in its height. A debug error reports a bar that is shorter.
 * `MediaQuery.size` stays the window size, as with Flutter's own sub-screens; use `LayoutBuilder` for the available size.
 
@@ -182,7 +182,7 @@ By default (`DockBodyMode.inset`) the frame lays the body out in the free area: 
 
 ### Content under the chrome
 
-* **A backdrop** for the whole frame: `DockShell(backdrop: ...)` (and `DockModalScope`) paints one widget across the window, under the body, the bar and the column. A page's own `backdrop` replaces it while the page is shown, cross-fading. It covers background gradients and pictures, and no clip can cut it.
+* **A backdrop** for the whole frame: `DockShell(backdrop: ...)` (and `DockModalScope`) paints one widget across the window, under the body, the bar and the column. A page's own `backdrop` replaces it while the page is shown, cross-fading. It covers background gradients and pictures, and no clip can cut it. Without one, the frame paints the builders' default `backdrop` (Material: the theme's scaffold background). The body stops beside the chrome, so this is what shows around a floating bar or round chips. A fully custom `DockBuilders` without a `backdrop` leaves that strip unpainted.
 * **A bleed** for single components: `DockBleed(child: ...)` widens its child toward the column and the bar while keeping its own size, so a hero image, a carousel or a map runs to the window edge and its siblings stay beside the chrome. Inside it, `MediaQuery.padding` covers the strip, so `SafeArea` and list padding keep text clear; `DockInset` does the same for one child. `DockBleed.insetOf(context)` returns the strip for painters and custom layouts.
 * **A bleeding list**: wrap the scroll view, not an item in it, and mark what bleeds:
 
@@ -273,6 +273,7 @@ DockNavigation(
     page: (context, bar, body) => MyScaffold(...),        // a DockPage's scaffold
     sideColumn: (context, actions, rail, hasActions) => ..., // column arrangement
     actionTransition: (context, animation, child) => ...,
+    backdrop: (context) => ColoredBox(color: myBackground), // behind the chrome
   )),
   data: const DockNavigationData(
     sideColumnWidth: 76,

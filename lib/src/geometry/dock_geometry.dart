@@ -59,8 +59,8 @@ class DockGeometry {
   final EdgeInsets systemPadding;
 
   /// The area of the frame the bar or column covers, per edge. In wide mode
-  /// the column sits after the system inset on its edge, so its entry is the
-  /// system inset plus the column width. For a bar lifted above the keyboard,
+  /// its entry is the column width, plus the system inset on its edge with
+  /// `DockColumnInset.safeArea`. For a bar lifted above the keyboard,
   /// the bottom entry reaches from the frame's bottom to the bar's top. It
   /// shrinks with [visibility] and is zero while the navigation is hidden.
   final EdgeInsets chrome;

@@ -135,6 +135,23 @@ void main() {
     ) async {
       await pump(tester, _probe(), padding: const EdgeInsets.only(right: 100));
       expect(rect(tester, _bled).right, 1000);
+      expect(rect(tester, _sibling).right, 1000 - 72);
+      // SafeArea clears the column and the rest of the inset; DockInset puts
+      // its child back beside the column, where the body was.
+      expect(rect(tester, _safe).right, 1000 - 100);
+      expect(rect(tester, _inset).right, 1000 - 72);
+    });
+
+    testWidgets('safeArea: reaches the screen edge past the column', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _probe(),
+        padding: const EdgeInsets.only(right: 100),
+        data: const DockNavigationData(columnInset: DockColumnInset.safeArea),
+      );
+      expect(rect(tester, _bled).right, 1000);
       expect(rect(tester, _sibling).right, 1000 - 172);
       expect(rect(tester, _inset).right, 1000 - 172);
     });
@@ -351,6 +368,30 @@ void main() {
       await tester.tapAt(const Offset(400, 300));
       expect(bodyTaps, 1);
     });
+
+    for (final frame in _Frame.values) {
+      testWidgets('${frame.name}: the builders\' backdrop fills the strip '
+          'when none is set', (tester) async {
+        final material = find.byWidgetPredicate(
+          (w) =>
+              w is ColoredBox && w.color == ThemeData().scaffoldBackgroundColor,
+        );
+        await pump(tester, const SizedBox.expand(), frame: frame);
+        expect(
+          tester.getRect(material.first),
+          Offset.zero & const Size(1000, 700),
+        );
+
+        await pump(
+          tester,
+          const SizedBox.expand(),
+          frame: frame,
+          backdrop: const SizedBox.expand(key: backdrop),
+        );
+        expect(find.byKey(backdrop), findsOneWidget);
+        expect(material, findsNothing);
+      });
+    }
 
     testWidgets('a page backdrop replaces the frame\'s while it is shown', (
       tester,

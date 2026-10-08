@@ -17,5 +17,3 @@ DockNavigation(
 Detection runs on iOS, iPadOS and Android. On other platforms, and in widget
 tests without a fake plugin, the source reports nothing and nav_dock uses its
 preferred side.
-
-**Status:** released together with nav_dock 0.1.0.

@@ -1,6 +1,8 @@
 ## 0.1.0
 
-Unreleased. A redesign; see the
+A redesign of nav_dock. Upgrading: see the
+[migration guide](https://github.com/JanMichaelPeter/nav_dock/blob/main/doc/migration_0.1.md);
+the design is in the
 [architecture document](https://github.com/JanMichaelPeter/nav_dock/blob/main/doc/design/architecture.md).
 
 * **BREAKING** `DockNavigationData.breakpoint` is replaced by `layoutPolicy`:
@@ -19,8 +21,10 @@ Unreleased. A redesign; see the
   `Scaffold` pages no longer need `SafeArea` to stay clear of the chrome.
   `DockBodyMode.overlay` on `DockNavigationData`, `DockShell` or
   `DockModalScope` restores the 0.0.1 layout.
-* **BREAKING** On its edge, the side column sits after the system inset
-  (cutout, gesture strip) instead of overlapping it.
+* New `DockNavigationData.columnInset`: the side column sits at the window
+  edge over the system inset on its edge (`DockColumnInset.overlap`, the
+  default, as in 0.0.1) or after it, clear of cutouts and system buttons
+  (`DockColumnInset.safeArea`).
 * New `DockGeometry.of(context)`: the frame's mode, side and chrome per edge,
   with aspects so widgets rebuild only for what they read.
 * A debug error reports a tab bar that is shorter than the bottom safe area.
@@ -35,7 +39,7 @@ Unreleased. A redesign; see the
   package around the builders' output.
 * **BREAKING** The visuals moved out of `DockNavigationData` into
   `DockBuilders` (`tabBar`, `rail`, `action`, `page`, `sideColumn`,
-  `actionTransition`), passed as `DockNavigation(builders: ...)`.
+  `actionTransition`, and the new `backdrop`), passed as `DockNavigation(builders: ...)`.
   `DockShell(builders:)`, `DockModalScope(builders:)` and `DockBuildersScope`
   override them per frame or subtree, field by field. A builder that no scope
   sets fails with an error naming it.
@@ -113,7 +117,10 @@ Unreleased. A redesign; see the
 * Backdrops: `DockShell.backdrop`, `DockModalScope.backdrop` and per page
   `DockPageScope.backdrop` / `DockPage.backdrop` paint one widget across the
   whole frame, under body and chrome; a page's replaces the frame's while it
-  is shown and cross-fades.
+  is shown and cross-fades. Without one, a frame paints
+  `DockBuilders.backdrop` (the Material defaults: the theme's scaffold
+  background), so the strip around a floating bar or round chips is not the
+  bare window.
 * New `DockBleed`, `DockInset`, `DockBleedItem` and `DockInset.wrapAll`
   (also in `geometry.dart`): single components run under the column and the
   bar while the body stays beside them; `DockBleed.insetOf(context)` returns

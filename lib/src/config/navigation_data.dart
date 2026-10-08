@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../actions/tap_guard.dart';
 import '../geometry/body_mode.dart';
+import 'column_inset.dart';
 import 'keyboard.dart';
 import '../models/action.dart';
 import '../geometry/layout_policy.dart';
@@ -31,6 +32,7 @@ class DockNavigationData {
     this.hoisting = DockHoisting.iconActions,
     this.keyboard = const DockKeyboard(),
     this.sideColumnWidth = 72,
+    this.columnInset = DockColumnInset.overlap,
     this.columnTextScaleLimit = 1.5,
     this.sideItemExtent = 56,
     this.actionSpacing = 8,
@@ -72,9 +74,14 @@ class DockNavigationData {
   /// Default: the column lifts above it, the bar is covered.
   final DockKeyboard keyboard;
 
-  /// Width of the side column. On its edge, the column sits after the system
-  /// inset (cutout, gesture strip), so it covers that inset plus this width.
+  /// Width of the side column. With [DockColumnInset.safeArea] it also
+  /// covers the system inset on its edge.
   final double sideColumnWidth;
+
+  /// Whether the column sits over the system inset on its edge
+  /// ([DockColumnInset.overlap], the default: at the window edge) or after it
+  /// ([DockColumnInset.safeArea]: clear of cutouts and system buttons).
+  final DockColumnInset columnInset;
 
   /// How far the column grows with the text scale: its width is
   /// [sideColumnWidth] times the text scale, at most this factor.
@@ -115,6 +122,7 @@ class DockNavigationData {
     DockHoisting? hoisting,
     DockKeyboard? keyboard,
     double? sideColumnWidth,
+    DockColumnInset? columnInset,
     double? columnTextScaleLimit,
     double? sideItemExtent,
     double? actionSpacing,
@@ -134,6 +142,7 @@ class DockNavigationData {
       hoisting: hoisting ?? this.hoisting,
       keyboard: keyboard ?? this.keyboard,
       sideColumnWidth: sideColumnWidth ?? this.sideColumnWidth,
+      columnInset: columnInset ?? this.columnInset,
       columnTextScaleLimit: columnTextScaleLimit ?? this.columnTextScaleLimit,
       sideItemExtent: sideItemExtent ?? this.sideItemExtent,
       actionSpacing: actionSpacing ?? this.actionSpacing,
@@ -156,6 +165,7 @@ class DockNavigationData {
       other.hoisting == hoisting &&
       other.keyboard == keyboard &&
       other.sideColumnWidth == sideColumnWidth &&
+      other.columnInset == columnInset &&
       other.columnTextScaleLimit == columnTextScaleLimit &&
       other.sideItemExtent == sideItemExtent &&
       other.actionSpacing == actionSpacing &&
@@ -174,6 +184,7 @@ class DockNavigationData {
     hoisting,
     keyboard,
     sideColumnWidth,
+    columnInset,
     columnTextScaleLimit,
     sideItemExtent,
     actionSpacing,
