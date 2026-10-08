@@ -1,6 +1,9 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
+import '../a11y/focus.dart';
+import '../a11y/semantics.dart';
+import '../builders/builders.dart';
 import '../keys.dart';
 import '../models/tabs_data.dart';
 
@@ -9,8 +12,9 @@ import '../models/tabs_data.dart';
 ///
 /// The item's own semantics are excluded and replaced by one node with the
 /// tab role, the selected state, the label (`semanticLabel`, `label` or
-/// `tooltip`), the badge as value and the tap action, so assistive technology
-/// gets the same tab whatever the builder draws.
+/// `tooltip`), the badge as value, the position as hint
+/// (`DockBuilders.tabPosition`) and the tap action, so assistive technology
+/// gets the same tab whatever the builder draws ([DockSemantics.tab]).
 class DockTabItem<T> extends StatelessWidget {
   /// Wraps [child], the built item for [data].
   const DockTabItem({super.key, required this.data, required this.child});
@@ -29,14 +33,16 @@ class DockTabItem<T> extends StatelessWidget {
       key: DockKeys.tab(tab.id),
       child: _RevealWhenSelected(
         selected: data.selected,
-        child: Semantics(
-          container: true,
-          role: SemanticsRole.tab,
-          selected: data.selected,
-          label: tab.semanticLabel ?? tab.label ?? tab.tooltip,
-          value: tab.badge?.label,
-          onTap: data.onTap,
-          child: ExcludeSemantics(
+        child: DockFocusMarker(
+          id: ('tab', tab.id),
+          child: DockSemantics.tab(
+            selected: data.selected,
+            label: tab.semanticLabel ?? tab.label ?? tab.tooltip,
+            value: tab.badge?.label,
+            hint: DockBuilders.of<Object?, Object?, Object?>(
+              context,
+            ).tabPosition?.call(context, data.index, data.count),
+            onTap: data.onTap,
             child: appKey == null
                 ? child
                 : KeyedSubtree(key: appKey, child: child),

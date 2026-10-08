@@ -579,7 +579,9 @@ backgrounds under the chrome, because it is not affected by these clips.
 
 ## 13. Accessibility
 
-- **Semantics are attached by the package**, outside the builder's output:
+- **Semantics are attached by the package**, outside the builder's output. Strings the core cannot localize come from
+  the builders: `DockBuilders.tabPosition` ("Tab 2 of 3", as a hint) and `DockBuilders.actionLabel` (labels for the
+  implied back and close actions).
   - tab items: `SemanticsRole.tab`, selected, label (`semanticLabel ?? label ?? tooltip`), tap action, badge text;
   - the tab bar and rail: `SemanticsRole.tabBar` container;
   - actions: button, label, enabled, tap action, badge text.

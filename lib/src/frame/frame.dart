@@ -3,8 +3,10 @@
 
 import 'dart:async';
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
+import '../a11y/focus.dart';
 import '../actions/action_host.dart';
 import '../builders/builders.dart';
 import '../config/navigation.dart';
@@ -133,6 +135,10 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
   late final CurvedAnimation _keyboardCurved;
   late final Animation<double> _shown;
   bool _keyboardHides = false;
+
+  /// Moves focus to the same tab or action when the layout mode changes.
+  final DockFocusRegistry _focus = DockFocusRegistry();
+  DockLayoutMode? _lastMode;
   Duration _visibilityDuration = Duration.zero;
 
   /// The shell's and the active page's wish together.
@@ -244,7 +250,10 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
     // column and the pages all see the shell's builders.
     return DockBuildersScope(
       builders: widget.builders,
-      child: Builder(builder: _build),
+      child: DockFocusRegistryScope(
+        registry: _focus,
+        child: Builder(builder: _build),
+      ),
     );
   }
 
@@ -324,6 +333,13 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
           window: window,
           frame: constraints.biggest,
         );
+        // Before the old chrome goes: remember which tab or action has focus,
+        // and give it to the same one in the new layout.
+        if (_lastMode != null && mode != _lastMode) {
+          final focused = _focus.focusedId();
+          if (focused != null) _focus.restoreAfterFrame(focused);
+        }
+        _lastMode = mode;
         final behavior = mode == DockLayoutMode.compact
             ? config.keyboard.bar
             : config.keyboard.column;
@@ -344,60 +360,75 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
           isModal: widget.isModal,
           side: side,
           hoisting: widget.hoisting ?? config.hoisting,
-          child: DockFrameLayout(
-            mode: mode,
-            side: side,
-            columnOnRight: columnOnRight,
-            columnWidth:
-                config.sideColumnWidth *
-                textScale.clamp(1.0, config.columnTextScaleLimit),
-            bodyMode: widget.bodyMode ?? config.bodyMode,
-            systemPadding: padding,
-            visibility: _shown,
-            keyboard: keyboard,
-            liftColumn: config.keyboard.column == DockKeyboardBehavior.lift,
-            liftBar: config.keyboard.bar == DockKeyboardBehavior.lift,
-            // The body keeps its slot in every mode, so switching modes
-            // (rotation, split view) keeps its State.
-            body: DockBodyScope(child: widget.child),
-            backdrop: ListenableBuilder(
-              listenable: _host,
-              builder: (context, _) => _backdrop(config),
-            ),
-            bar: tabs == null || mode != DockLayoutMode.compact
-                ? null
-                : KeyedSubtree(
-                    key: DockKeys.bar,
-                    child: _Inert(
-                      inert: hidden,
-                      child: builders.buildTabBar(
-                        context,
-                        tabs,
-                        _items(context, builders, tabs),
-                      ),
-                    ),
-                  ),
-            column: _Inert(
-              inert: hidden,
-              child: SideColumn(
-                key: DockKeys.column,
-                host: _host,
-                rail: tabs == null || mode != DockLayoutMode.wide
-                    ? null
-                    : KeyedSubtree(
-                        key: DockKeys.rail,
-                        // Scrolls when the tabs don't fit the column.
-                        child: SingleChildScrollView(
-                          child: builders.buildRail(
+          // Focus and semantics order, the same in both modes: the page
+          // first, then the chrome (the column's actions above its rail, or
+          // the tab bar).
+          child: FocusTraversalGroup(
+            policy: OrderedTraversalPolicy(),
+            child: DockFrameLayout(
+              mode: mode,
+              side: side,
+              columnOnRight: columnOnRight,
+              columnWidth:
+                  config.sideColumnWidth *
+                  textScale.clamp(1.0, config.columnTextScaleLimit),
+              bodyMode: widget.bodyMode ?? config.bodyMode,
+              systemPadding: padding,
+              visibility: _shown,
+              keyboard: keyboard,
+              liftColumn: config.keyboard.column == DockKeyboardBehavior.lift,
+              liftBar: config.keyboard.bar == DockKeyboardBehavior.lift,
+              // The body keeps its slot in every mode, so switching modes
+              // (rotation, split view) keeps its State.
+              body: _Ordered(
+                order: 1,
+                child: DockBodyScope(child: widget.child),
+              ),
+              backdrop: ListenableBuilder(
+                listenable: _host,
+                builder: (context, _) => _backdrop(config),
+              ),
+              bar: tabs == null || mode != DockLayoutMode.compact
+                  ? null
+                  : _Ordered(
+                      order: 2,
+                      child: KeyedSubtree(
+                        key: DockKeys.bar,
+                        child: _Inert(
+                          inert: hidden,
+                          child: builders.buildTabBar(
                             context,
                             tabs,
                             _items(context, builders, tabs),
                           ),
                         ),
                       ),
-                columnOnRight: columnOnRight,
-                buildChip: (context, action) =>
-                    _chip(context, builders, action),
+                    ),
+              column: _Ordered(
+                order: 2,
+                child: _Inert(
+                  inert: hidden,
+                  child: SideColumn(
+                    key: DockKeys.column,
+                    host: _host,
+                    rail: tabs == null || mode != DockLayoutMode.wide
+                        ? null
+                        : KeyedSubtree(
+                            key: DockKeys.rail,
+                            // Scrolls when the tabs don't fit the column.
+                            child: SingleChildScrollView(
+                              child: builders.buildRail(
+                                context,
+                                tabs,
+                                _items(context, builders, tabs),
+                              ),
+                            ),
+                          ),
+                    columnOnRight: columnOnRight,
+                    buildChip: (context, action) =>
+                        _chip(context, builders, action),
+                  ),
+                ),
               ),
             ),
           ),
@@ -432,4 +463,25 @@ class _Product extends CompoundAnimation<double> {
 
   @override
   double get value => first.value * next.value;
+}
+
+/// Puts a frame part at [order] in focus traversal and in the semantics
+/// order.
+class _Ordered extends StatelessWidget {
+  const _Ordered({required this.order, required this.child});
+
+  final double order;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => FocusTraversalOrder(
+    order: NumericFocusOrder(order),
+    child: FocusTraversalGroup(
+      child: Semantics(
+        container: true,
+        sortKey: OrdinalSortKey(order),
+        child: child,
+      ),
+    ),
+  );
 }

@@ -216,6 +216,8 @@ void main() {
           page: DockMaterial.page,
           sideColumn: DockMaterial.sideColumn,
           actionTransition: DockMaterial.actionTransition,
+          tabPosition: DockMaterial.tabPosition,
+          actionLabel: DockMaterial.actionLabel,
         ),
       );
     });
