@@ -8,7 +8,7 @@ On a phone, navigation sits at the bottom, right under your thumb. Unfold the de
 
 nav_dock keeps everything reachable. On wide screens tabs, back and page actions dock into one column along the screen edge your hand is already on, and in split screen that column follows your window to the physical screen edge. SwiftUI does this automatically on the iPhone Duo; nav_dock brings the same behavior to Flutter. The switch happens live whenever the window changes size, without losing navigation or page state.
 
-Upgrading from 0.0.1? See the [migration guide](doc/migration_0.1.md).
+Adding nav_dock to an existing app (a `Scaffold` with a tab bar, an `IndexedStack`, a `Navigator` per tab)? See [adopting nav_dock in an existing app](doc/adopting.md). Upgrading from 0.0.1? See the [migration guide](doc/migration_0.1.md).
 
 ## What goes where
 
@@ -75,7 +75,7 @@ DockPage(
 
 ## Adoption levels
 
-Each level works without the ones above it, so an app can adopt nav_dock step by step:
+Each level works without the ones above it, so an app can adopt nav_dock step by step ([the guide](doc/adopting.md) walks through it):
 
 | Level | Use | Works with |
 |---|---|---|
