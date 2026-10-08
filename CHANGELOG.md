@@ -62,6 +62,26 @@ Unreleased. A redesign; see the
 * The rail scrolls when the tabs don't fit and keeps the selected tab visible;
   `DockSideColumnLayout` gives the rail its height before the actions. The
   column grows with the text scale up to `columnTextScaleLimit` (1.5).
+* **BREAKING** Actions: `DockAction<A>` takes a `DockIcon` instead of a
+  widget, `hoist: DockHoist.never` replaces `pinToBar`, and a typed `payload`
+  replaces `data`. New: `role` (`back`, `close`, `primary`, `secondary`,
+  `destructive`, `overflow`), `enabled`, `badge`, `semanticLabel`, `key`,
+  `order`, `guarded` and `cooldown`. `DockShell<T, A>`, `DockModalScope<A>`,
+  `DockPage<A>` and `DockBuilders<T, A>` carry the action payload type.
+* **BREAKING** `DockAction.back` takes a `label` and can be text-only
+  ("Cancel"); a text-only leading action stays in the bar in every mode. New
+  `DockAction.close`, with the same identity as back, so the two morph.
+  `DockIcon.back` and `DockIcon.close` are resolved by the builders
+  (`DockMaterial.icon`).
+* **BREAKING** The tap guard's cooldown applies per action, so different
+  actions no longer block each other. `DockTapGuard.onRejected` reports each
+  dropped tap with a reason; rejections are logged in debug mode.
+* A page keeps its actions in the column while dialogs, sheets or menus are
+  open above it.
+* The icon morph is keyed by `DockIcon.identity`, so custom icon widgets with
+  an identity or a key cross-fade too. `DockMaterial.morphingIcon` takes a
+  `DockIcon`.
+* The core library no longer imports Material anywhere.
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work

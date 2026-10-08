@@ -11,7 +11,7 @@ Widget _app(TargetPlatform platform, DockSide side) {
       data: DockNavigationData(side: side),
       child: child!,
     ),
-    home: DockShell(
+    home: DockShell<Object?, Object?>(
       tabs: const [
         DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
         DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
@@ -20,11 +20,11 @@ Widget _app(TargetPlatform platform, DockSide side) {
       onTabSelected: (_) {},
       child: Navigator(
         onGenerateRoute: (_) => MaterialPageRoute(
-          builder: (_) => DockPage(
+          builder: (_) => DockPage<Object?>(
             title: const Text('Title'),
             trailing: [
-              DockAction(id: 'edit', label: 'Edit', onPressed: () {}),
-              DockAction(id: 'done', label: 'Done', onPressed: () {}),
+              DockAction<Object?>(id: 'edit', label: 'Edit', onPressed: () {}),
+              DockAction<Object?>(id: 'done', label: 'Done', onPressed: () {}),
             ],
             body: const SizedBox.expand(),
           ),

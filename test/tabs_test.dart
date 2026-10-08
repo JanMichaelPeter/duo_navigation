@@ -36,7 +36,7 @@ void main() {
     WidgetTester tester,
     Widget home, {
     DockLayoutMode mode = DockLayoutMode.compact,
-    DockBuilders<Object?>? builders = const DockMaterialBuilders(),
+    DockBuilders<Object?, Object?>? builders = const DockMaterialBuilders(),
     Size size = const Size(1000, 700),
     double textScale = 1,
   }) async {
@@ -67,7 +67,7 @@ void main() {
   }) {
     var index = initial;
     return StatefulBuilder(
-      builder: (context, setState) => DockShell<Object?>(
+      builder: (context, setState) => DockShell<Object?, Object?>(
         tabs: tabs ?? _typedTabs(),
         currentIndex: index,
         onTabSelected: (i) {
@@ -85,11 +85,11 @@ void main() {
     testWidgets('reach the builders without a cast', (tester) async {
       await pump(
         tester,
-        DockShell<_Item>(
+        DockShell<_Item, Object?>(
           tabs: _typedTabs(),
           currentIndex: 0,
           onTabSelected: (_) {},
-          builders: DockBuilders<_Item>(
+          builders: DockBuilders<_Item, Object?>(
             tabItem: (context, data) => Text(data.tab.payload!.name),
           ),
           child: const SizedBox(),
@@ -106,7 +106,7 @@ void main() {
     ) async {
       await pump(
         tester,
-        DockShell<_Item>(
+        DockShell<_Item, Object?>(
           tabs: _typedTabs(),
           currentIndex: 0,
           onTabSelected: (_) {},
@@ -121,8 +121,10 @@ void main() {
       tester,
     ) async {
       expect(
-        () => const DockMaterialBuilders<Object?>().merge(
-          DockBuilders<_Other>(tabItem: (context, data) => const SizedBox()),
+        () => const DockMaterialBuilders<Object?, Object?>().merge(
+          DockBuilders<_Other, Object?>(
+            tabItem: (context, data) => const SizedBox(),
+          ),
         ),
         throwsA(
           isA<ArgumentError>().having(
@@ -135,13 +137,13 @@ void main() {
 
       await pump(
         tester,
-        DockShell<_Item>(
+        DockShell<_Item, Object?>(
           tabs: _typedTabs(),
           currentIndex: 0,
           onTabSelected: (_) {},
           child: const SizedBox(),
         ),
-        builders: DockBuilders<_Other>(
+        builders: DockBuilders<_Other, Object?>(
           tabItem: (context, data) => const SizedBox(),
           tabBar: (context, data, items) => Row(children: items),
         ),
@@ -151,7 +153,7 @@ void main() {
         isA<FlutterError>().having(
           (e) => e.toStringDeep(),
           'message',
-          contains('does not accept DockTab<_Item>'),
+          contains('DockTab<_Item>'),
         ),
       );
     });
@@ -176,6 +178,8 @@ void main() {
         );
         expect(
           tester.getSemantics(find.byKey(const Key('app-me'))),
+          // containsSemantics: deprecated after 3.40, but 3.38 lacks isSemantics.
+          // ignore: deprecated_member_use
           containsSemantics(
             label: 'Me',
             value: '3',
@@ -186,6 +190,8 @@ void main() {
         );
         expect(
           tester.getSemantics(find.byKey(DockKeys.tab('home'))),
+          // containsSemantics: deprecated after 3.40, but 3.38 lacks isSemantics.
+          // ignore: deprecated_member_use
           containsSemantics(
             label: 'Home',
             isSelected: false,

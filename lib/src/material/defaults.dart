@@ -6,6 +6,7 @@ import '../frame/side_column_layout.dart';
 import '../tabs/tab_item.dart';
 import '../models/action.dart';
 import '../models/dock_badge.dart';
+import '../models/dock_icon.dart';
 import '../models/bar_data.dart';
 import '../models/enums.dart';
 import '../models/tabs_data.dart';
@@ -19,9 +20,10 @@ import '../models/tabs_data.dart';
 ///
 /// Replace single builders with [DockBuilders.merge]:
 /// `const DockMaterialBuilders().merge(DockBuilders(tabBar: myTabBar))`.
-/// [T] is the tabs' payload type; the defaults work for any, so a typed shell
-/// can use `DockMaterialBuilders<MyTab>()` as a base for typed overrides.
-class DockMaterialBuilders<T> extends DockBuilders<T> {
+/// [T] and [A] are the tabs' and actions' payload types; the defaults work for
+/// any, so a typed app can use `DockMaterialBuilders<MyTab, MyAction>()` as a
+/// base for typed overrides.
+class DockMaterialBuilders<T, A> extends DockBuilders<T, A> {
   /// The Material defaults.
   const DockMaterialBuilders()
     : super(
@@ -46,7 +48,7 @@ abstract final class DockMaterial {
   static Widget tabItem(BuildContext context, DockTabItemData<Object?> data) {
     final tab = data.tab;
     Widget icon(bool selected) =>
-        badge(tab.iconFor(selected: selected).toWidget(), tab.badge);
+        badge(DockMaterial.icon(tab.iconFor(selected: selected)), tab.badge);
     if (data.placement == DockTabPlacement.bar) {
       return NavigationDestination(
         icon: icon(false),
@@ -127,65 +129,116 @@ abstract final class DockMaterial {
   }
 
   /// Round chip in the side column; icon or text button in the bar.
+  ///
+  /// [DockActionRole.primary] chips use the primary container color. A text
+  /// action shows its label; an icon action uses it as tooltip.
   static Widget action(
     BuildContext context,
-    DockAction action,
+    DockAction<Object?> action,
     DockActionPlacement placement,
   ) {
-    final tooltip = action.tooltip ?? action.label;
+    final l10n = MaterialLocalizations.of(context);
+    final tooltip =
+        action.tooltip ??
+        action.label ??
+        switch (action.role) {
+          DockActionRole.back => l10n.backButtonTooltip,
+          DockActionRole.close => l10n.closeButtonTooltip,
+          _ => null,
+        };
+    final icon = action.icon;
+    Widget semantic(Widget child) {
+      final label = action.semanticLabel;
+      return label == null ? child : Semantics(label: label, child: child);
+    }
+
+    if (icon == null) {
+      return semantic(
+        TextButton(
+          onPressed: action.onPressed,
+          child: badge(Text(action.label!), action.badge),
+        ),
+      );
+    }
+    final glyph = badge(morphingIcon(icon), action.badge);
     if (placement == DockActionPlacement.sideColumn) {
       final scheme = Theme.of(context).colorScheme;
-      return Material(
-        color: scheme.surfaceContainerHigh,
-        elevation: 3,
-        shape: const CircleBorder(),
-        clipBehavior: Clip.antiAlias,
-        child: IconButton(
-          tooltip: tooltip,
-          onPressed: action.onPressed,
-          icon: morphingIcon(action.icon!),
-          style: IconButton.styleFrom(
-            fixedSize: Size.square(DockNavigation.of(context).sideItemExtent),
+      final primary = action.role == DockActionRole.primary;
+      return semantic(
+        Material(
+          color: primary
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerHigh,
+          elevation: 3,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: IconButton(
+            tooltip: tooltip,
+            onPressed: action.onPressed,
+            color: primary ? scheme.onPrimaryContainer : null,
+            icon: glyph,
+            style: IconButton.styleFrom(
+              fixedSize: Size.square(DockNavigation.of(context).sideItemExtent),
+            ),
           ),
         ),
       );
     }
-    if (action.icon != null) {
-      return IconButton(
-        tooltip: tooltip,
-        onPressed: action.onPressed,
-        icon: morphingIcon(action.icon!),
-      );
-    }
-    return TextButton(onPressed: action.onPressed, child: Text(action.label!));
+    return semantic(
+      IconButton(tooltip: tooltip, onPressed: action.onPressed, icon: glyph),
+    );
   }
 
-  /// Cross-fades when the icon changes (back -> close, star -> filled star).
-  /// Icons are compared by IconData so rebuilding the same icon doesn't
-  /// restart the animation.
-  static Widget morphingIcon(Widget icon) {
-    final Key key = icon is Icon
-        ? ValueKey<Object?>(icon.icon)
-        : ValueKey<Object>(icon.runtimeType);
+  /// [icon] as a Material widget: [DockIcon.back] is a [BackButtonIcon]
+  /// (chevron or arrow by platform), [DockIcon.close] the close icon, the
+  /// others their own widget.
+  static Widget icon(DockIcon icon, {double? size, Color? color}) =>
+      switch (icon) {
+        DockPlatformIcon(kind: DockPlatformIconKind.back) =>
+          const BackButtonIcon(),
+        DockPlatformIcon(kind: DockPlatformIconKind.close) => Icon(
+          Icons.close,
+          size: size,
+          color: color,
+        ),
+        _ => icon.toWidget(size: size, color: color),
+      };
+
+  /// [icon] that cross-fades when it changes (back → close, star → filled
+  /// star). Icons are told apart by [DockIcon.identity], so rebuilding the
+  /// same icon doesn't restart the animation; give custom widget icons an
+  /// identity (`DockIcon.widget(w, identity: ...)`) or a key.
+  static Widget morphingIcon(DockIcon icon) {
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 200),
       transitionBuilder: (child, animation) => ScaleTransition(
         scale: animation,
         child: FadeTransition(opacity: animation, child: child),
       ),
-      child: KeyedSubtree(key: key, child: icon),
+      child: KeyedSubtree(
+        key: ValueKey<Object>(icon.identity),
+        child: DockMaterial.icon(icon),
+      ),
     );
   }
 
   /// Scaffold + AppBar. When the side column is at the start edge, the bar's
   /// actions move to the start too, so everything sits on one side.
-  static Widget page(BuildContext context, DockBarData bar, Widget body) {
-    if (bar.trailingAtStart && bar.trailing.isNotEmpty) {
+  static Widget page(
+    BuildContext context,
+    DockBarData<Object?> bar,
+    Widget body,
+  ) {
+    if (bar.trailingAtStart && bar.trailing.isNotEmpty && bar.leading == null) {
       return Scaffold(appBar: _actionsAtStartAppBar(context, bar), body: body);
     }
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
+        // A text leading action ("Cancel") needs more than the icon width.
+        leadingWidth: bar.leading?.icon == null && bar.leading != null
+            ? 96
+            : null,
         leading: bar.leading == null
             ? null
             : bar.buildAction(bar.leading!, DockActionPlacement.barLeading),
@@ -200,10 +253,11 @@ abstract final class DockMaterial {
     );
   }
 
-  // Wide mode only, so there is no leading action (it's in the column).
+  // Only without a leading action in the bar (wide mode, leading in the
+  // column).
   static PreferredSizeWidget _actionsAtStartAppBar(
     BuildContext context,
-    DockBarData bar,
+    DockBarData<Object?> bar,
   ) {
     final theme = Theme.of(context);
     final actions = [

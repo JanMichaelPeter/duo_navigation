@@ -10,9 +10,9 @@ const _tabs = [
 ];
 
 Widget _shell({
-  DockBuilders<Object?>? builders,
+  DockBuilders<Object?, Object?>? builders,
   Widget child = const SizedBox(),
-}) => DockShell(
+}) => DockShell<Object?, Object?>(
   tabs: _tabs,
   currentIndex: 0,
   onTabSelected: (_) {},
@@ -23,12 +23,12 @@ Widget _shell({
 /// A page with one 'share' icon action.
 Widget _page() => Navigator(
   onGenerateRoute: (_) => MaterialPageRoute<void>(
-    builder: (_) => DockPage(
+    builder: (_) => DockPage<Object?>(
       title: const Text('Page'),
       trailing: [
-        DockAction(
+        DockAction<Object?>(
           id: 'share',
-          icon: const Icon(Icons.share),
+          icon: const DockIcon(Icons.share),
           onPressed: () {},
         ),
       ],
@@ -51,7 +51,7 @@ void main() {
   Future<void> pump(
     WidgetTester tester,
     Widget home, {
-    DockBuilders<Object?>? builders = const DockMaterialBuilders(),
+    DockBuilders<Object?, Object?>? builders = const DockMaterialBuilders(),
     DockLayoutMode mode = DockLayoutMode.compact,
   }) async {
     await tester.pumpWidget(
@@ -104,7 +104,7 @@ void main() {
         children: [
           Expanded(
             child: _shell(
-              builders: DockBuilders(
+              builders: DockBuilders<Object?, Object?>(
                 tabBar: (context, tabs, items) => const Text('custom bar'),
               ),
             ),
@@ -123,7 +123,7 @@ void main() {
     await pump(
       tester,
       _shell(
-        builders: DockBuilders(
+        builders: DockBuilders<Object?, Object?>(
           action: (context, action, placement) => Text('chip ${action.id}'),
         ),
         child: _page(),
@@ -147,7 +147,7 @@ void main() {
       _Marker(
         label: 'from around the shell',
         child: _shell(
-          builders: DockBuilders(
+          builders: DockBuilders<Object?, Object?>(
             tabBar: (context, tabs, items) => Text(
               context.dependOnInheritedWidgetOfExactType<_Marker>()!.label,
             ),
@@ -163,7 +163,7 @@ void main() {
       tester,
       _shell(
         child: DockBuildersScope(
-          builders: DockBuilders(
+          builders: DockBuilders<Object?, Object?>(
             page: (context, bar, body) => const Text('custom page'),
           ),
           child: _page(),
@@ -182,21 +182,29 @@ void main() {
     ) => const SizedBox();
 
     test('merge: the other side wins where it is set', () {
-      const material = DockMaterialBuilders<Object?>();
-      final merged = material.merge(DockBuilders(tabBar: bar));
+      const material = DockMaterialBuilders<Object?, Object?>();
+      final merged = material.merge(
+        DockBuilders<Object?, Object?>(tabBar: bar),
+      );
       expect(merged.tabBar, bar);
       expect(merged.rail, material.rail);
       expect(merged.page, material.page);
       expect(material.merge(null), same(material));
-      expect(material.merge(const DockBuilders<Object?>()), material);
+      expect(material.merge(const DockBuilders<Object?, Object?>()), material);
     });
 
     test('has value equality', () {
-      expect(DockBuilders(tabBar: bar), DockBuilders(tabBar: bar));
-      expect(DockBuilders(tabBar: bar), isNot(const DockBuilders<Object?>()));
       expect(
-        const DockMaterialBuilders<Object?>(),
-        const DockBuilders<Object?>(
+        DockBuilders<Object?, Object?>(tabBar: bar),
+        DockBuilders<Object?, Object?>(tabBar: bar),
+      );
+      expect(
+        DockBuilders<Object?, Object?>(tabBar: bar),
+        isNot(const DockBuilders<Object?, Object?>()),
+      );
+      expect(
+        const DockMaterialBuilders<Object?, Object?>(),
+        const DockBuilders<Object?, Object?>(
           tabItem: DockMaterial.tabItem,
           tabBar: DockMaterial.tabBar,
           rail: DockMaterial.rail,

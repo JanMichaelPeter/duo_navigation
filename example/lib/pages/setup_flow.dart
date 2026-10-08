@@ -29,13 +29,10 @@ class SetupStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return DockPage(
       title: Text('Step $step of 3'),
-      // Back-id with a close icon: same chip as the later back buttons.
+      // Close shares the back action's identity: the same chip morphs into
+      // the back buttons of the later steps.
       leading: step == 1
-          ? DockAction.back(
-              icon: const Icon(Icons.close),
-              tooltip: 'Close',
-              onPressed: () => _closeFlow(context),
-            )
+          ? DockAction.close(onPressed: () => _closeFlow(context))
           : null,
       trailing: [
         if (step < 3)

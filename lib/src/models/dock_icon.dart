@@ -20,11 +20,21 @@ sealed class DockIcon {
   const factory DockIcon.widget(Widget widget, {Object? identity}) =
       DockWidgetIcon;
 
+  /// The platform's back icon (a chevron on iOS and macOS, an arrow
+  /// elsewhere), resolved by the builders.
+  static const DockIcon back = DockPlatformIcon(DockPlatformIconKind.back);
+
+  /// The platform's close icon, resolved by the builders.
+  static const DockIcon close = DockPlatformIcon(DockPlatformIconKind.close);
+
   /// Tells this icon apart from others.
   Object get identity;
 
   /// The icon as a widget, in [size] and [color] (null: from the
   /// surrounding `IconTheme`).
+  ///
+  /// Platform icons ([DockIcon.back], [DockIcon.close]) depend on the design
+  /// system and throw here; builders resolve them (`DockMaterial.icon` does).
   Widget toWidget({double? size, Color? color});
 }
 
@@ -99,4 +109,48 @@ final class DockWidgetIcon extends DockIcon {
 
   @override
   int get hashCode => Object.hash(widget, _identity);
+}
+
+/// Which platform icon a [DockPlatformIcon] stands for.
+enum DockPlatformIconKind {
+  /// Back: a chevron or an arrow, depending on the platform.
+  back,
+
+  /// Close: a cross.
+  close,
+}
+
+/// A platform icon ([DockIcon.back], [DockIcon.close]) that the builders
+/// resolve in their design system.
+final class DockPlatformIcon extends DockIcon {
+  /// The platform icon of [kind].
+  const DockPlatformIcon(this.kind) : super._();
+
+  /// Back or close.
+  final DockPlatformIconKind kind;
+
+  @override
+  Object get identity => kind;
+
+  @override
+  Widget toWidget({
+    double? size,
+    Color? color,
+  }) => throw FlutterError.fromParts([
+    ErrorSummary('DockIcon.${kind.name} has no widget of its own.'),
+    ErrorDescription(
+      'Platform icons depend on the design system, so builders resolve them.',
+    ),
+    ErrorHint(
+      'In a builder, switch over the DockIcon and draw DockPlatformIcon '
+      "yourself, or use DockMaterial.icon from 'package:nav_dock/material.dart'.",
+    ),
+  ]);
+
+  @override
+  bool operator ==(Object other) =>
+      other is DockPlatformIcon && other.kind == kind;
+
+  @override
+  int get hashCode => kind.hashCode;
 }

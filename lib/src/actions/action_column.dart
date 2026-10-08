@@ -6,7 +6,6 @@ import 'package:flutter/widgets.dart';
 import '../builders/builders.dart';
 import '../config/navigation.dart';
 import '../models/action.dart';
-import '../models/enums.dart';
 import '../keys.dart';
 import 'action_host.dart';
 import 'action_presence.dart';
@@ -26,13 +25,13 @@ class _ScopedKey {
   int get hashCode => Object.hash(identityHashCode(owner), id);
 }
 
-Object _keyFor(DockActionRegistration owner, DockAction action) =>
+Object _keyFor(DockActionRegistration owner, DockAction<Object?> action) =>
     action.shared ? action.id : _ScopedKey(owner, action.id);
 
 class _Item {
   _Item(this.key, this.action, this.owner, {required this.animateIn});
   final Object key;
-  DockAction action;
+  DockAction<Object?> action;
   DockActionRegistration owner;
   bool visible = true;
   final bool animateIn;
@@ -42,9 +41,17 @@ class _Item {
 /// so the back button (always last) sits right above the rail and never moves
 /// when trailing actions above it change.
 class DockActionColumn extends StatefulWidget {
-  const DockActionColumn({super.key, required this.host});
+  const DockActionColumn({
+    super.key,
+    required this.host,
+    required this.buildChip,
+  });
 
   final DockActionHost host;
+
+  /// Builds one chip with the frame's action builder.
+  final Widget Function(BuildContext context, DockAction<Object?> action)
+  buildChip;
 
   @override
   State<DockActionColumn> createState() => _DockActionColumnState();
@@ -84,7 +91,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
 
   List<_Item> _reconcile({required bool initial}) {
     final owner = widget.host.active;
-    final next = <Object, DockAction>{};
+    final next = <Object, DockAction<Object?>>{};
     if (owner != null) {
       for (final a in owner.actions) {
         if (a.canHoist) next[_keyFor(owner, a)] = a;
@@ -125,7 +132,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
   @override
   Widget build(BuildContext context) {
     final config = DockNavigation.of(context);
-    final builders = DockBuilders.of<Object?>(context);
+    final builders = DockBuilders.of<Object?, Object?>(context);
     return Align(
       alignment: Alignment.bottomCenter,
       child: SingleChildScrollView(
@@ -151,10 +158,12 @@ class _DockActionColumnState extends State<DockActionColumn> {
                   child: Center(
                     child: KeyedSubtree(
                       key: DockKeys.action(item.action.id),
-                      child: builders.buildAction(
-                        context,
-                        item.owner.guarded(item.action),
-                        DockActionPlacement.sideColumn,
+                      child: _withAppKey(
+                        item.action,
+                        widget.buildChip(
+                          context,
+                          item.owner.guarded(item.action),
+                        ),
                       ),
                     ),
                   ),
@@ -165,4 +174,10 @@ class _DockActionColumnState extends State<DockActionColumn> {
       ),
     );
   }
+}
+
+/// Puts the action's own key (`DockAction.key`) around [child].
+Widget _withAppKey(DockAction<Object?> action, Widget child) {
+  final key = action.key;
+  return key == null ? child : KeyedSubtree(key: key, child: child);
 }

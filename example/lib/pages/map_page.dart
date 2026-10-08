@@ -15,7 +15,7 @@ class MapPage extends StatelessWidget {
       trailing: [
         DockAction(
           id: 'locate',
-          icon: const Icon(Icons.my_location),
+          icon: const DockIcon(Icons.my_location),
           tooltip: 'Locate me',
           onPressed: () => showToast(context, 'Locating…'),
         ),

@@ -15,11 +15,12 @@ import 'frame.dart';
 /// must be under `TickerMode(enabled: false)` (`DockTabStack` and go_router's
 /// indexed stack do this) so their pages don't claim the side column.
 ///
-/// [T] is the tabs' payload type (`DockTab<T>`); tab builders get it typed.
+/// [T] is the tabs' payload type (`DockTab<T>`) and [A] the actions' payload
+/// type (`DockAction<A>`) of its pages; the builders get them typed.
 ///
 /// Push modal pages on the ROOT navigator; they then cover this shell, which
 /// hides the tab bar / rail for free.
-class DockShell<T> extends StatelessWidget {
+class DockShell<T, A> extends StatelessWidget {
   /// Frames [child] with tab bar (compact) or side column + rail (wide).
   const DockShell({
     super.key,
@@ -59,14 +60,14 @@ class DockShell<T> extends StatelessWidget {
 
   /// Builders for this shell only (its bar, rail, column and pages), on top
   /// of the app's; null fields fall back to them.
-  final DockBuilders<T>? builders;
+  final DockBuilders<T, A>? builders;
 
   /// The tab navigators, for example a `DockTabStack`.
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return DockFrame<T>(
+    return DockFrame<T, A>(
       isModal: false,
       tabs: tabs,
       currentIndex: currentIndex,

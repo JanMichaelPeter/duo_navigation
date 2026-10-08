@@ -102,14 +102,18 @@ A tab has an `id` (`find.byKey(DockKeys.tab(id))` finds it), icons as `DockIcon`
 DockPage(
   title: const Text('Level 2'),
   trailing: [
-    DockAction(id: 'share', icon: const Icon(Icons.ios_share), onPressed: share),
+    DockAction(id: 'share', icon: const DockIcon(Icons.ios_share), onPressed: share),
     DockAction(id: 'done', label: 'Done', onPressed: done), // stays in bar
   ],
   body: ...,
 );
 ```
 
-The leading action is implied: back for pushed pages, close for `fullscreenDialog`. `DockPage.custom(builder: (context, bar) => ...)` gives you `DockBarData` to build the whole page yourself (slivers, large titles, floating bars).
+The leading action is implied: back for pushed pages, close for `fullscreenDialog`. A text-only leading action such as `DockAction.back(icon: null, label: 'Cancel')` stays in the bar in every mode. `DockPage.custom(builder: (context, bar) => ...)` gives you `DockBarData` to build the whole page yourself (slivers, large titles, floating bars).
+
+An action has an `id` (`find.byKey(DockKeys.action(id))` finds it), a `role` (`back`, `close`, `primary`, `secondary`, `destructive`, `overflow`) that builders can style, an icon as `DockIcon` (`DockIcon.back` and `DockIcon.close` follow the platform), and optionally `label`, `badge`, `enabled`, `semanticLabel`, `key`, `order` (position in the column), `hoist: DockHoist.never` (stays in the bar), `cooldown`, `guarded` and a typed `payload` (`DockAction<MySpec>`, read in builders without a cast; give the shell the type, `DockShell<MyTab, MySpec>`).
+
+A page keeps its actions in the column while a dialog or sheet is open above it; their taps are dropped until it closes.
 
 ## Concepts
 
@@ -139,9 +143,9 @@ Every action (in the bar and in the column) only fires when:
 
 1. its page is the one currently shown,
 2. its route isn't mid-transition or mid-swipe-back, and
-3. the cooldown (default 350 ms) has passed since the last action in this frame.
+3. the same action hasn't fired within its cooldown (default 350 ms). Different actions don't block each other.
 
-Tapping back three times pops one page. Configure it with `DockNavigationData(tapGuard: DockTapGuard(cooldown: ..., clock: ...))`; `DockTapGuard.disabled` lets every tap through.
+Tapping back three times pops one page. Configure it with `DockNavigationData(tapGuard: DockTapGuard(cooldown: ..., clock: ..., onRejected: ...))`: `onRejected` gets every dropped tap and the reason (`notActive`, `transition`, `cooldown`), for example to give feedback. Per action, `cooldown` overrides the guard's and `guarded: false` opts out. `DockTapGuard.disabled` lets every tap through.
 
 ### Following the window to the screen edge
 
@@ -222,7 +226,7 @@ DockNavigation(
 
 `DockMaterial.*` are the plain functions behind the defaults; wrap them instead of rewriting. `DockMaterial.morphingIcon` cross-fades icon changes in your own chips.
 
-`example/` uses a fully custom look (`example/lib/style/custom_style.dart`): capsule tab bar, one tab item for bar and rail, square chips, badges via `DockTab.badge`, a highlighted chip via `DockAction.data`, a wrapped default page, its own column layout and chip transition. Use `const DockMaterialBuilders()` in `example/lib/main.dart` to see the defaults.
+`example/` uses a fully custom look (`example/lib/style/custom_style.dart`): capsule tab bar, one tab item for bar and rail, square chips, badges via `DockTab.badge`, a highlighted chip via `DockActionRole.primary`, a wrapped default page, its own column layout and chip transition. Use `const DockMaterialBuilders()` in `example/lib/main.dart` to see the defaults.
 
 `DockScope.modeOf(context)` tells any widget which layout is active.
 
@@ -258,7 +262,7 @@ await tester.tap(find.byKey(DockKeys.action('share')));
 ## Rules and limits
 
 * Modal = pushed on the **root** navigator. A page pushed onto a tab navigator is a subpage and keeps the tab bar.
-* Multi-step modals: wrap the modal's own `Navigator` in `DockModalScope` so all steps share one column. Its first page needs an explicit `leading` (e.g. `DockAction.back(icon: Icon(Icons.close), onPressed: closeFlow)`) because its route can't pop.
-* Leading actions need an icon. Trailing ids must be unique per page.
+* Multi-step modals: wrap the modal's own `Navigator` in `DockModalScope` so all steps share one column. Its first page needs an explicit `leading` (e.g. `DockAction.close(onPressed: closeFlow)`) because its route can't pop.
+* Trailing ids must be unique per page.
 * Android back with nested tab navigators: add `NavigatorPopHandler` (go_router handles this).
 * During an interactive iOS swipe-back the column switches when the pop commits, not during the drag.

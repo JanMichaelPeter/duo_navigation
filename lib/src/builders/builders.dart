@@ -54,7 +54,10 @@ typedef DockTabsBuilder<T> =
 ///
 /// Contract:
 /// * **Callback.** `action.onPressed` is already guarded (double taps, taps
-///   during transitions); call it as is. Null means disabled.
+///   during transitions); call it as is. Null means disabled (also when
+///   `action.enabled` is false).
+/// * **Icons.** `action.icon` is a `DockIcon`; resolve [DockIcon.back] and
+///   [DockIcon.close] in your design system (`DockMaterial.icon` does).
 /// * **Constraints.** Chips are centered in the column; size them to
 ///   `DockNavigationData.sideItemExtent` to line up with the rail.
 /// * **Keys.** The package wraps the result in `DockKeys.action(id)`.
@@ -62,10 +65,10 @@ typedef DockTabsBuilder<T> =
 ///   ([DockActionTransitionBuilder]); morphing between icons is up to the
 ///   builder.
 /// * **Semantics** (button, label, enabled) belong to the builder.
-typedef DockActionBuilder =
+typedef DockActionBuilder<A> =
     Widget Function(
       BuildContext context,
-      DockAction action,
+      DockAction<A> action,
       DockActionPlacement placement,
     );
 
@@ -81,8 +84,8 @@ typedef DockActionBuilder =
 ///   action builder and the keys.
 /// * **Safe area, semantics, keys and animation** of the page belong to the
 ///   builder, as with any `Scaffold`.
-typedef DockPageScaffoldBuilder =
-    Widget Function(BuildContext context, DockBarData bar, Widget body);
+typedef DockPageScaffoldBuilder<A> =
+    Widget Function(BuildContext context, DockBarData<A> bar, Widget body);
 
 /// Arranges the side column.
 ///
@@ -122,9 +125,9 @@ typedef DockActionTransitionBuilder =
 /// Every visual of nav_dock: tab items, the tab bar, the rail, actions, the
 /// page's scaffold, the side column's arrangement and the chips' transition.
 ///
-/// [T] is the tabs' payload type (`DockTab<T>`). Tab builders get it typed.
-/// Builders written for `Object?` (such as `DockMaterialBuilders`) work for
-/// tabs of any payload type.
+/// [T] is the tabs' payload type (`DockTab<T>`) and [A] the actions'
+/// (`DockAction<A>`); the builders get them typed. Builders written for
+/// `Object?` (such as `DockMaterialBuilders`) work for any payload types.
 ///
 /// Provide them on `DockNavigation(builders: ...)` for the app and override
 /// them on `DockShell(builders: ...)`, `DockModalScope(builders: ...)` or any
@@ -135,7 +138,7 @@ typedef DockActionTransitionBuilder =
 /// `DockMaterialBuilders()` in `package:nav_dock/material.dart` sets every
 /// field to the Material defaults.
 @immutable
-class DockBuilders<T> {
+class DockBuilders<T, A> {
   /// Builders for the given fields; null fields fall back to the scope above.
   const DockBuilders({
     this.tabItem,
@@ -157,10 +160,10 @@ class DockBuilders<T> {
   final DockTabsBuilder<T>? rail;
 
   /// Every action, in the title bar and as a chip in the column.
-  final DockActionBuilder? action;
+  final DockActionBuilder<A>? action;
 
   /// The title bar and body of each `DockPage` (not `DockPage.custom`).
-  final DockPageScaffoldBuilder? page;
+  final DockPageScaffoldBuilder<A>? page;
 
   /// The arrangement of chips and rail in the side column.
   final DockSideColumnBuilder? sideColumn;
@@ -170,19 +173,19 @@ class DockBuilders<T> {
 
   /// These builders with [other]'s non-null fields on top.
   ///
-  /// [other] may be written for another payload type as long as its tab
-  /// builders accept [T] (for example `Object?` builders); otherwise this
-  /// throws an [ArgumentError] naming the field.
-  DockBuilders<T> merge(DockBuilders<Object?>? other) {
+  /// [other] may be written for other payload types as long as its builders
+  /// accept [T] and [A] (for example `Object?` builders); otherwise this
+  /// throws an [ArgumentError] naming the fields.
+  DockBuilders<T, A> merge(DockBuilders<Object?, Object?>? other) {
     if (other == null) return this;
     final dropped = <String>[];
-    final top = other._adapt<T>(dropped);
+    final top = other._adapt<T, A>(dropped);
     if (dropped.isNotEmpty) {
       throw ArgumentError.value(
         other,
         'other',
         'The ${dropped.join(', ')} builders of ${other.runtimeType} do not '
-            'accept DockTab<$T>',
+            'accept DockTab<$T> and DockAction<$A>',
       );
     }
     return top._over(this);
@@ -190,7 +193,7 @@ class DockBuilders<T> {
 
   // Reads this object's own fields, so the type checks of the function-typed
   // fields always pass.
-  DockBuilders<T> _over(DockBuilders<T> below) => DockBuilders<T>(
+  DockBuilders<T, A> _over(DockBuilders<T, A> below) => DockBuilders<T, A>(
     tabItem: tabItem ?? below.tabItem,
     tabBar: tabBar ?? below.tabBar,
     rail: rail ?? below.rail,
@@ -200,14 +203,15 @@ class DockBuilders<T> {
     actionTransition: actionTransition ?? below.actionTransition,
   );
 
-  /// These builders for tabs of type [S], field by field. Tab builders that
-  /// don't accept `DockTab<S>` are left out and their names added to
-  /// [dropped].
+  /// These builders for tabs of type [S] and actions of type [B], field by
+  /// field. Builders that don't accept them are left out and their names
+  /// added to [dropped].
   ///
   /// Always builds a new object: with covariant generics a
-  /// `DockBuilders<Sub>` passes an `is DockBuilders<Object?>` check while its
-  /// tab builders accept only `Sub`, so only the fields themselves can tell.
-  DockBuilders<S> _adapt<S>(List<String> dropped) {
+  /// `DockBuilders<Sub, Sub>` passes an `is DockBuilders<Object?, Object?>`
+  /// check while its builders accept only `Sub`, so only the fields
+  /// themselves can tell.
+  DockBuilders<S, B> _adapt<S, B>(List<String> dropped) {
     F? fit<F>(Object? builder, String name) {
       if (builder == null) return null;
       if (builder is F) return builder as F;
@@ -215,12 +219,12 @@ class DockBuilders<T> {
       return null;
     }
 
-    return DockBuilders<S>(
+    return DockBuilders<S, B>(
       tabItem: fit<DockTabItemBuilder<S>>(tabItem, 'tabItem'),
       tabBar: fit<DockTabsBuilder<S>>(tabBar, 'tabBar'),
       rail: fit<DockTabsBuilder<S>>(rail, 'rail'),
-      action: action,
-      page: page,
+      action: fit<DockActionBuilder<B>>(action, 'action'),
+      page: fit<DockPageScaffoldBuilder<B>>(page, 'page'),
       sideColumn: sideColumn,
       actionTransition: actionTransition,
     );
@@ -236,25 +240,25 @@ class DockBuilders<T> {
     actionTransition,
   ];
 
-  /// The effective builders at [context] for tabs of type [T]: every
-  /// [DockBuildersScope] above, merged, nearest on top. Empty (all null) when
-  /// there is none.
-  static DockBuilders<T> of<T>(BuildContext context) {
+  /// The effective builders at [context] for tabs of type [T] and actions of
+  /// type [A]: every [DockBuildersScope] above, merged, nearest on top. Empty
+  /// (all null) when there is none.
+  static DockBuilders<T, A> of<T, A>(BuildContext context) {
     final layers =
         context
             .dependOnInheritedWidgetOfExactType<_InheritedBuilders>()
             ?.layers ??
         const [];
-    var result = DockBuilders<T>();
+    var result = DockBuilders<T, A>();
     final dropped = <String, Type>{};
     for (final layer in layers) {
       final names = <String>[];
-      result = layer._adapt<T>(names)._over(result);
+      result = layer._adapt<T, A>(names)._over(result);
       for (final name in names) {
         dropped[name] = layer.runtimeType;
       }
     }
-    return dropped.isEmpty ? result : _WithDropped<T>(result, dropped);
+    return dropped.isEmpty ? result : _WithDropped<T, A>(result, dropped);
   }
 
   /// Fields that a scope above sets for another payload type; for the error.
@@ -281,12 +285,12 @@ class DockBuilders<T> {
   /// Builds an action; throws a [FlutterError] if no scope sets [action].
   Widget buildAction(
     BuildContext context,
-    DockAction action,
+    DockAction<A> action,
     DockActionPlacement placement,
   ) => _need(this.action, 'action', context)(context, action, placement);
 
   /// Builds a page; throws a [FlutterError] if no scope sets [page].
-  Widget buildPage(BuildContext context, DockBarData bar, Widget body) =>
+  Widget buildPage(BuildContext context, DockBarData<A> bar, Widget body) =>
       _need(page, 'page', context)(context, bar, body);
 
   /// Arranges the column; throws a [FlutterError] if no scope sets
@@ -323,7 +327,7 @@ class DockBuilders<T> {
       if (other != null)
         ErrorDescription(
           'A scope above sets $name in a $other, but its builder does not '
-          'accept DockTab<$T>, the tabs of this frame.',
+          'accept the payload types here: DockTab<$T>, DockAction<$A>.',
         )
       else
         ErrorDescription(
@@ -335,7 +339,7 @@ class DockBuilders<T> {
         "  import 'package:nav_dock/material.dart';\n"
         '  DockNavigation(builders: const DockMaterialBuilders(), child: ...)\n'
         'or set $name on DockShell, DockModalScope or a DockBuildersScope. '
-        'Builders written for Object? payloads work for every DockTab type.',
+        'Builders written for Object? payloads work for every payload type.',
       ),
       context.describeElement('The context used was'),
     ]);
@@ -343,7 +347,8 @@ class DockBuilders<T> {
 
   @override
   bool operator ==(Object other) =>
-      other is DockBuilders<Object?> && listEquals(other._fields, _fields);
+      other is DockBuilders<Object?, Object?> &&
+      listEquals(other._fields, _fields);
 
   @override
   int get hashCode => Object.hashAll(_fields);
@@ -351,8 +356,8 @@ class DockBuilders<T> {
 
 /// Effective builders that also remember which fields a scope set for
 /// another payload type, for the error message.
-class _WithDropped<T> extends DockBuilders<T> {
-  _WithDropped(DockBuilders<T> builders, this._droppedFields)
+class _WithDropped<T, A> extends DockBuilders<T, A> {
+  _WithDropped(DockBuilders<T, A> builders, this._droppedFields)
     : super(
         tabItem: builders.tabItem,
         tabBar: builders.tabBar,
@@ -383,7 +388,7 @@ class DockBuildersScope extends StatelessWidget {
   });
 
   /// The overrides. Null fields fall back to the scope above.
-  final DockBuilders<Object?>? builders;
+  final DockBuilders<Object?, Object?>? builders;
 
   /// The subtree.
   final Widget child;
@@ -405,7 +410,7 @@ class _InheritedBuilders extends InheritedWidget {
   const _InheritedBuilders({required this.layers, required super.child});
 
   /// The scopes' builders, outermost first.
-  final List<DockBuilders<Object?>> layers;
+  final List<DockBuilders<Object?, Object?>> layers;
 
   @override
   bool updateShouldNotify(_InheritedBuilders oldWidget) =>

@@ -13,18 +13,18 @@ const _tabs = [
 Widget _app(Widget Function(Widget child) harness, List<int> taps) {
   return MaterialApp(
     builder: (context, child) => harness(child!),
-    home: DockShell(
+    home: DockShell<Object?, Object?>(
       tabs: _tabs,
       currentIndex: 0,
       onTabSelected: (_) {},
       child: Navigator(
         onGenerateRoute: (_) => MaterialPageRoute<void>(
-          builder: (_) => DockPage(
+          builder: (_) => DockPage<Object?>(
             title: const Text('Home'),
             trailing: [
-              DockAction(
+              DockAction<Object?>(
                 id: 'share',
-                icon: const Icon(Icons.share),
+                icon: const DockIcon(Icons.share),
                 onPressed: () => taps.add(taps.length),
               ),
             ],

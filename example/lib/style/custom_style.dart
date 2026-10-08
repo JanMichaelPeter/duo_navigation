@@ -2,10 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:nav_dock/material.dart';
 import 'package:nav_dock/nav_dock.dart';
 
-/// Put on [DockAction.data] to highlight a chip. The package passes
-/// `data` through untouched; only builders that look for it react.
-enum ActionRole { primary }
-
 /// A complete custom look, built only from the public builder hooks.
 ///
 /// Optional: with `const DockMaterialBuilders()` instead of [builders],
@@ -107,15 +103,15 @@ abstract final class CustomStyle {
 
   // ------------------------------------------------------------- actions ---
 
-  static Widget action(
-      BuildContext context, DockAction action, DockActionPlacement placement) {
+  static Widget action(BuildContext context, DockAction<Object?> action,
+      DockActionPlacement placement) {
     // Title bar actions: reuse the default look.
     if (placement != DockActionPlacement.sideColumn) {
       return DockMaterial.action(context, action, placement);
     }
     final scheme = Theme.of(context).colorScheme;
     final extent = DockNavigation.of(context).sideItemExtent;
-    final primary = action.data == ActionRole.primary;
+    final primary = action.role == DockActionRole.primary;
     final shape =
         RoundedRectangleBorder(borderRadius: BorderRadius.circular(_radius));
     return Material(
@@ -142,7 +138,8 @@ abstract final class CustomStyle {
 
   /// Wrapping a default instead of rewriting it: same Scaffold + AppBar,
   /// different app bar theme.
-  static Widget page(BuildContext context, DockBarData bar, Widget body) {
+  static Widget page(
+      BuildContext context, DockBarData<Object?> bar, Widget body) {
     final theme = Theme.of(context);
     return Theme(
       data: theme.copyWith(
