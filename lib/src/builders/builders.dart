@@ -44,6 +44,13 @@ typedef DockTabItemBuilder<T> =
 ///   are. Mark the widget that holds them with `DockTabBarSemantics` (Material's
 ///   `NavigationBar` marks itself), and add no semantics nodes between it and
 ///   the items.
+/// * **Bars built from data.** A bar that builds its own children from
+///   `data.tabs` (and their payloads) instead of placing [items] wraps each
+///   child with `data.wrap(index, child)`, which applies the same keys and
+///   semantics, and calls `data.itemData(index).onTap` (or
+///   [DockTabsData.onSelected]) for taps, so selection, re-selection and
+///   vetoes follow the shell's rules. The `tabItem` builder is then not
+///   needed for the bar.
 typedef DockTabsBuilder<T> =
     Widget Function(
       BuildContext context,

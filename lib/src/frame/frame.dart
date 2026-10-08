@@ -279,19 +279,11 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
     DockBuilders<T, A, B> builders,
     DockTabsData<T> data,
   ) {
-    final count = data.tabs.length;
     return [
-      for (var i = 0; i < count; i++)
+      for (var i = 0; i < data.tabs.length; i++)
         Builder(
           builder: (context) {
-            final item = DockTabItemData<T>(
-              tab: data.tabs[i],
-              index: i,
-              count: count,
-              selected: i == data.currentIndex,
-              placement: data.placement,
-              onTap: () => _select(i),
-            );
+            final item = data.itemData(i);
             return DockTabItem<T>(
               data: item,
               child: builders.buildTabItem(context, item),

@@ -98,11 +98,24 @@ DockShell(
   onTabSelected: (i) => setState(() => index = i),
   onTabReselected: (i) => navigatorKeys[i].currentState?.popUntil((r) => r.isFirst),
   canSelectTab: (i) async => !hasUnsavedChanges, // optional veto, sync or async
-  child: DockTabStack(index: index, children: navigators),
+  child: DockTabStack(
+    index: index,
+    children: [
+      for (final (i, root) in roots.indexed)
+        DockTabNavigator(
+          navigatorKey: navigatorKeys[i],
+          onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => root),
+        ),
+    ],
+  ),
 )
 ```
 
-`DockTabStack` keeps every tab alive and the inactive ones inert: offstage, not ticking, out of focus, semantics and hero flights. Any other container works too, as long as inactive tabs are under `TickerMode(enabled: false)` (so their pages don't claim the column). When the rail doesn't fit the column, it scrolls and keeps the selected tab visible.
+`DockTabStack` keeps every tab alive and the inactive ones inert: offstage, not ticking, out of focus, semantics and hero flights. `maintainTickers: true` keeps inactive tabs ticking (a video, a map camera), as an `IndexedStack` does; their pages still don't claim the column. Any other container works too, as long as inactive tabs are under `TickerMode(enabled: false)` (so their pages don't claim the column). When the rail doesn't fit the column, it scrolls and keeps the selected tab visible.
+
+`DockTabNavigator` is a `Navigator` for a tab: Android's system back pops the shown tab's pages before it leaves the app, a hidden tab's pages don't keep the app from closing, and it doesn't clip, so a `DockBleed` reaches under the chrome.
+
+Coming from `IndexedStack`: it builds every tab at once (`DockTabStack(lazy: false)` does too), keeps inactive tabs ticking (`maintainTickers`) and lets their heroes fly; inactive pages there claim the column unless wrapped in `TickerMode(enabled: false)`.
 
 **go_router.** `StatefulShellRoute.indexedStack` provides exactly that:
 
@@ -199,7 +212,7 @@ DockBleed(
 )
 ```
 
-What clips a bleed: `ClipRect` and other clips, scroll views around it, and a `Navigator` (give it `clipBehavior: Clip.none`). `Stack`, `IndexedStack` and `DockTabStack` don't. In debug mode a message names the first clipping ancestor. Taps in the strip go to the chrome, so keep interactive content in a `DockInset`.
+What clips a bleed: `ClipRect` and other clips, scroll views around it, and a `Navigator` (give it `clipBehavior: Clip.none`; `DockTabNavigator` has it). `Stack`, `IndexedStack` and `DockTabStack` don't. In debug mode a message names the first clipping ancestor. Taps in the strip go to the chrome, so keep interactive content in a `DockInset`.
 
 ### The software keyboard
 

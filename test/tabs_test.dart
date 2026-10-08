@@ -213,6 +213,121 @@ void main() {
     });
   });
 
+  group('a bar built from data', () {
+    // Builds its own children from the tabs' payloads, as a design system's
+    // bar that takes a list of item descriptions does. No tabItem builder.
+    final builders = DockBuilders<Object?, Object?, Object?>(
+      tabBar: (context, data, items) => DockTabBarSemantics(
+        child: SafeArea(
+          child: SizedBox(
+            height: 56,
+            child: Row(
+              children: [
+                for (var i = 0; i < data.tabs.length; i++)
+                  Expanded(
+                    child: data.wrap(
+                      i,
+                      GestureDetector(
+                        onTap: data.itemData(i).onTap,
+                        child: Text((data.tabs[i].payload! as _Item).name),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    testWidgets('gets the same keys and semantics', (tester) async {
+      final handle = tester.ensureSemantics();
+      await pump(tester, shell(initial: 1), builders: builders);
+      expect(
+        find.descendant(
+          of: find.byKey(DockKeys.tab('me')),
+          matching: find.byKey(const Key('app-me')),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('app-me')),
+          matching: find.text('me item'),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester.getSemantics(find.byKey(const Key('app-me'))),
+        // containsSemantics: deprecated after 3.40, but 3.38 lacks isSemantics.
+        // ignore: deprecated_member_use
+        containsSemantics(
+          label: 'Me',
+          value: '3',
+          isSelected: true,
+          hasSelectedState: true,
+          hasTapAction: true,
+        ),
+      );
+      expect(
+        tester.getSemantics(find.byKey(DockKeys.tab('home'))),
+        // containsSemantics: deprecated after 3.40, but 3.38 lacks isSemantics.
+        // ignore: deprecated_member_use
+        containsSemantics(
+          label: 'Home',
+          isSelected: false,
+          hasSelectedState: true,
+          hasTapAction: true,
+        ),
+      );
+      handle.dispose();
+    });
+
+    testWidgets('taps, re-taps and vetoes follow the shell\'s rules', (
+      tester,
+    ) async {
+      final selected = <int>[];
+      final reselected = <int>[];
+      var allow = false;
+      await pump(
+        tester,
+        shell(
+          onSelected: selected.add,
+          onReselected: reselected.add,
+          canSelect: (_) => allow,
+        ),
+        builders: builders,
+      );
+      await tester.tap(find.text('me item'));
+      await tester.pumpAndSettle();
+      expect(selected, isEmpty); // vetoed
+      await tester.tap(find.text('home item'));
+      expect(reselected, [0]);
+
+      allow = true;
+      await tester.tap(find.text('me item'));
+      await tester.pumpAndSettle();
+      expect(selected, [1]);
+      expect(find.text('tab 1'), findsOneWidget);
+    });
+
+    test('itemData describes one tab', () {
+      final data = DockTabsData<_Item>(
+        tabs: _typedTabs(),
+        currentIndex: 1,
+        onSelected: (_) {},
+        mode: DockLayoutMode.wide,
+      );
+      final item = data.itemData(1);
+      expect(item.tab.id, 'me');
+      expect(item.index, 1);
+      expect(item.count, 2);
+      expect(item.selected, isTrue);
+      expect(item.placement, DockTabPlacement.rail);
+      expect(() => data.itemData(2), throwsRangeError);
+    });
+  });
+
   group('selection', () {
     testWidgets('selects another tab', (tester) async {
       final selected = <int>[];
@@ -354,6 +469,69 @@ void main() {
       expect(nodes[0].canRequestFocus, isTrue);
       expect(nodes[1].canRequestFocus, isFalse);
     });
+
+    for (final maintain in [false, true]) {
+      testWidgets('maintainTickers: $maintain', (tester) async {
+        final values = <double>[];
+        await tester.pumpWidget(
+          MaterialApp(
+            home: DockTabStack(
+              index: 0,
+              lazy: false,
+              maintainTickers: maintain,
+              children: [const SizedBox(), _Spinner(values)],
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 100));
+        final moved = values.toSet().length > 1;
+        expect(moved, maintain);
+      });
+    }
+
+    testWidgets('with maintainTickers, only the shown tab\'s page claims the '
+        'column', (tester) async {
+      Widget page(String id) => DockPage<Object?, Object?>(
+        trailing: [
+          DockAction<Object?>(
+            id: id,
+            icon: const DockIcon(Icons.share),
+            onPressed: () {},
+          ),
+        ],
+        body: const SizedBox.expand(),
+      );
+      Finder inColumn(Object id) => find.descendant(
+        of: find.byKey(DockKeys.column),
+        matching: find.byKey(DockKeys.action(id)),
+      );
+      var index = 0;
+      await pump(
+        tester,
+        StatefulBuilder(
+          builder: (context, setState) => DockShell<Object?, Object?, Object?>(
+            tabs: _typedTabs(),
+            currentIndex: index,
+            onTabSelected: (i) => setState(() => index = i),
+            child: DockTabStack(
+              index: index,
+              lazy: false,
+              maintainTickers: true,
+              children: [page('first'), page('second')],
+            ),
+          ),
+        ),
+        mode: DockLayoutMode.wide,
+      );
+      expect(inColumn('first'), findsOneWidget);
+      expect(inColumn('second'), findsNothing);
+
+      await tester.tap(find.byKey(DockKeys.tab('me')));
+      await tester.pumpAndSettle();
+      expect(inColumn('first'), findsNothing);
+      expect(inColumn('second'), findsOneWidget);
+    });
   });
 
   group('the rail', () {
@@ -436,4 +614,43 @@ void main() {
       expect(const DockBadge.dot().isDot, isTrue);
     });
   });
+}
+
+/// Records the value of an endless animation on every build.
+class _Spinner extends StatefulWidget {
+  const _Spinner(this.values);
+
+  final List<double> values;
+
+  @override
+  State<_Spinner> createState() => _SpinnerState();
+}
+
+class _SpinnerState extends State<_Spinner>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AnimatedBuilder(
+    animation: _controller,
+    builder: (context, _) {
+      widget.values.add(_controller.value);
+      return const SizedBox();
+    },
+  );
 }

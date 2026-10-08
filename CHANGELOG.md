@@ -68,6 +68,14 @@ the design is in the
   `DockShell.canSelectTab` (a sync or async veto).
 * New `DockTabStack`: keeps tabs alive and the inactive ones inert (offstage,
   no tickers, no focus, no hero flights), built when first shown.
+  `maintainTickers` keeps inactive tabs ticking; their pages still don't claim
+  the column (`DockTabStack.isActiveOf`).
+* New `DockTabNavigator`: a tab's `Navigator` that handles Android's system
+  back (the shown tab's pages first, and a hidden tab's pages don't keep the
+  app from closing) and doesn't clip.
+* Tab bars that build their children from data: `DockTabsData.itemData(i)`
+  gives a tab's state and tap, and `DockTabsData.wrap(i, child)` adds the
+  package's keys and semantics.
 * The rail scrolls when the tabs don't fit and keeps the selected tab visible;
   `DockSideColumnLayout` gives the rail its height before the actions. The
   column grows with the text scale up to `columnTextScaleLimit` (1.5).
