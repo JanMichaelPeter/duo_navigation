@@ -232,7 +232,7 @@ class _TabItem extends StatelessWidget {
   final DockTabItemData<Object?> data;
   final bool showLabel;
 
-  /// Color of the selected tab's pill; the color scheme's without one.
+  /// Tint of the selected tab's pill; the primary color without one.
   final Color? accent;
 
   @override
@@ -240,8 +240,9 @@ class _TabItem extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final tab = data.tab;
     final selected = data.selected;
-    final foreground =
-        selected ? scheme.onPrimaryContainer : scheme.onInverseSurface;
+    // Icon and label keep their color when selected; the pill behind them
+    // is a translucent tint, so they stay readable on it.
+    final foreground = scheme.onInverseSurface;
 
     Widget icon = DockMaterial.badge(
       tab.iconFor(selected: selected).toWidget(),
@@ -275,7 +276,7 @@ class _TabItem extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 6),
           decoration: BoxDecoration(
             color: selected
-                ? accent?.withValues(alpha: 0.35) ?? scheme.primaryContainer
+                ? (accent ?? scheme.primary).withValues(alpha: 0.35)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(32),
           ),
