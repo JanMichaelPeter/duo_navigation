@@ -6,8 +6,8 @@ version: 0.1.0
 repository: https://github.com/JanMichaelPeter/nav_dock/tree/main/packages/nav_dock_window_placement
 
 environment:
-  sdk: ">=3.10.0 <4.0.0"
-  flutter: ">=3.38.0"
+  sdk: ">=3.9.0 <4.0.0"
+  flutter: ">=3.35.0"
 
 resolution: workspace
 
@@ -15,8 +15,7 @@ dependencies:
   flutter:
     sdk: flutter
   nav_dock: ^0.1.0
-  # window_placement needs Dart 3.10 (Flutter 3.38).
-  window_placement: ^0.0.1
+  window_placement: ^0.0.2
 
 dev_dependencies:
   flutter_test:

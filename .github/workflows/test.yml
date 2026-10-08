@@ -8,8 +8,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Oldest supported Flutter (pubspec.yaml: flutter >=3.38.0).
-  FLUTTER_VERSION: 3.38.1
+  # Oldest supported Flutter (pubspec.yaml: flutter >=3.35.0).
+  FLUTTER_VERSION: 3.35.6
 
 jobs:
   dart:

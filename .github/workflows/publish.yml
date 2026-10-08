@@ -15,7 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  FLUTTER_VERSION: 3.38.1
+  FLUTTER_VERSION: 3.35.6
 
 jobs:
   publish:

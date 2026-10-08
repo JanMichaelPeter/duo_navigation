@@ -5,6 +5,7 @@ A redesign of nav_dock. Upgrading: see the
 the design is in the
 [architecture document](https://github.com/JanMichaelPeter/nav_dock/blob/main/doc/design/architecture.md).
 
+* Requires Dart 3.9 / Flutter 3.35 (0.0.1 required Dart 3.10 / Flutter 3.38).
 * **BREAKING** `DockNavigationData.breakpoint` is replaced by `layoutPolicy`:
   `DockLayoutPolicy.breakpoint(600)` (default, based on the window width) or
   `DockLayoutPolicy.fixed(mode)`.

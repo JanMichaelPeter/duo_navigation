@@ -27,7 +27,7 @@ The package owns **placement, insets, visibility, identity, semantics and animat
 
 ## Platforms and installation
 
-Every Flutter platform, Flutter 3.38 or later; `nav_dock` has no native code.
+Every Flutter platform, Flutter 3.35 or later; `nav_dock` has no native code.
 
 ```sh
 flutter pub add nav_dock
