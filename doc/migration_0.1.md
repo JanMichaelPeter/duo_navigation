@@ -38,7 +38,7 @@ DockNavigation(
 | `tapCooldown:` | `tapGuard: DockTapGuard(cooldown: ...)`; the cooldown now applies per action |
 | `tabBarBuilder:`, `railBuilder:`, `actionBuilder:`, `pageBuilder:`, `sideColumnBuilder:`, `actionTransitionBuilder:` | `DockNavigation(builders: DockBuilders(tabBar:, rail:, action:, page:, sideColumn:, actionTransition:, backdrop:))`, see section 5 |
 | `DockDefaults.*` | `DockMaterial.*` in `package:nav_dock/material.dart`; `DockMaterialBuilders()` sets all of them |
-| `DockNavigation.of` fell back to defaults | it throws without a `DockNavigation`; use `maybeOf` where none is expected, and `DockTestHarness` in tests |
+| `DockNavigation.of` fell back to defaults | it throws without a `DockNavigation`; use `maybeOf` where none is expected, `DockStandalone` around pages that may have none, and `DockTestHarness` in tests |
 
 ## 2. Layout: the body is beside the chrome
 
