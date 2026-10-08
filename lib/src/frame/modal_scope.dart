@@ -19,6 +19,7 @@ class DockModalScope<A, B> extends StatelessWidget {
     this.bodyMode,
     this.hoisting,
     this.builders,
+    this.navigationVisible = true,
     required this.child,
   });
 
@@ -34,6 +35,10 @@ class DockModalScope<A, B> extends StatelessWidget {
   /// fall back to them.
   final DockBuilders<Object?, A, B>? builders;
 
+  /// Whether the side column shows. False hides it with an animation. A page
+  /// can hide it too (`DockPageScope.visible`).
+  final bool navigationVisible;
+
   /// The modal content, typically its own Navigator.
   final Widget child;
 
@@ -43,6 +48,7 @@ class DockModalScope<A, B> extends StatelessWidget {
     bodyMode: bodyMode,
     hoisting: hoisting,
     builders: builders,
+    navigationVisible: navigationVisible,
     child: child,
   );
 }

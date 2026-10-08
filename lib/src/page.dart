@@ -30,6 +30,7 @@ class DockPage<A, B> extends StatelessWidget {
     this.trailing = const [],
     this.automaticallyImplyLeading = true,
     this.hoisting,
+    this.visible = true,
     required Widget this.body,
   }) : builder = null;
 
@@ -42,6 +43,7 @@ class DockPage<A, B> extends StatelessWidget {
     this.trailing = const [],
     this.automaticallyImplyLeading = true,
     this.hoisting,
+    this.visible = true,
     required DockPageBuilder<A, B> this.builder,
   }) : body = null;
 
@@ -63,6 +65,9 @@ class DockPage<A, B> extends StatelessWidget {
   /// See [DockPageScope.hoisting].
   final DockHoisting? hoisting;
 
+  /// See [DockPageScope.visible].
+  final bool visible;
+
   /// Page content below the title bar (default constructor).
   final Widget? body;
 
@@ -78,6 +83,7 @@ class DockPage<A, B> extends StatelessWidget {
       trailing: trailing,
       automaticallyImplyLeading: automaticallyImplyLeading,
       hoisting: hoisting,
+      visible: visible,
       child: Builder(
         builder: (context) {
           final bar = DockBarData.of<A, B>(context);

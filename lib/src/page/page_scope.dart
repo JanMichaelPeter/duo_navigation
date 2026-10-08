@@ -45,6 +45,7 @@ class DockPageScope<A, B> extends StatefulWidget {
     this.trailing = const [],
     this.automaticallyImplyLeading = true,
     this.hoisting,
+    this.visible = true,
     required this.child,
   });
 
@@ -75,6 +76,11 @@ class DockPageScope<A, B> extends StatefulWidget {
   /// Null: the frame's (`DockShell.hoisting`, `DockModalScope.hoisting`,
   /// `DockNavigationData.hoisting`).
   final DockHoisting? hoisting;
+
+  /// Whether the navigation (tab bar or side column) shows while this page is
+  /// on top. False hides it with an animation, for example for a camera, a
+  /// video or reading. The shell can hide it too (`navigationVisible`).
+  final bool visible;
 
   /// The page.
   final Widget child;
@@ -150,6 +156,7 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
           trailing: widget.trailing,
           automaticallyImplyLeading: widget.automaticallyImplyLeading,
           hoisting: widget.hoisting,
+          visible: widget.visible,
           child: widget.child,
         ),
       );
@@ -186,6 +193,7 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
       // ignore: deprecated_member_use
       active: _shows(route) && TickerMode.of(context),
       route: route,
+      navigationVisible: page.visible,
     );
 
     final wide = scope.mode == DockLayoutMode.wide;

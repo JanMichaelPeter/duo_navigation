@@ -84,6 +84,7 @@ class DockFrame<T, A, B> extends StatefulWidget {
     this.bodyMode,
     this.hoisting,
     this.builders,
+    this.navigationVisible = true,
   });
 
   final bool isModal;
@@ -103,15 +104,62 @@ class DockFrame<T, A, B> extends StatefulWidget {
   /// Overrides on top of the builders above; null fields fall back to them.
   final DockBuilders<T, A, B>? builders;
 
+  /// Whether the bar and column show; pages can hide them too.
+  final bool navigationVisible;
+
   @override
   State<DockFrame<T, A, B>> createState() => _DockFrameState<T, A, B>();
 }
 
-class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>> {
+class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
+    with SingleTickerProviderStateMixin {
   final DockActionHost _host = DockActionHost();
+
+  /// How far the bar and column are shown. Only ticks while they animate.
+  /// Created in [initState], not lazily: [dispose] must not be the first to
+  /// touch it (it would look up TickerMode on a deactivated element).
+  late final AnimationController _visibility;
+  late final CurvedAnimation _curved;
+  Duration _visibilityDuration = Duration.zero;
+
+  /// The shell's and the active page's wish together.
+  bool get _wantsNavigation =>
+      widget.navigationVisible && (_host.active?.navigationVisible ?? true);
+
+  @override
+  void initState() {
+    super.initState();
+    _visibility = AnimationController(
+      vsync: this,
+      value: widget.navigationVisible ? 1 : 0,
+    );
+    _curved = CurvedAnimation(parent: _visibility, curve: Curves.linear);
+    _host.addListener(_syncVisibility);
+  }
+
+  @override
+  void didUpdateWidget(DockFrame<T, A, B> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.navigationVisible != oldWidget.navigationVisible) {
+      _syncVisibility();
+    }
+  }
+
+  void _syncVisibility() {
+    if (!mounted) return;
+    final target = _wantsNavigation ? 1.0 : 0.0;
+    if (_visibility.value == target && !_visibility.isAnimating) return;
+    // Rebuild so the chrome leaves (or joins) hit testing, focus and
+    // semantics right away, not when the animation ends.
+    setState(() {});
+    _visibility.animateTo(target, duration: _visibilityDuration);
+  }
 
   @override
   void dispose() {
+    _host.removeListener(_syncVisibility);
+    _curved.dispose();
+    _visibility.dispose();
     _host.dispose();
     super.dispose();
   }
@@ -212,6 +260,11 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>> {
     final columnOnRight = DockNavigation.sideOnRight(context);
     final side = columnOnRight == ltr ? DockSide.end : DockSide.start;
     final builders = DockBuilders.of<T, A, B>(context);
+    _visibilityDuration = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : config.visibilityDuration;
+    _curved.curve = config.visibilityCurve;
+    final hidden = !_wantsNavigation;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -243,6 +296,7 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>> {
                 textScale.clamp(1.0, config.columnTextScaleLimit),
             bodyMode: widget.bodyMode ?? config.bodyMode,
             systemPadding: padding,
+            visibility: _curved,
             // The body keeps its slot in every mode, so switching modes
             // (rotation, split view) keeps its State.
             body: DockBodyScope(child: widget.child),
@@ -250,34 +304,59 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>> {
                 ? null
                 : KeyedSubtree(
                     key: DockKeys.bar,
-                    child: builders.buildTabBar(
-                      context,
-                      tabs,
-                      _items(context, builders, tabs),
-                    ),
-                  ),
-            column: SideColumn(
-              key: DockKeys.column,
-              host: _host,
-              rail: tabs == null || mode != DockLayoutMode.wide
-                  ? null
-                  : KeyedSubtree(
-                      key: DockKeys.rail,
-                      // Scrolls when the tabs don't fit the column.
-                      child: SingleChildScrollView(
-                        child: builders.buildRail(
-                          context,
-                          tabs,
-                          _items(context, builders, tabs),
-                        ),
+                    child: _Inert(
+                      inert: hidden,
+                      child: builders.buildTabBar(
+                        context,
+                        tabs,
+                        _items(context, builders, tabs),
                       ),
                     ),
-              columnOnRight: columnOnRight,
-              buildChip: (context, action) => _chip(context, builders, action),
+                  ),
+            column: _Inert(
+              inert: hidden,
+              child: SideColumn(
+                key: DockKeys.column,
+                host: _host,
+                rail: tabs == null || mode != DockLayoutMode.wide
+                    ? null
+                    : KeyedSubtree(
+                        key: DockKeys.rail,
+                        // Scrolls when the tabs don't fit the column.
+                        child: SingleChildScrollView(
+                          child: builders.buildRail(
+                            context,
+                            tabs,
+                            _items(context, builders, tabs),
+                          ),
+                        ),
+                      ),
+                columnOnRight: columnOnRight,
+                buildChip: (context, action) =>
+                    _chip(context, builders, action),
+              ),
             ),
           ),
         );
       },
     );
   }
+}
+
+/// Takes hidden chrome out of hit testing, focus and semantics. Inserted
+/// always, so the chrome keeps its state across hiding and showing.
+class _Inert extends StatelessWidget {
+  const _Inert({required this.inert, required this.child});
+
+  final bool inert;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+    ignoring: inert,
+    child: ExcludeFocus(
+      excluding: inert,
+      child: ExcludeSemantics(excluding: inert, child: child),
+    ),
+  );
 }

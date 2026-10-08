@@ -96,6 +96,13 @@ Unreleased. A redesign; see the
 * New `DockHoisting.none` (on `DockNavigationData`, `DockShell`,
   `DockModalScope` and pages): nothing moves into the column, and the bar data
   is the same in both modes.
+* Hide and show the navigation: `DockShell.navigationVisible`,
+  `DockModalScope.navigationVisible`, and per page `DockPageScope.visible` /
+  `DockPage.visible`. The bar and column animate away
+  (`visibilityDuration`, `visibilityCurve`; instant under reduced motion), the
+  body gets the whole frame, and hidden chrome takes no taps, focus or
+  semantics. `DockGeometry.visibility` and `DockGeometryAspect.visibility`
+  follow the animation.
 * New `package:nav_dock/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work
