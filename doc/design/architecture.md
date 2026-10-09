@@ -1,8 +1,8 @@
-# nav_dock 0.1.0 architecture
+# duo_navigation 0.1.0 architecture
 
 Status: accepted, implemented in 0.1.0 · Tracking: #42 · This document: #4
 
-0.1.0 is a redesign of nav_dock. This document fixes the model the 0.1.0 issues build on: what the package owns, how
+0.1.0 is a redesign of duo_navigation. This document fixes the model the 0.1.0 issues build on: what the package owns, how
 the frame lays out the body and the chrome, how configuration and visuals are provided, and how payloads are typed.
 Signatures are sketches. Names may still change in review, but the rules should not.
 
@@ -34,34 +34,34 @@ and loses no state.
 
 ## 3. Packages and entry points
 
-The repository is a pub workspace. The repository root is both the workspace root and the `nav_dock` package:
+The repository is a pub workspace. The repository root is both the workspace root and the `duo_navigation` package:
 
 ```
-pubspec.yaml                          nav_dock, and the workspace root
-lib/, test/                           nav_dock
-packages/nav_dock_window_placement/   window-edge source backed by window_placement (native)
+pubspec.yaml                          duo_navigation, and the workspace root
+lib/, test/                           duo_navigation
+packages/duo_navigation_window_placement/   window-edge source backed by window_placement (native)
 example/                              depends on both
 ```
 
-`.pubignore` keeps `packages/` and `doc/design/` out of the `nav_dock` archive. Each package is released with its
+`.pubignore` keeps `packages/` and `doc/design/` out of the `duo_navigation` archive. Each package is released with its
 own tag, `<package>-v<version>` (`tool/release.sh`).
 
-`nav_dock` has four entry points:
+`duo_navigation` has four entry points:
 
 | Entry point | Contents | Imports |
 |-------------|----------|---------|
-| `package:nav_dock/geometry.dart` | `DockGeometry`, `DockLayoutMode`, `DockSide`, `DockBodyMode`, `DockWindowEdges`, `DockWindowEdgesSource`, `DockLayoutPolicy`, `DockBleed`, `DockInset` | widgets |
-| `package:nav_dock/nav_dock.dart` | `geometry.dart` plus configuration, shell, modal scope, tabs, actions, page layer, builders, `DockKeys`, `DockSemantics` | widgets |
-| `package:nav_dock/material.dart` | `DockMaterialBuilders`, `DockAppBar` and the Material visuals | material |
-| `package:nav_dock/testing.dart` | `DockTestHarness`, `FakeWindowEdgesSource`, `FakeDockClock`, `DockKeys` | widgets |
+| `package:duo_navigation/geometry.dart` | `DockGeometry`, `DockLayoutMode`, `DockSide`, `DockBodyMode`, `DockWindowEdges`, `DockWindowEdgesSource`, `DockLayoutPolicy`, `DockBleed`, `DockInset` | widgets |
+| `package:duo_navigation/duo_navigation.dart` | `geometry.dart` plus configuration, shell, modal scope, tabs, actions, page layer, builders, `DockKeys`, `DockSemantics` | widgets |
+| `package:duo_navigation/material.dart` | `DockMaterialBuilders`, `DockAppBar` and the Material visuals | material |
+| `package:duo_navigation/testing.dart` | `DockTestHarness`, `FakeWindowEdgesSource`, `FakeDockClock`, `DockKeys` | widgets |
 
 `testing.dart` does not import `flutter_test`, so the package has no test dependency. Finders use keys:
 `find.byKey(DockKeys.tab('home'))`.
 
-`nav_dock_window_placement` exports one class, `WindowPlacementEdgesSource`, which implements
+`duo_navigation_window_placement` exports one class, `WindowPlacementEdgesSource`, which implements
 `DockWindowEdgesSource`. An app that never leaves compact mode does not depend on it.
 
-A test in `nav_dock` fails if a file outside `src/material/` imports `material.dart` or `cupertino.dart`, or if
+A test in `duo_navigation` fails if a file outside `src/material/` imports `material.dart` or `cupertino.dart`, or if
 `geometry.dart` exports a page, action or builder type.
 
 ## 4. Layers and modules
@@ -337,7 +337,7 @@ class DockBuilders<T, A, B> {
   `DockModalScope(builders: ...)`. The nearest scope wins, field by field. An override on one shell leaves other
   shells unchanged.
 - A field that is null all the way up fails with a `FlutterError` naming the field and pointing to
-  `DockMaterialBuilders()` in `package:nav_dock/material.dart`.
+  `DockMaterialBuilders()` in `package:duo_navigation/material.dart`.
 - Every builder has the shape `(BuildContext, Data)`. `Data` is immutable and has value equality. Each typedef's
   dartdoc states the builder contract:
 
@@ -665,7 +665,7 @@ DockTestHarness(
 | 0.0.1 | 0.1.0 |
 |-------|-------|
 | `DockNavigationData(tabBarBuilder: ..., railBuilder: ..., actionBuilder: ..., pageBuilder: ..., sideColumnBuilder: ..., actionTransitionBuilder: ...)` | `DockNavigation(builders: DockMaterialBuilders().merge(DockBuilders(...)))` |
-| `DockDefaults.*` | `package:nav_dock/material.dart` |
+| `DockDefaults.*` | `package:duo_navigation/material.dart` |
 | `breakpoint: 600` | `layoutPolicy: DockLayoutPolicy.breakpoint(600)` |
 | `windowEdges:` / `detectWindowEdges:` | `windowEdgesSource: WindowPlacementEdgesSource()` (separate package) or `DockWindowEdgesSource.fixed(...)` |
 | body under the chrome, obstruction as padding | `bodyMode: DockBodyMode.inset` (default); `overlay` for the old behavior |
@@ -694,7 +694,7 @@ The redesign is done when each of these is shown by a test:
 7. A test pins mode, edges and clock in one call and never waits on real time.
 8. A builder override on one shell leaves other shells unchanged.
 9. A semantics test for tabs and actions passes with a custom builder that wraps the default.
-10. `nav_dock` builds for Android, iOS, web and desktop with no native plugin in its dependency graph.
+10. `duo_navigation` builds for Android, iOS, web and desktop with no native plugin in its dependency graph.
 11. A typed payload reaches a builder with no cast.
 12. With hoisting `none`, the bar data is the same in compact and wide mode, and a text leading action works in both.
 13. `dart doc` is clean and a public-API diff runs in CI.

@@ -1,7 +1,7 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-/// The semantics nav_dock gives tabs and actions, for builders that draw items
+/// The semantics duo_navigation gives tabs and actions, for builders that draw items
 /// outside the package's wrappers (a custom bar that does not use
 /// `DockBarData.buildAction`, a custom rail).
 ///

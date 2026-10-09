@@ -16,7 +16,7 @@ enum DockKeyboardBehavior {
 /// What the body does while the software keyboard is open, in
 /// `DockBodyMode.inset`.
 enum DockBodyKeyboardBehavior {
-  /// The body keeps its height and the page decides, as without nav_dock:
+  /// The body keeps its height and the page decides, as without duo_navigation:
   /// `MediaQuery.viewInsets.bottom` below the frame is the part of the
   /// keyboard that the bar doesn't already cover, so a `Scaffold` resizes for
   /// it (or not, with `resizeToAvoidBottomInset: false`). The default.

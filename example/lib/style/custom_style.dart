@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:nav_dock/material.dart';
+import 'package:duo_navigation/material.dart';
 
 /// A complete custom look, built only from the public builder hooks.
 ///
 /// Optional: with `const DockMaterialBuilders()` instead of [builders],
-/// nav_dock uses the Material defaults in `DockMaterial`. Override as many or
+/// duo_navigation uses the Material defaults in `DockMaterial`. Override as many or
 /// as few builders as you like with `DockMaterialBuilders().merge(...)`.
 ///
 /// Showcases, one hook each:

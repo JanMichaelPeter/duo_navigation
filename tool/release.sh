@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Release helper for the packages in this workspace. Run from anywhere in the
-# repo. <package> is nav_dock or nav_dock_window_placement; tags are
+# repo. <package> is duo_navigation or duo_navigation_window_placement; tags are
 # <package>-v<version>.
 #
 #   tool/release.sh prepare <package> <version>  Set <version> in the package's
@@ -31,10 +31,10 @@ usage() {
 # Prints the directory of package $1, relative to the repo root.
 package_dir() {
   case ${1:-} in
-    nav_dock) echo . ;;
-    nav_dock_window_placement) echo packages/nav_dock_window_placement ;;
+    duo_navigation) echo . ;;
+    duo_navigation_window_placement) echo packages/duo_navigation_window_placement ;;
     '') usage ;;
-    *) fail "unknown package '$1' (nav_dock or nav_dock_window_placement)" ;;
+    *) fail "unknown package '$1' (duo_navigation or duo_navigation_window_placement)" ;;
   esac
 }
 

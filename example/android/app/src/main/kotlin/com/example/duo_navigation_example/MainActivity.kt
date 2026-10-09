@@ -1,4 +1,4 @@
-package com.example.nav_dock_example
+package com.example.duo_navigation_example
 
 import io.flutter.embedding.android.FlutterActivity
 

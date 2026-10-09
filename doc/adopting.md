@@ -1,7 +1,7 @@
-# Adopting nav_dock in an existing app
+# Adopting duo_navigation in an existing app
 
 Most apps don't start from scratch. They have a `Scaffold` with a `NavigationBar` (or their own bar), an `IndexedStack`
-of tabs, a `Navigator` per tab, and pages with their own `AppBar`. This guide moves such an app to nav_dock step by
+of tabs, a `Navigator` per tab, and pages with their own `AppBar`. This guide moves such an app to duo_navigation step by
 step. Each step ships on its own, and the app keeps working in between. (Coming from nav_dock 0.0.1, see the
 [migration guide](migration_0.1.md) instead.)
 
@@ -20,7 +20,7 @@ Put a `DockNavigation` above the root `Navigator`, so pages pushed on it (modals
 the Material visuals to begin with; your own come in step 4.
 
 ```dart
-import 'package:nav_dock/material.dart'; // nav_dock and its Material visuals
+import 'package:duo_navigation/material.dart'; // duo_navigation and its Material visuals
 
 MaterialApp(
   builder: (context, child) => DockNavigation(
@@ -32,7 +32,7 @@ MaterialApp(
 ```
 
 Nothing changes on screen yet. For the side column to follow the window to the screen edge in split screen, add
-`windowEdgesSource: WindowPlacementEdgesSource()` from `nav_dock_window_placement` to `DockNavigationData`. Create it
+`windowEdgesSource: WindowPlacementEdgesSource()` from `duo_navigation_window_placement` to `DockNavigationData`. Create it
 once, in app state, and dispose it with the app.
 
 **Phones in landscape.** With the default breakpoint of 600, a phone in landscape gets the wide layout, and the column
@@ -367,7 +367,7 @@ mode and the strip the chrome covers.
 ## 6. Tests
 
 Widget tests that pump a migrated page need a `DockNavigation`. Use `DockTestHarness` from
-`package:nav_dock/testing.dart`. It pins the layout mode, the window edges and the text direction, and its tap guard
+`package:duo_navigation/testing.dart`. It pins the layout mode, the window edges and the text direction, and its tap guard
 follows `tester.pump`:
 
 ```dart

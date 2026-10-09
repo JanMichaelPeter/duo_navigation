@@ -1,5 +1,5 @@
-name: nav_dock_example
-description: Demo of nav_dock.
+name: duo_navigation_example
+description: Demo of duo_navigation.
 publish_to: none
 version: 1.0.0+1
 
@@ -13,10 +13,10 @@ dependencies:
     sdk: flutter
   # Not ^17.5: from 17.5 on, go_router needs Dart 3.10.
   go_router: ^17.0.0
-  nav_dock:
+  duo_navigation:
     path: ../
-  nav_dock_window_placement:
-    path: ../packages/nav_dock_window_placement
+  duo_navigation_window_placement:
+    path: ../packages/duo_navigation_window_placement
 
 flutter:
   uses-material-design: true

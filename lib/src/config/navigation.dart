@@ -28,7 +28,7 @@ class DockNavigation extends StatefulWidget {
   final DockNavigationData data;
 
   /// The app's visuals, for example `const DockMaterialBuilders()` from
-  /// `package:nav_dock/material.dart`. Shells, modal frames and
+  /// `package:duo_navigation/material.dart`. Shells, modal frames and
   /// [DockBuildersScope]s can override them field by field.
   ///
   /// Optional: an app that only reads the layout (`DockNavigation.modeOf`,
@@ -41,7 +41,7 @@ class DockNavigation extends StatefulWidget {
 
   /// The configuration of the nearest [DockNavigation].
   ///
-  /// Throws a [FlutterError] if there is none: nav_dock does not guess a
+  /// Throws a [FlutterError] if there is none: duo_navigation does not guess a
   /// layout. Use [maybeOf] where a missing [DockNavigation] is expected.
   static DockNavigationData of(BuildContext context) {
     final data = maybeOf(context);

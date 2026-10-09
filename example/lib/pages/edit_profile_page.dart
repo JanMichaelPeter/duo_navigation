@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nav_dock/nav_dock.dart';
+import 'package:duo_navigation/duo_navigation.dart';
 
 /// Root-level modal. DockPage notices there's no shell above it and adds its
 /// own frame. A text-only leading action ("Cancel") stays in the title bar in

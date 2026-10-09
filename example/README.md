@@ -1,7 +1,7 @@
-# nav_dock example
+# duo_navigation example
 
 A three-tab app that shows every feature of
-[nav_dock](https://pub.dev/packages/nav_dock), with a fully custom look built
+[duo_navigation](https://pub.dev/packages/duo_navigation), with a fully custom look built
 from the public builders.
 
 ```sh
@@ -22,7 +22,7 @@ between the compact and the wide layout.
 | Profile → **Edit** | a modal with a text "Cancel" leading action and text fields (the column lifts above the keyboard) |
 | Profile → **Setup flow** | a multi-step modal with its own navigator (`DockModalScope`): the close chip morphs into back |
 | `tabs_home.dart` | typed tab payloads (`DockTab<TabAccent>`) and builders for one shell (`DockShell(builders: ...)`) |
-| `main.dart` | the window-edge source (`nav_dock_window_placement`) and the app's builders |
+| `main.dart` | the window-edge source (`duo_navigation_window_placement`) and the app's builders |
 
 The custom look lives in `lib/style/custom_style.dart`. It is optional: use
 `builders: const DockMaterialBuilders()` in `lib/main.dart` to see the Material

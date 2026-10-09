@@ -180,7 +180,7 @@ class DockAction<A> {
        );
 
   /// The [id] of every [DockAction.back] and [DockAction.close].
-  static const Object backId = #nav_dock_back;
+  static const Object backId = #duo_navigation_back;
 
   /// Identifies the action within its page (or across pages if [shared]).
   /// `DockKeys.action(id)` finds it.

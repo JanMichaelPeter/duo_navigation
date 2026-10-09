@@ -11,7 +11,7 @@ import 'navigation_data.dart';
 ///
 /// `DockPage`, `DockPageScope`, `DockShell` and `DockModalScope` need a
 /// [DockNavigation] above them and fail loudly without one. An app that
-/// adopts nav_dock page by page has places where none is: a route pushed by a
+/// adopts duo_navigation page by page has places where none is: a route pushed by a
 /// plugin or from a second `MaterialApp`, an overlay, or a page that is shown
 /// both inside and outside the migrated part of the app. Wrap such content in
 /// a [DockStandalone]:
@@ -29,7 +29,7 @@ import 'navigation_data.dart';
 /// to the compact layout, where a page brings its own title bar and nothing
 /// else.
 ///
-/// For widget tests use `DockTestHarness` (`package:nav_dock/testing.dart`)
+/// For widget tests use `DockTestHarness` (`package:duo_navigation/testing.dart`)
 /// instead: it also pins the mode, the window edges and the tap guard's clock
 /// to the test.
 class DockStandalone extends StatelessWidget {
@@ -50,7 +50,7 @@ class DockStandalone extends StatelessWidget {
   final DockNavigationData data;
 
   /// The visuals when there is no [DockNavigation] above, for example
-  /// `const DockMaterialBuilders()` from `package:nav_dock/material.dart`.
+  /// `const DockMaterialBuilders()` from `package:duo_navigation/material.dart`.
   final DockBuilders<Object?, Object?, Object?>? builders;
 
   /// The content that needs a [DockNavigation].

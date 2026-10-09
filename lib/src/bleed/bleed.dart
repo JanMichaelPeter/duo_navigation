@@ -293,7 +293,7 @@ class RenderDockBleed extends RenderShiftedBox {
       if (cause != null) {
         _reportedClip = true;
         debugPrint(
-          'nav_dock: a DockBleed is clipped by $cause, so it stops at the '
+          'duo_navigation: a DockBleed is clipped by $cause, so it stops at the '
           'body\'s edge. For backgrounds, a backdrop (DockShell.backdrop, '
           'DockPageScope.backdrop) is never clipped.',
         );

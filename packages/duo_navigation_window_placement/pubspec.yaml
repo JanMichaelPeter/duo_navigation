@@ -1,9 +1,9 @@
-name: nav_dock_window_placement
+name: duo_navigation_window_placement
 description: >-
-  Window-edge source for nav_dock backed by the window_placement plugin, so the
+  Window-edge source for duo_navigation backed by the window_placement plugin, so the
   side column follows the window to the screen edge in split screen.
 version: 0.1.0
-repository: https://github.com/JanMichaelPeter/nav_dock/tree/main/packages/nav_dock_window_placement
+repository: https://github.com/JanMichaelPeter/duo_navigation/tree/main/packages/duo_navigation_window_placement
 
 environment:
   sdk: ">=3.9.0 <4.0.0"
@@ -14,7 +14,7 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  nav_dock: ^0.1.0
+  duo_navigation: ^0.1.0
   window_placement: ^0.0.2
 
 dev_dependencies:

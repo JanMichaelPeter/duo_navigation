@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:nav_dock/nav_dock.dart';
-import 'package:nav_dock_window_placement/nav_dock_window_placement.dart';
+import 'package:duo_navigation/duo_navigation.dart';
+import 'package:duo_navigation_window_placement/duo_navigation_window_placement.dart';
 
 import 'pages/items_page.dart';
 import 'pages/map_page.dart';
@@ -77,7 +77,7 @@ class _GoRouterExampleAppState extends State<GoRouterExampleApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
-      title: 'nav_dock with go_router',
+      title: 'duo_navigation with go_router',
       theme: ThemeData(colorSchemeSeed: Colors.indigo),
       routerConfig: _router,
       builder: (context, child) => DockNavigation(

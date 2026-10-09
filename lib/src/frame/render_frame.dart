@@ -410,7 +410,7 @@ class RenderDockFrame extends RenderBox
                   'example with SafeArea(top: false, child: ...).',
                 ),
               ]),
-              library: 'nav_dock',
+              library: 'duo_navigation',
             ),
           );
         }

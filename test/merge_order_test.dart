@@ -1,4 +1,4 @@
-import 'package:nav_dock/src/actions/merge_order.dart';
+import 'package:duo_navigation/src/actions/merge_order.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

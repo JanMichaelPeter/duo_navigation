@@ -143,7 +143,7 @@ final class DockPlatformIcon extends DockIcon {
     ),
     ErrorHint(
       'In a builder, switch over the DockIcon and draw DockPlatformIcon '
-      "yourself, or use DockMaterial.icon from 'package:nav_dock/material.dart'.",
+      "yourself, or use DockMaterial.icon from 'package:duo_navigation/material.dart'.",
     ),
   ]);
 

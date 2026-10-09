@@ -63,7 +63,7 @@ class DockActionHost extends ChangeNotifier {
     if (reason == null) return true;
     assert(() {
       debugPrint(
-        'nav_dock: tap on action ${action.id} dropped (${reason.name})',
+        'duo_navigation: tap on action ${action.id} dropped (${reason.name})',
       );
       return true;
     }());

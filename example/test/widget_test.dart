@@ -5,9 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:window_placement/window_placement.dart';
 import 'package:window_placement/window_placement_platform_interface.dart';
 
-import 'package:nav_dock/nav_dock.dart';
-import 'package:nav_dock_example/main.dart';
-import 'package:nav_dock_example/main_go_router.dart';
+import 'package:duo_navigation/duo_navigation.dart';
+import 'package:duo_navigation_example/main.dart';
+import 'package:duo_navigation_example/main_go_router.dart';
 
 void main() {
   Future<void> pumpAt(WidgetTester tester, Size size) async {
