@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nav_dock/nav_dock.dart';
+import 'package:duo_navigation/duo_navigation.dart';
 
 /// An immersive page: while it is shown the tab bar or side column hides
 /// (`visible: false`), and comes back when it is popped. Its close button

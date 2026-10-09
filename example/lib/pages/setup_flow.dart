@@ -1,4 +1,4 @@
-import 'package:nav_dock/nav_dock.dart';
+import 'package:duo_navigation/duo_navigation.dart';
 import 'package:flutter/material.dart';
 
 /// Multi-step modal: one DockModalScope around its own Navigator, so all

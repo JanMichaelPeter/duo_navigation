@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nav_dock/material.dart';
-import 'package:nav_dock/testing.dart';
+import 'package:duo_navigation/material.dart';
+import 'package:duo_navigation/testing.dart';
 
 /// A design system's title spec, carried as the bar payload.
 class _Title {

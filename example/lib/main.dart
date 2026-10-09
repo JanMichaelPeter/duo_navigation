@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:nav_dock/nav_dock.dart';
-import 'package:nav_dock_window_placement/nav_dock_window_placement.dart';
+import 'package:duo_navigation/duo_navigation.dart';
+import 'package:duo_navigation_window_placement/duo_navigation_window_placement.dart';
 
 import 'style/custom_style.dart';
 import 'tabs_home.dart';
@@ -15,7 +15,7 @@ class ExampleApp extends StatefulWidget {
 }
 
 class _ExampleAppState extends State<ExampleApp> {
-  // Tells nav_dock which display edges the window touches, so in split
+  // Tells duo_navigation which display edges the window touches, so in split
   // screen the side column follows the window to the screen edge.
   final _windowEdges = WindowPlacementEdgesSource();
 
@@ -28,14 +28,14 @@ class _ExampleAppState extends State<ExampleApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'nav_dock',
+      title: 'duo_navigation',
       theme: ThemeData(colorSchemeSeed: Colors.indigo),
       darkTheme: ThemeData(
           colorSchemeSeed: Colors.indigo, brightness: Brightness.dark),
       // Above the root Navigator, so root-level modals get the config too.
       builder: (context, child) => DockNavigation(
         // CustomStyle is optional: `builders: const DockMaterialBuilders()`
-        // (package:nav_dock/material.dart) gives the Material defaults. See
+        // (package:duo_navigation/material.dart) gives the Material defaults. See
         // style/custom_style.dart.
         builders: CustomStyle.builders,
         data: CustomStyle.data(DockNavigationData(

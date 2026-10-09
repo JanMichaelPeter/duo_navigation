@@ -16,7 +16,7 @@ import '../tabs/tab_stack.dart';
 ///
 /// It is the page layer as a piece: put it around any page, including one
 /// with its own `Scaffold`, keys, bottom bar or floating action button, and
-/// read the bar with `DockAppBar` (`package:nav_dock/material.dart`) or your
+/// read the bar with `DockAppBar` (`package:duo_navigation/material.dart`) or your
 /// own bar:
 ///
 /// ```dart

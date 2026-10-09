@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nav_dock/material.dart';
+import 'package:duo_navigation/material.dart';
 
 import '../navigation.dart';
 import 'camera_page.dart';

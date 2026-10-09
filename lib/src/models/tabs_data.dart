@@ -17,7 +17,7 @@ enum DockTabPlacement {
 /// The items themselves come built (see [DockTabItemData]); the container
 /// arranges them. A bar that builds its children itself from [tabs] (from a
 /// list of item descriptions, say) uses [itemData] for each tab's state and
-/// tap, and `wrap` (from `package:nav_dock/nav_dock.dart`) to give each
+/// tap, and `wrap` (from `package:duo_navigation/duo_navigation.dart`) to give each
 /// child the package's keys and semantics.
 @immutable
 class DockTabsData<T> {

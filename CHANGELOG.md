@@ -1,20 +1,23 @@
 ## 0.1.0
 
-A redesign of nav_dock. Upgrading: see the
-[migration guide](https://github.com/JanMichaelPeter/nav_dock/blob/main/doc/migration_0.1.md);
+A redesign of nav_dock, under a new name. Upgrading: see the
+[migration guide](https://github.com/JanMichaelPeter/duo_navigation/blob/main/doc/migration_0.1.md);
 adding it to an existing app: see
-[adopting nav_dock](https://github.com/JanMichaelPeter/nav_dock/blob/main/doc/adopting.md);
+[adopting duo_navigation](https://github.com/JanMichaelPeter/duo_navigation/blob/main/doc/adopting.md);
 the design is in the
-[architecture document](https://github.com/JanMichaelPeter/nav_dock/blob/main/doc/design/architecture.md).
+[architecture document](https://github.com/JanMichaelPeter/duo_navigation/blob/main/doc/design/architecture.md).
 
+* Renamed from nav_dock to duo_navigation. Depend on `duo_navigation` and
+  import `package:duo_navigation/...`; nav_dock 0.0.1 stays on pub.dev and
+  gets no further releases.
 * Requires Dart 3.9 / Flutter 3.35 (0.0.1 required Dart 3.10 / Flutter 3.38).
 * **BREAKING** `DockNavigationData.breakpoint` is replaced by `layoutPolicy`:
   `DockLayoutPolicy.breakpoint(600)` (default, based on the window width) or
   `DockLayoutPolicy.fixed(mode)`.
-* **BREAKING** `nav_dock` no longer depends on window_placement and has no
+* **BREAKING** `duo_navigation` no longer depends on window_placement and has no
   native code. `windowEdges` and `detectWindowEdges` are replaced by
   `windowEdgesSource`: pass `WindowPlacementEdgesSource()` from the new
-  `nav_dock_window_placement` package, `DockWindowEdgesSource.fixed(...)`, or
+  `duo_navigation_window_placement` package, `DockWindowEdgesSource.fixed(...)`, or
   your own source. Without a source the preferred `side` is used.
 * **BREAKING** `DockNavigation.of` throws a `FlutterError` when there is no
   `DockNavigation` above, instead of silently using defaults. Use
@@ -43,7 +46,7 @@ the design is in the
   `tester.pump(duration)` / `pumpAndSettle` in widget tests, so a page under
   a plain `DockNavigation` or a `DockStandalone` can be tapped twice in a test
   without `DockTestHarness`.
-* New `package:nav_dock/testing.dart`: `DockTestHarness` pins layout mode,
+* New `package:duo_navigation/testing.dart`: `DockTestHarness` pins layout mode,
   side, window edges, text direction and the tap guard's clock in one widget;
   `FakeWindowEdgesSource` and `FakeDockClock`. It does not depend on
   `flutter_test`.
@@ -55,7 +58,7 @@ the design is in the
   `DockShell(builders:)`, `DockModalScope(builders:)` and `DockBuildersScope`
   override them per frame or subtree, field by field. A builder that no scope
   sets fails with an error naming it.
-* **BREAKING** The Material defaults moved to `package:nav_dock/material.dart`:
+* **BREAKING** The Material defaults moved to `package:duo_navigation/material.dart`:
   `DockMaterialBuilders()` sets every builder, and `DockDefaults` is now
   `DockMaterial`. The core library depends on `package:flutter/widgets.dart`
   only.
@@ -129,12 +132,12 @@ the design is in the
   title and actions and provides `DockBarData.of(context)`, so pages keep
   their own `Scaffold`, keys, bottom bar or floating action button.
   `DockPage` is the scope plus the `page` builder.
-* New `DockAppBar` (`package:nav_dock/material.dart`) reads the page's bar
+* New `DockAppBar` (`package:duo_navigation/material.dart`) reads the page's bar
   data; the Material page uses it. It passes `AppBar`'s `backgroundColor`,
   `foregroundColor`, `elevation`, `scrolledUnderElevation`, `shape`,
   `systemOverlayStyle`, `titleTextStyle`, `flexibleSpace` and `bottom`
   through.
-* `package:nav_dock/material.dart` exports `package:nav_dock/nav_dock.dart`,
+* `package:duo_navigation/material.dart` exports `package:duo_navigation/duo_navigation.dart`,
   so a Material app needs one import (drop the second one, the analyzer
   reports it as unnecessary).
 * New `DockBarLayout`: leading, title and actions with start/end mirroring,
@@ -188,7 +191,7 @@ the design is in the
   `DockGeometry.of` / `DockNavigation.modeOf` give the layout.
 * Docs: the README is reorganized around the adoption levels and documents
   the libraries and the stable API; new
-  [migration guide](https://github.com/JanMichaelPeter/nav_dock/blob/main/doc/migration_0.1.md).
+  [migration guide](https://github.com/JanMichaelPeter/duo_navigation/blob/main/doc/migration_0.1.md).
   The example covers every level, including a go_router setup
   (`example/lib/main_go_router.dart`), typed tab payloads, a backdrop, a
   bleeding map, a plain `Scaffold` page and an immersive page.
@@ -197,7 +200,7 @@ the design is in the
   against the API changes, and performance gates count rebuilds (chrome
   changes don't rebuild the body, nothing rebuilds while idle, budgets for a
   tab switch and an animation tick).
-* New `package:nav_dock/geometry.dart`: layout mode, side and window edges
+* New `package:duo_navigation/geometry.dart`: layout mode, side and window edges
   without the page, action or builder types.
 * `DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` work
   without a frame. Window-edge changes rebuild only widgets that read them.
@@ -208,7 +211,7 @@ the design is in the
 
 ## 0.0.1
 
-Initial release.
+Initial release, published as `nav_dock`.
 
 * `DockShell` and `DockPage`: bottom tab bar and app bar on compact
   screens; a thumb-reachable side column (action chips above a pill rail) on

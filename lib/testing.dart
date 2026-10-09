@@ -1,4 +1,4 @@
-/// Test support for apps that use nav_dock: a harness that pins the layout,
+/// Test support for apps that use duo_navigation: a harness that pins the layout,
 /// fakes for window edges and time, and keys to find the chrome.
 ///
 /// This library does not depend on `flutter_test`, so importing it adds no

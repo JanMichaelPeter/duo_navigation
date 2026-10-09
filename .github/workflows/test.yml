@@ -22,26 +22,26 @@ jobs:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
-      # Resolves the whole workspace: nav_dock, the adapter and the example.
+      # Resolves the whole workspace: duo_navigation, the adapter and the example.
       - run: flutter pub get
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed $(git ls-files '*.dart')
       - name: Analyze and test each package
         run: |
-          for dir in . packages/nav_dock_window_placement example; do
+          for dir in . packages/duo_navigation_window_placement example; do
             echo "::group::$dir"
             (cd "$dir" && flutter analyze && if [ -d test ]; then flutter test; fi)
             echo "::endgroup::"
           done
       - name: Check the API docs (no dartdoc warnings)
         run: |
-          for dir in . packages/nav_dock_window_placement; do
+          for dir in . packages/duo_navigation_window_placement; do
             (cd "$dir" && dart doc --dry-run . 2>&1 | tee /tmp/doc.log)
             grep -q "Found 0 warnings and 0 errors." /tmp/doc.log
           done
       - name: Check publishable packages
         run: |
-          for dir in . packages/nav_dock_window_placement; do
+          for dir in . packages/duo_navigation_window_placement; do
             if grep -q '^publish_to: *none' "$dir/pubspec.yaml"; then
               echo "Skipping $dir (publish_to: none)"
             else
@@ -65,11 +65,13 @@ jobs:
       - name: Public API diff against the last release
         run: |
           dart pub global activate dart_apitool
+          # duo_navigation is new on pub.dev; compare with its predecessor,
+          # nav_dock, until it has a release of its own.
           dart pub global run dart_apitool:main diff --old pub://nav_dock --new . \
             --version-check-mode=none --report-format=markdown --report-file-path=api.md
-          { echo "## nav_dock public API changes"; cat api.md; } >> "$GITHUB_STEP_SUMMARY"
+          { echo "## Public API changes (against nav_dock on pub.dev)"; cat api.md; } >> "$GITHUB_STEP_SUMMARY"
 
-  # nav_dock has no native code; building the example checks that it and
+  # duo_navigation has no native code; building the example checks that it and
   # window_placement compile on each platform.
   android:
     name: Android build

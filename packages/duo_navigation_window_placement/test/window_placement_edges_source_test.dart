@@ -4,8 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nav_dock/material.dart';
-import 'package:nav_dock_window_placement/nav_dock_window_placement.dart';
+import 'package:duo_navigation/material.dart';
+import 'package:duo_navigation_window_placement/duo_navigation_window_placement.dart';
 import 'package:window_placement/window_placement.dart';
 import 'package:window_placement/window_placement_platform_interface.dart';
 

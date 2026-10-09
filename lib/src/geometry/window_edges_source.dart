@@ -9,7 +9,7 @@ import 'window_edges.dart';
 /// [value] when it starts listening and then follows [changes]. The app owns
 /// the source: create it once and dispose it when the app goes away.
 ///
-/// The package `nav_dock_window_placement` provides a source backed by the
+/// The package `duo_navigation_window_placement` provides a source backed by the
 /// native window_placement plugin. Tests can use
 /// [DockWindowEdgesSource.fixed] or a fake.
 abstract interface class DockWindowEdgesSource {

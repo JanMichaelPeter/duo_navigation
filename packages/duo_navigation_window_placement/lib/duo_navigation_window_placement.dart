@@ -1,4 +1,4 @@
-/// Window-edge source for nav_dock backed by the window_placement plugin.
+/// Window-edge source for duo_navigation backed by the window_placement plugin.
 ///
 /// ```dart
 /// final edges = WindowPlacementEdgesSource();
@@ -13,15 +13,15 @@ library;
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:nav_dock/geometry.dart';
+import 'package:duo_navigation/geometry.dart';
 import 'package:window_placement/window_placement.dart';
 
 /// Reports which display edges the app window touches, from the
-/// window_placement plugin, so nav_dock's side column follows the window to
+/// window_placement plugin, so duo_navigation's side column follows the window to
 /// the screen edge in split screen and windowing.
 ///
 /// Detection runs on iOS, iPadOS and Android. Elsewhere, and wherever the
-/// plugin has no native side (widget tests), [value] stays null and nav_dock
+/// plugin has no native side (widget tests), [value] stays null and duo_navigation
 /// uses its preferred side. Failures are silent: a one-off query probes the
 /// native side first, and the live stream is only opened if that worked.
 ///

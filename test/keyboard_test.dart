@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nav_dock/material.dart';
-import 'package:nav_dock/testing.dart';
+import 'package:duo_navigation/material.dart';
+import 'package:duo_navigation/testing.dart';
 
 const _tabs = <DockTab<Object?>>[
   DockTab(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
