@@ -35,26 +35,13 @@ Nothing changes on screen yet. For the side column to follow the window to the s
 `windowEdgesSource: WindowPlacementEdgesSource()` from `duo_navigation_window_placement` to `DockNavigationData`. Create it
 once, in app state, and dispose it with the app.
 
-**Phones in landscape.** With the default breakpoint of 600, a phone in landscape gets the wide layout, and the column
-sits on the screen edge where the camera cutout or Android's button bar may be. `columnInset` decides between the window
-edge, where chips can sit under the cutout, and the safe area, where the column moves inward by the system inset. On
-iPhones that inset is about 59 pt on both sides in landscape. The README has a table. To keep phones in the compact
-layout instead, decide by the window's shorter side:
-
-```dart
-class TabletsWide extends DockLayoutPolicy {
-  const TabletsWide();
-
-  @override
-  DockLayoutMode resolve({required Size window, required Size frame}) =>
-      window.shortestSide >= 600 ? DockLayoutMode.wide : DockLayoutMode.compact;
-}
-
-DockNavigationData(layoutPolicy: const TabletsWide())
-```
-
-Unfolded foldables and tablets still get the column. In split screen the window's shorter side decides, so a narrow
-window on a tablet is compact.
+**Phones in landscape.** By default (`DockLayoutPolicy.shortestSide(600)`) the layout follows the window's shorter
+side, so phones keep the bottom bar in both orientations. Tablets and unfolded foldables get the column, and in split
+screen a window whose shorter side is under 600 is compact. To give phones the column in landscape too, use
+`DockNavigationData(layoutPolicy: const DockLayoutPolicy.breakpoint(600))`. Then the column sits on the screen edge where
+the camera cutout or Android's button bar may be, and `columnInset` decides between the window edge (chips can sit
+under the cutout) and the safe area (the column moves inward by the system inset, on iPhones about 59 pt on both
+sides). The README has a table.
 
 ## 2. The tab scaffold
 
@@ -153,7 +140,9 @@ thing in one widget, for pages that don't need their own `Scaffold`.
   action that stays in the bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the bar.
   Without a leading action it does nothing, so a page whose close action is conditional can set it unconditionally.
   If all your modals close at the top right, set it once:
-  `DockNavigationData(modalLeading: DockModalLeading(implied: DockImpliedLeading.close, atEnd: true))`.
+  `DockNavigationData(modalLeading: DockModalLeading(implied: DockImpliedLeading.close, atEnd: true))`. It applies to
+  modal starts: a `DockModalScope`'s first page, and a page presented as a full-screen dialog or a sheet. Pages that a
+  modal pushes on the root navigator afterwards keep back.
 * **Actions that should never move** get `hoist: DockHoist.never`. `DockHoisting.none` on `DockNavigationData`, a
   shell or a page keeps all of them in the bar.
 

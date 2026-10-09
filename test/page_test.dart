@@ -523,16 +523,23 @@ void main() {
         expect(atEnd['second'], isFalse);
       });
 
-      testWidgets('apply to the implicit modal frame of a root page, also to '
-          'a declared leading action', (tester) async {
+      testWidgets('apply to a full-screen dialog on the root navigator, also '
+          'to a declared leading action', (tester) async {
         await start(tester, data: xTopRight);
-        await push(tester, MaterialPageRoute(builder: (_) => page('root')));
+        await push(
+          tester,
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => page('root'),
+          ),
+        );
         expect(roles['root'], DockActionRole.close);
         expect(atEnd['root'], isTrue);
 
         await push(
           tester,
           MaterialPageRoute(
+            fullscreenDialog: true,
             builder: (_) => page(
               'confirmation',
               leading: DockAction<Object?>.close(onPressed: () {}),
@@ -540,6 +547,32 @@ void main() {
           ),
         );
         expect(atEnd['confirmation'], isTrue);
+      });
+
+      testWidgets('not to a plain page pushed on the root navigator, such as a '
+          'follow-up of a modal', (tester) async {
+        await start(tester, data: xTopRight);
+        await push(
+          tester,
+          MaterialPageRoute(
+            fullscreenDialog: true,
+            builder: (_) => page('checkout'),
+          ),
+        );
+        await push(tester, MaterialPageRoute(builder: (_) => page('address')));
+        expect(roles['checkout'], DockActionRole.close);
+        expect(roles['address'], DockActionRole.back);
+        expect(atEnd['address'], isFalse);
+      });
+
+      testWidgets('apply to a modal route that is not a page', (tester) async {
+        await start(tester, data: xTopRight);
+        await push(
+          tester,
+          DialogRoute<void>(context: root, builder: (_) => page('dialog')),
+        );
+        expect(roles['dialog'], DockActionRole.close);
+        expect(atEnd['dialog'], isTrue);
       });
 
       testWidgets('the modal scope and the page win', (tester) async {

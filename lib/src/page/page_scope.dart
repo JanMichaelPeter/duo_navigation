@@ -4,7 +4,6 @@ import '../actions/action_host.dart';
 import '../actions/action_item.dart';
 import '../builders/builders.dart';
 import '../frame/frame.dart';
-import '../frame/modal_scope.dart';
 import '../geometry/layout_mode.dart';
 import '../keys.dart';
 import '../models/action.dart';
@@ -214,7 +213,9 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
     // root navigator, so it brings its own frame.
     if (scope == null) {
       // A copy without the key, so a GlobalKey is not used twice.
-      return DockModalScope<A, B>(
+      return DockFrame<Object?, A, B>(
+        isModal: true,
+        implicitModal: true,
         child: DockPageScope<A, B>(
           title: widget.title,
           barPayload: widget.barPayload,

@@ -12,8 +12,10 @@ the design is in the
   gets no further releases.
 * Requires Dart 3.9 / Flutter 3.35 (0.0.1 required Dart 3.10 / Flutter 3.38).
 * **BREAKING** `DockNavigationData.breakpoint` is replaced by `layoutPolicy`:
-  `DockLayoutPolicy.breakpoint(600)` (default, based on the window width) or
-  `DockLayoutPolicy.fixed(mode)`.
+  `DockLayoutPolicy.shortestSide(600)` (default: wide when the window's
+  shorter side is at least 600, so phones keep the bottom bar in landscape),
+  `DockLayoutPolicy.breakpoint(width)` (the window width, as in 0.0.1 but of
+  the window) or `DockLayoutPolicy.fixed(mode)`.
 * **BREAKING** `duo_navigation` no longer depends on window_placement and has no
   native code. `windowEdges` and `detectWindowEdges` are replaced by
   `windowEdgesSource`: pass `WindowPlacementEdgesSource()` from the new
@@ -116,9 +118,10 @@ the design is in the
   title bar, such as a close button at the top right; in wide mode it is
   still the lowest chip.
 * New `DockNavigationData.modalLeading` (`DockModalLeading(implied:, atEnd:)`):
-  app-wide defaults for the leading action of every modal's first page,
-  including the implicit modal frame of a page pushed on the root navigator.
-  A `DockModalScope`'s or a page's own setting wins.
+  app-wide defaults for the leading action of every modal start: the first
+  page of a `DockModalScope`, and a page presented as a full-screen dialog or
+  in a modal route that isn't a page. A plain page pushed on the root
+  navigator keeps back. A `DockModalScope`'s or a page's own setting wins.
 * **BREAKING** The tap guard's cooldown applies per action, so different
   actions no longer block each other. `DockTapGuard.onRejected` reports each
   dropped tap with a reason; rejections are logged in debug mode.

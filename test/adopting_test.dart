@@ -46,27 +46,7 @@ class _NavBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-/// The guide's layout policy that keeps phones compact in landscape.
-class _TabletsWide extends DockLayoutPolicy {
-  const _TabletsWide();
-
-  @override
-  DockLayoutMode resolve({required Size window, required Size frame}) =>
-      window.shortestSide >= 600 ? DockLayoutMode.wide : DockLayoutMode.compact;
-}
-
 void main() {
-  test('phones stay compact in landscape with the guide\'s policy', () {
-    const policy = _TabletsWide();
-    DockLayoutMode at(double width, double height) =>
-        policy.resolve(window: Size(width, height), frame: Size(width, height));
-    expect(at(390, 844), DockLayoutMode.compact); // phone, portrait
-    expect(at(844, 390), DockLayoutMode.compact); // phone, landscape
-    expect(at(1024, 768), DockLayoutMode.wide); // tablet
-    expect(at(673, 841), DockLayoutMode.wide); // foldable, unfolded
-    expect(at(400, 1000), DockLayoutMode.compact); // narrow split window
-  });
-
   Future<void> pump(
     WidgetTester tester,
     Widget page, {

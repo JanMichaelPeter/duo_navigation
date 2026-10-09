@@ -25,7 +25,7 @@ const Object _unset = Object();
 class DockNavigationData {
   /// Every argument is optional; the defaults are Material 3.
   const DockNavigationData({
-    this.layoutPolicy = const DockLayoutPolicy.breakpoint(600),
+    this.layoutPolicy = const DockLayoutPolicy.shortestSide(600),
     this.side = DockSide.end,
     this.windowEdgesSource,
     this.bodyMode = DockBodyMode.inset,
@@ -44,8 +44,9 @@ class DockNavigationData {
     this.tapGuard = const DockTapGuard(),
   });
 
-  /// Decides between the compact and the wide layout. Default: wide from a
-  /// window width of 600.
+  /// Decides between the compact and the wide layout. Default:
+  /// `DockLayoutPolicy.shortestSide(600)`, wide when the window's shorter
+  /// side is at least 600, so phones stay compact in landscape.
   final DockLayoutPolicy layoutPolicy;
 
   /// Preferred edge for the side column. Used unless [windowEdgesSource]
@@ -73,8 +74,8 @@ class DockNavigationData {
 
   /// The leading action of every modal's first page, for example
   /// `DockModalLeading(implied: DockImpliedLeading.close, atEnd: true)` for
-  /// an "X" at the top right of every modal. `DockModalScope` and the page
-  /// override it.
+  /// an "X" at the top right of every modal. It applies to modal starts only
+  /// (see [DockModalLeading]); `DockModalScope` and the page override it.
   final DockModalLeading modalLeading;
 
   /// What the column and the bar do while the software keyboard is open.

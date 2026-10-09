@@ -49,8 +49,13 @@ enum DockImpliedLeading {
 }
 
 /// The leading action of a modal's first page, app-wide
-/// (`DockNavigationData.modalLeading`): the page on a modal's route, or the
-/// first page of a `Navigator` inside a `DockModalScope`. The modal scope's
+/// (`DockNavigationData.modalLeading`).
+///
+/// It applies to modal starts: the first page of a `DockModalScope` (also
+/// the first page of a `Navigator` inside it), and a page presented as a
+/// full-screen dialog or in a modal route that isn't a page (a sheet, a
+/// dialog). A plain page pushed on the root navigator, such as a follow-up
+/// page of a modal, is not a modal start and keeps back. The modal scope's
 /// and the page's own settings win.
 @immutable
 class DockModalLeading {

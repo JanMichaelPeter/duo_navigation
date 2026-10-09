@@ -10,7 +10,10 @@ flutter run -t lib/main_go_router.dart   # the same app with go_router
 ```
 
 Rotate the device, use split screen, or resize an iPad window to switch
-between the compact and the wide layout.
+between the compact and the wide layout. The example switches by window width
+(`DockLayoutPolicy.breakpoint(466)`), so phones in landscape show the column
+too; the package's default (`shortestSide(600)`) keeps phones in the bottom-bar
+layout.
 
 | Where | Shows |
 |---|---|
