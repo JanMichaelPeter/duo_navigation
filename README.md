@@ -306,7 +306,7 @@ DockNavigation(
 * **Typed payloads.** `DockShell<MyTab, MyAction, MyBar>` with `DockBuilders<MyTab, MyAction, MyBar>` gives the builders `DockTab<MyTab>`, `DockAction<MyAction>` and `DockBarData<MyAction, MyBar>`, so they read `payload` without a cast. Builders written for `Object?`, such as `DockMaterialBuilders`, work for any payload types; builders for other types fail with an error naming the field.
 * `DockMaterial.*` are the plain functions behind the defaults; wrap them instead of rewriting.
 * **Icons.** `DockIconMorph(icon:, builder:)` cross-fades an action's icon when it changes (back → close) with your own icon rendering; `DockMaterial.morphingIcon` is it with Material icons.
-* **Bars built from data.** A bar that builds its own children from `tabs.tabs` wraps each with `tabs.wrap(i, child)` (the package's keys and semantics) and taps through `tabs.itemData(i).onTap`.
+* **Bars built from data.** A bar that builds its own children from `tabs.tabs` wraps each with `tabs.wrap(i, child)` (the package's keys and semantics) and taps through `tabs.itemData(i).onTap`. A bar that builds its item widgets itself passes `tabs.itemData(i).semanticsOf(context)` to its per-item semantics hook instead.
 
 `example/` uses a fully custom look (`example/lib/style/custom_style.dart`): a capsule tab bar, one tab item for bar and rail, square chips, its own column layout and chip transition.
 
