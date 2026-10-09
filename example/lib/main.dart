@@ -39,8 +39,10 @@ class _ExampleAppState extends State<ExampleApp> {
         // style/custom_style.dart.
         builders: CustomStyle.builders,
         data: CustomStyle.data(DockNavigationData(
-          // 466 also gives foldables in their narrow unfolded posture the
-          // wide layout.
+          // The demo shows the column as often as it can: by window width, so
+          // phones in landscape and foldables in their narrow unfolded
+          // posture get it too. The default, shortestSide(600), keeps phones
+          // in the bottom-bar layout.
           layoutPolicy: const DockLayoutPolicy.breakpoint(466),
           windowEdgesSource: _windowEdges,
         )),

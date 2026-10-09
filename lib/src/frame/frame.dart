@@ -95,6 +95,7 @@ class DockFrame<T, A, B> extends StatefulWidget {
   const DockFrame({
     super.key,
     required this.isModal,
+    this.implicitModal = false,
     required this.child,
     this.tabs,
     this.currentIndex = 0,
@@ -112,6 +113,11 @@ class DockFrame<T, A, B> extends StatefulWidget {
   });
 
   final bool isModal;
+
+  /// A frame that a page without a scope above creates around itself. Every
+  /// page on the root navigator gets one, so it is a modal start only if its
+  /// route presents as one (see [_isModalStart]).
+  final bool implicitModal;
   final Widget child;
   final List<DockTab<T>>? tabs;
   final int currentIndex;
@@ -283,6 +289,21 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
     );
   }
 
+  /// Whether this frame starts a modal, so the app-wide
+  /// `DockNavigationData.modalLeading` applies to its first page: an explicit
+  /// `DockModalScope`, or an implicit frame on a full-screen dialog or a modal
+  /// route that isn't a page (a sheet, a dialog). A plain page pushed on the
+  /// root navigator is not one.
+  bool _isModalStart(ModalRoute<Object?>? route) {
+    if (!widget.isModal) return false;
+    if (!widget.implicitModal) return true;
+    return switch (route) {
+      PageRoute(:final fullscreenDialog) => fullscreenDialog,
+      null => false,
+      _ => true,
+    };
+  }
+
   List<Widget> _items(
     BuildContext context,
     DockBuilders<T, A, B> builders,
@@ -373,21 +394,22 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
                 mode: mode,
               );
 
+        // Only modal frames need their route; a shell doesn't rebuild when
+        // routes change above it.
+        final route = widget.isModal ? ModalRoute.of(context) : null;
+        final modalStart = _isModalStart(route);
         return DockScope._(
           mode: mode,
           host: _host,
           isModal: widget.isModal,
           side: side,
           hoisting: widget.hoisting ?? config.hoisting,
-          // Only modal frames need their route; a shell doesn't rebuild when
-          // routes change above it.
-          route: widget.isModal ? ModalRoute.of(context) : null,
+          route: route,
           impliedLeading:
               widget.impliedLeading ??
-              (widget.isModal ? config.modalLeading.implied : null),
+              (modalStart ? config.modalLeading.implied : null),
           leadingAtEnd:
-              widget.leadingAtEnd ??
-              (widget.isModal && config.modalLeading.atEnd),
+              widget.leadingAtEnd ?? (modalStart && config.modalLeading.atEnd),
           // Focus and semantics order, the same in both modes: the page
           // first, then the chrome (the column's actions above its rail, or
           // the tab bar).

@@ -118,7 +118,7 @@ void main() {
     test('has value equality', () {
       expect(
         const DockNavigationData(),
-        DockNavigationData(layoutPolicy: DockLayoutPolicy.breakpoint(600)),
+        DockNavigationData(layoutPolicy: DockLayoutPolicy.shortestSide(600)),
       );
       expect(
         const DockNavigationData().hashCode,
@@ -146,6 +146,21 @@ void main() {
   });
 
   group('layout policy', () {
+    test('shortestSide (the default) keeps phones compact in landscape', () {
+      const policy = DockLayoutPolicy.shortestSide(600);
+      expect(const DockNavigationData().layoutPolicy, policy);
+      DockLayoutMode at(double width, double height) => policy.resolve(
+        window: Size(width, height),
+        frame: Size(width, height),
+      );
+      expect(at(390, 844), DockLayoutMode.compact); // phone, portrait
+      expect(at(844, 390), DockLayoutMode.compact); // phone, landscape
+      expect(at(1024, 768), DockLayoutMode.wide); // tablet
+      expect(at(673, 841), DockLayoutMode.wide); // foldable, unfolded
+      expect(at(600, 960), DockLayoutMode.wide); // the boundary
+      expect(at(400, 1000), DockLayoutMode.compact); // narrow split window
+    });
+
     test('breakpoint uses the window width', () {
       const policy = DockLayoutPolicy.breakpoint(600);
       expect(

@@ -14,7 +14,7 @@ Adding duo_navigation to an existing app (a `Scaffold` with a tab bar, an `Index
 
 One navigation code path, two layouts:
 
-| | Compact (< breakpoint) | Wide (≥ breakpoint) |
+| | Compact (phones) | Wide (tablets, unfolded foldables) |
 |---|---|---|
 | Tabs | bottom tab bar | vertical rail at the bottom of the side column |
 | Leading (back/close) | title bar | chip right above the rail (a text one like "Cancel" stays in the title bar) |
@@ -44,7 +44,9 @@ MaterialApp(
   builder: (context, child) => DockNavigation(
     builders: const DockMaterialBuilders(),
     data: const DockNavigationData(
-      layoutPolicy: DockLayoutPolicy.breakpoint(600), // wide from 600 logical px of window width
+      // The default: wide when the window's shorter side is at least 600, so
+      // phones keep the bottom bar in landscape. breakpoint(600) uses the width.
+      layoutPolicy: DockLayoutPolicy.shortestSide(600),
     ),
     child: child!,
   ),
@@ -141,7 +143,7 @@ GoRoute(
 
 ## Pages and actions
 
-**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. `impliedLeading: DockImpliedLeading.close` on a `DockModalScope` or a page asks for close on any other route (a custom modal route, a sheet-like page). Pass `leading` to change it, for example a text-only `DockAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the title bar, after the other actions: the close button at the top right of an iOS-style sheet. In wide mode it is still the lowest chip in the column. For every modal at once, `DockNavigationData(modalLeading: DockModalLeading(implied: DockImpliedLeading.close, atEnd: true))` applies both to each modal's first page; a `DockModalScope` or a page overrides it.
+**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. `impliedLeading: DockImpliedLeading.close` on a `DockModalScope` or a page asks for close on any other route (a custom modal route, a sheet-like page). Pass `leading` to change it, for example a text-only `DockAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the title bar, after the other actions: the close button at the top right of an iOS-style sheet. In wide mode it is still the lowest chip in the column. For every modal at once, `DockNavigationData(modalLeading: DockModalLeading(implied: DockImpliedLeading.close, atEnd: true))` applies both to each modal start (a `DockModalScope`'s first page, a full-screen dialog, a sheet; not a plain page pushed on the root navigator); a `DockModalScope` or a page overrides it.
 
 **An action** has an `id` (`find.byKey(DockKeys.action(id))` finds it), an icon as `DockIcon` (`DockIcon.back` and `DockIcon.close` follow the platform) and/or a `label`, and optionally:
 
@@ -195,7 +197,7 @@ By default (`DockBodyMode.inset`) the frame lays the body out in the free area: 
   | Next to Android's button bar (3-button navigation in landscape) | chips can sit under the buttons | clear |
   | iPhone in landscape | at the edge on both sides | about 59 pt inward on **both** sides, because iOS reports the inset on both sides, not only on the camera's |
 
-  On tablets and foldables the side insets are usually zero, so both behave the same. If your app runs on phones in landscape, choose by what's on the column's edge, or keep phones compact in landscape with a layout policy (see [the guide](doc/adopting.md#1-docknavigation)).
+  This only matters where the column meets a side inset. With the default layout policy (`DockLayoutPolicy.shortestSide(600)`) phones keep the bottom bar in landscape, and on tablets and foldables the side insets are usually zero, so both behave the same. Apps that give phones the column in landscape (`DockLayoutPolicy.breakpoint(600)`) choose by what's on the column's edge.
 * The tab bar builder owns the bottom safe area (home indicator): include `MediaQuery.paddingOf(context).bottom` in its height. A debug error reports a bar that is shorter. The bar sees no top padding, so a bar that wraps itself in `SafeArea` doesn't grow by the status bar.
 * `MediaQuery.size` stays the window size, as with Flutter's own sub-screens; use `LayoutBuilder` for the available size.
 

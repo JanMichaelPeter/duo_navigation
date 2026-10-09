@@ -96,14 +96,18 @@ A module imports only modules of its own layer or below. The adoption levels map
 ```dart
 abstract class DockLayoutPolicy {
   const DockLayoutPolicy();
-  const factory DockLayoutPolicy.breakpoint(double width) = _BreakpointPolicy; // default: 600
+  const factory DockLayoutPolicy.shortestSide(double size) = _ShortestSidePolicy; // default: 600
+  const factory DockLayoutPolicy.breakpoint(double width) = _BreakpointPolicy;
   const factory DockLayoutPolicy.fixed(DockLayoutMode mode) = _FixedPolicy;
   DockLayoutMode resolve({required Size window, required Size frame});
 }
 ```
 
-The default policy uses the **window** width (`MediaQuery.sizeOf`), not the frame width, so nested frames (a modal
-frame over a shell) agree on the mode. `fixed` serves tests and products that want one mode.
+The policies look at the **window** (`MediaQuery.sizeOf`), not the frame, so nested frames (a modal frame over a shell)
+agree on the mode. The default, `shortestSide(600)`, uses the window's shorter side: phones keep the bottom bar in
+landscape, where the column would meet the camera cutout or the system buttons on a short screen, while tablets and
+unfolded foldables get the column. `breakpoint` uses the window width, and `fixed` serves tests and products that want
+one mode.
 
 ### 5.2 Side and window edges
 
@@ -280,7 +284,7 @@ hit-tested, wrapped in `ExcludeSemantics` and `ExcludeFocus`, and `chrome` and `
 @immutable
 class DockNavigationData {
   const DockNavigationData({
-    this.layoutPolicy = const DockLayoutPolicy.breakpoint(600),
+    this.layoutPolicy = const DockLayoutPolicy.shortestSide(600),
     this.side = DockSide.end,
     this.windowEdgesSource,                       // null: always `side`
     this.bodyMode = DockBodyMode.inset,

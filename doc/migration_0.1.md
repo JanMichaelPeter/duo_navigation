@@ -50,7 +50,7 @@ DockNavigation(
 
 | 0.0.1 | 0.1.0 |
 |---|---|
-| `breakpoint: 600` | `layoutPolicy: DockLayoutPolicy.breakpoint(600)`; the breakpoint now applies to the **window** width |
+| `breakpoint: 600` | `layoutPolicy: DockLayoutPolicy.breakpoint(600)`; the breakpoint now applies to the **window** width. The new default, `DockLayoutPolicy.shortestSide(600)`, looks at the window's shorter side instead, so phones keep the bottom bar in landscape |
 | detection built in; `windowEdges:` / `detectWindowEdges:` | `windowEdgesSource:` with `WindowPlacementEdgesSource()` (`duo_navigation_window_placement`), `DockWindowEdgesSource.fixed(...)`, or none (always `side`) |
 | `tapCooldown:` | `tapGuard: DockTapGuard(cooldown: ...)`; the cooldown now applies per action |
 | `tabBarBuilder:`, `railBuilder:`, `actionBuilder:`, `pageBuilder:`, `sideColumnBuilder:`, `actionTransitionBuilder:` | `DockNavigation(builders: DockBuilders(tabBar:, rail:, action:, page:, sideColumn:, actionTransition:, backdrop:))`, see section 5 |
