@@ -317,7 +317,7 @@ DuoNavigation(
 * **Typed payloads.** `DuoShell<MyTab, MyAction, MyBar>` with `DuoBuilders<MyTab, MyAction, MyBar>` gives the builders `DuoTab<MyTab>`, `DuoAction<MyAction>` and `DuoBarData<MyAction, MyBar>`, so they read `payload` without a cast. Builders written for `Object?`, such as `DuoMaterialBuilders`, work for any payload types; builders for other types fail with an error naming the field.
 * `DuoMaterial.*` are the plain functions behind the defaults; wrap them instead of rewriting.
 * **Icons.** `DuoIconMorph(icon:, builder:)` cross-fades an action's icon when it changes (back → close) with your own icon rendering; `DuoMaterial.morphingIcon` is it with Material icons.
-* **Bars built from data.** A bar that builds its own children from `tabs.tabs` wraps each with `tabs.wrap(i, child)` (the package's keys and semantics) and taps through `tabs.itemData(i).onTap`. A bar that builds its item widgets itself passes `tabs.itemData(i).semanticsOf(context)` to its per-item semantics hook instead.
+* **Bars built from data.** A bar that builds its own children from `tabs.tabs` wraps each with `tabs.wrap(i, child)` (the package's keys and semantics) and taps through `tabs.itemData(i).onTap`. A bar that builds its item widgets itself passes `tabs.itemData(i).semanticsOf(context)` to its per-item semantics hook instead; the item's own tap target provides the tap. Test such a bar with `tester.ensureSemantics()`: Flutter checks the tab roles only while semantics are on.
 
 `example/` uses a fully custom look (`example/lib/style/custom_style.dart`): a capsule tab bar, one tab item for bar and rail, square chips, its own column layout and chip transition.
 

@@ -36,7 +36,9 @@ abstract final class DuoSemantics {
   /// The semantics of [tab] as a value, for a tab bar that builds its item
   /// widgets itself and takes per-item semantics (such as a design system's
   /// `additionalSemantics` field). For one tab of a shell,
-  /// `DuoTabsData.itemData(i).semanticsOf(context)` fills them in.
+  /// `DuoTabsData.itemData(i).semanticsOf(context)` fills them in. Pass a null
+  /// [onTap] when the item has a tap target of its own; a second tap action
+  /// would split it into two nodes.
   static SemanticsProperties tabProperties({
     required bool selected,
     required String? label,

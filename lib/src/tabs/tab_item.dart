@@ -37,7 +37,9 @@ class DuoTabItem<T> extends StatelessWidget {
           id: ('tab', tab.id),
           child: Semantics.fromProperties(
             container: true,
-            properties: data.semanticsOf(context),
+            // The item's own semantics are excluded below, so the tap comes
+            // from here.
+            properties: data.semanticsOf(context, tap: true),
             child: ExcludeSemantics(
               child: appKey == null
                   ? child
@@ -75,7 +77,16 @@ extension DuoTabItemSemantics<T> on DuoTabItemData<T> {
   ///   ]),
   /// )
   /// ```
-  SemanticsProperties semanticsOf(BuildContext context) =>
+  ///
+  /// The tap action is left out unless [tap] is true: the item's own tap
+  /// target (an `InkWell`, a `GestureDetector`) provides it and merges into
+  /// the same node. A second tap action would split the item into two nodes,
+  /// and a screen reader would stop twice. Pass `tap: true` only for an item
+  /// without a tap target of its own whose semantics are excluded.
+  ///
+  /// The bar must keep every field it gets, `role` in particular: without it
+  /// the item is no tab, and `DuoTabBarSemantics` around the bar fails.
+  SemanticsProperties semanticsOf(BuildContext context, {bool tap = false}) =>
       DuoSemantics.tabProperties(
         selected: selected,
         label: tab.semanticLabel ?? tab.label ?? tab.tooltip,
@@ -83,7 +94,7 @@ extension DuoTabItemSemantics<T> on DuoTabItemData<T> {
         hint: DuoBuilders.of<Object?, Object?, Object?>(
           context,
         ).tabPosition?.call(context, index, count),
-        onTap: onTap,
+        onTap: tap ? onTap : null,
       );
 }
 
@@ -120,6 +131,10 @@ extension DuoTabsDataWrap<T> on DuoTabsData<T> {
 /// them and this widget may add nodes of its own. A bar whose items can carry
 /// none of these keeps its own semantics and goes without this widget.
 /// Material's `NavigationBar` marks itself and needs none.
+///
+/// Flutter runs the check only while semantics are on, in a test with
+/// `tester.ensureSemantics()` or in a debug run with a screen reader. Test a
+/// custom bar with semantics on and expect no exception.
 class DuoTabBarSemantics extends StatelessWidget {
   /// Marks [child] as a tab bar.
   const DuoTabBarSemantics({super.key, required this.child});

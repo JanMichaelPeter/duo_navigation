@@ -95,7 +95,8 @@ the design is in the
   package's keys and semantics. For bars that build their item widgets
   themselves, `itemData(i).semanticsOf(context)` and
   `DuoSemantics.tabProperties` give the tab semantics as
-  `SemanticsProperties`.
+  `SemanticsProperties`, without the tap action by default: the item's own
+  tap target provides it in the same node.
 * The rail scrolls when the tabs don't fit and keeps the selected tab visible;
   `DuoSideColumnLayout` gives the rail its height before the actions. The
   column grows with the text scale up to `columnTextScaleLimit` (1.5).
