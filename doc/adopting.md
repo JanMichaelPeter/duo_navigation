@@ -143,7 +143,8 @@ DockStandalone(
 ```
 
 Where there is no `DockNavigation`, it provides a compact one: the page shows its title bar with all its actions.
-Below the app's `DockNavigation` it does nothing. Tests don't need it (see step 6).
+Below the app's `DockNavigation` it does nothing. Existing tests that pump such a page directly keep working: the tap
+guard's default clock follows the test's time (see step 6).
 
 **The keyboard.** Pages keep handling it as before. The body keeps its height, and its `MediaQuery` reports the part of
 the keyboard the tab bar doesn't already cover. A `Scaffold` resizes for it, and one with
@@ -356,5 +357,8 @@ await tester.tap(find.byKey(DockKeys.action('add')));
 ```
 
 A shared test helper that pumps pages can add the harness in one place. Pages wrapped in `DockStandalone` work under
-the harness too: there the `DockStandalone` does nothing. Test both modes by pumping with `mode: DockLayoutMode.wide`.
+the harness too: there the `DockStandalone` does nothing. Tests that pump a `DockStandalone` page without the harness
+also work. The tap guard's default clock (`DockClock.system()`) follows `tester.pump(duration)` and `pumpAndSettle`, so
+two taps on one action with `pumpAndSettle` in between both fire. A double tap with only `tester.pump()` in between is
+dropped, as on a device. Test both modes by pumping with `mode: DockLayoutMode.wide`.
 `DockKeys.bar`, `.column`, `.rail`, `.tab(id)` and `.action(id)` find the chrome, whatever builder draws it.

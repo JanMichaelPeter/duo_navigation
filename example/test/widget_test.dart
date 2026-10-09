@@ -65,10 +65,6 @@ void main() {
 
     await tester.tap(find.byType(BackButtonIcon));
     await tester.pumpAndSettle();
-    // Back and close are one action, and the app's tap guard runs on real
-    // time: wait out its cooldown as a user would.
-    await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 400)));
     await tester.tap(inAppBar(find.byIcon(Icons.close)));
     await tester.pumpAndSettle();
     expect(find.text('Step 1 of 3'), findsNothing);
