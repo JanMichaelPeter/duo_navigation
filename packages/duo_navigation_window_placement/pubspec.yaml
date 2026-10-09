@@ -1,0 +1,23 @@
+name: duo_navigation_window_placement
+description: >-
+  Window-edge source for duo_navigation backed by the window_placement plugin, so the
+  side column follows the window to the screen edge in split screen.
+version: 0.1.0
+repository: https://github.com/JanMichaelPeter/duo_navigation/tree/main/packages/duo_navigation_window_placement
+
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+  flutter: ">=3.35.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  duo_navigation: ^0.1.0
+  window_placement: ^0.0.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

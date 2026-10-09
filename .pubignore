@@ -30,7 +30,7 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
-/build/
+build/
 /coverage/
 
 # Symbolication related
@@ -44,3 +44,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 tool/
+
+# Design notes are not part of the package. (packages/ can't be listed here:
+# pub applies this file to the workspace members too and would hide them.)
+doc/design/
+
+# Only these root-level Markdown files belong in the package
+/*.md
+!/README.md
+!/CHANGELOG.md

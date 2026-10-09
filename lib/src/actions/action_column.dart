@@ -1,9 +1,14 @@
+// 0.0.1 code that the 0.1.0 redesign replaces (#42).
+// ignore_for_file: public_member_api_docs
+
 import 'package:flutter/widgets.dart';
 
+import '../builders/builders.dart';
 import '../config/navigation.dart';
 import '../models/action.dart';
-import '../models/enums.dart';
+import '../keys.dart';
 import 'action_host.dart';
+import 'action_item.dart';
 import 'action_presence.dart';
 import 'merge_order.dart';
 
@@ -21,14 +26,14 @@ class _ScopedKey {
   int get hashCode => Object.hash(identityHashCode(owner), id);
 }
 
-Object _keyFor(DockActionRegistration owner, DockAction action) =>
+Object _keyFor(DuoActionRegistration owner, DuoAction<Object?> action) =>
     action.shared ? action.id : _ScopedKey(owner, action.id);
 
 class _Item {
   _Item(this.key, this.action, this.owner, {required this.animateIn});
   final Object key;
-  DockAction action;
-  DockActionRegistration owner;
+  DuoAction<Object?> action;
+  DuoActionRegistration owner;
   bool visible = true;
   final bool animateIn;
 }
@@ -36,16 +41,24 @@ class _Item {
 /// The animated action stack inside the side column. Anchored to the bottom,
 /// so the back button (always last) sits right above the rail and never moves
 /// when trailing actions above it change.
-class DockActionColumn extends StatefulWidget {
-  const DockActionColumn({super.key, required this.host});
+class DuoActionColumn extends StatefulWidget {
+  const DuoActionColumn({
+    super.key,
+    required this.host,
+    required this.buildChip,
+  });
 
-  final DockActionHost host;
+  final DuoActionHost host;
+
+  /// Builds one chip with the frame's action builder.
+  final Widget Function(BuildContext context, DuoAction<Object?> action)
+  buildChip;
 
   @override
-  State<DockActionColumn> createState() => _DockActionColumnState();
+  State<DuoActionColumn> createState() => _DuoActionColumnState();
 }
 
-class _DockActionColumnState extends State<DockActionColumn> {
+class _DuoActionColumnState extends State<DuoActionColumn> {
   List<_Item> _items = [];
 
   @override
@@ -56,7 +69,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
   }
 
   @override
-  void didUpdateWidget(DockActionColumn oldWidget) {
+  void didUpdateWidget(DuoActionColumn oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.host != widget.host) {
       oldWidget.host.removeListener(_onHostChanged);
@@ -79,7 +92,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
 
   List<_Item> _reconcile({required bool initial}) {
     final owner = widget.host.active;
-    final next = <Object, DockAction>{};
+    final next = <Object, DuoAction<Object?>>{};
     if (owner != null) {
       for (final a in owner.actions) {
         if (a.canHoist) next[_keyFor(owner, a)] = a;
@@ -112,6 +125,9 @@ class _DockActionColumnState extends State<DockActionColumn> {
     return result;
   }
 
+  Widget _chip(BuildContext context, DuoAction<Object?> action) =>
+      _chipItem(widget.buildChip(context, action), action);
+
   void _remove(Object key) {
     if (!mounted) return;
     setState(() => _items.removeWhere((i) => i.key == key && !i.visible));
@@ -119,7 +135,8 @@ class _DockActionColumnState extends State<DockActionColumn> {
 
   @override
   Widget build(BuildContext context) {
-    final config = DockNavigation.of(context);
+    final config = DuoNavigation.of(context);
+    final builders = DuoBuilders.of<Object?, Object?, Object?>(context);
     return Align(
       alignment: Alignment.bottomCenter,
       child: SingleChildScrollView(
@@ -132,9 +149,11 @@ class _DockActionColumnState extends State<DockActionColumn> {
                 key: ValueKey<Object>(item.key),
                 visible: item.visible,
                 animateIn: item.animateIn,
-                duration: config.actionAnimationDuration,
+                duration: MediaQuery.disableAnimationsOf(context)
+                    ? Duration.zero
+                    : config.actionAnimationDuration,
                 curve: config.actionAnimationCurve,
-                transitionBuilder: config.actionTransitionBuilder,
+                transitionBuilder: builders.buildActionTransition,
                 onDismissed: () => _remove(item.key),
                 child: Padding(
                   padding: EdgeInsets.symmetric(
@@ -143,10 +162,9 @@ class _DockActionColumnState extends State<DockActionColumn> {
                   // Centered on the column axis, like the rail, whatever the
                   // transition does horizontally.
                   child: Center(
-                    child: config.actionBuilder(
-                      context,
-                      item.owner.guarded(item.action),
-                      DockActionPlacement.sideColumn,
+                    child: KeyedSubtree(
+                      key: DuoKeys.action(item.action.id),
+                      child: _chip(context, item.owner.guarded(item.action)),
                     ),
                   ),
                 ),
@@ -157,3 +175,6 @@ class _DockActionColumnState extends State<DockActionColumn> {
     );
   }
 }
+
+Widget _chipItem(Widget chip, DuoAction<Object?> action) =>
+    DuoActionItem(action: action, child: chip);

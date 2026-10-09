@@ -1,173 +1,117 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-import 'actions/action_host.dart';
-import 'config/navigation.dart';
-import 'frame/frame.dart';
-import 'frame/modal_scope.dart';
+import 'builders/builders.dart';
 import 'models/action.dart';
 import 'models/bar_data.dart';
-import 'models/enums.dart';
+import 'page/page_scope.dart';
 
-/// Builds a whole page from [DockBarData] (see [DockPage.custom]).
-typedef DockPageBuilder =
-    Widget Function(BuildContext context, DockBarData bar);
+/// Builds a whole page from [DuoBarData] (see [DuoPage.custom]).
+typedef DuoPageBuilder<A, B> =
+    Widget Function(BuildContext context, DuoBarData<A, B> bar);
 
-/// A tab root, subpage or modal page. Declare actions once; the page puts them
-/// in the app bar (compact) or hands icon actions to the side column (wide).
+/// A tab root, subpage or modal page: a [DuoPageScope] plus the `page`
+/// builder. Declare actions once; the page puts them in the app bar (compact)
+/// or hands icon actions to the side column (wide).
 ///
-/// Use [DockPage.custom] to build the whole page yourself (slivers, large
-/// titles, floating bars...) from [DockBarData].
-class DockPage extends StatelessWidget {
-  /// A page whose title bar and body are built by the configured
-  /// `pageBuilder`.
-  const DockPage({
+/// [A] is the actions' payload type and [B] the bar payload's; the action
+/// and page builders get them typed.
+///
+/// For a page with its own `Scaffold`, use [DuoPageScope] with `DuoAppBar`
+/// instead. Use [DuoPage.custom] to build the whole page yourself (slivers,
+/// large titles, floating bars...) from [DuoBarData].
+class DuoPage<A, B> extends StatelessWidget {
+  /// A page whose title bar and body are built by the `page` builder
+  /// (`DuoBuilders.page`).
+  const DuoPage({
     super.key,
     this.title,
+    this.barPayload,
     this.leading,
     this.trailing = const [],
     this.automaticallyImplyLeading = true,
+    this.impliedLeading,
+    this.leadingAtEnd,
+    this.hoisting,
+    this.visible = true,
+    this.backdrop,
     required Widget this.body,
   }) : builder = null;
 
-  /// A page you build yourself from [DockBarData] in [builder].
-  const DockPage.custom({
+  /// A page you build yourself from [DuoBarData] in [builder].
+  const DuoPage.custom({
     super.key,
     this.title,
+    this.barPayload,
     this.leading,
     this.trailing = const [],
     this.automaticallyImplyLeading = true,
-    required DockPageBuilder this.builder,
+    this.impliedLeading,
+    this.leadingAtEnd,
+    this.hoisting,
+    this.visible = true,
+    this.backdrop,
+    required DuoPageBuilder<A, B> this.builder,
   }) : body = null;
 
-  /// Title shown in the title bar.
+  /// See [DuoPageScope.title].
   final Widget? title;
 
-  /// Must have an icon (it moves to the side column in wide mode). Defaults
-  /// to a back button, or a close button for fullscreen dialogs.
-  final DockAction? leading;
+  /// See [DuoPageScope.barPayload].
+  final B? barPayload;
 
-  /// In wide mode icon actions move to the side column (in this order, above
-  /// the leading action); label-only and pinned actions stay in the bar.
-  final List<DockAction> trailing;
+  /// See [DuoPageScope.leading].
+  final DuoAction<A>? leading;
 
-  /// Add a back/close action when the route can pop and [leading] is null.
+  /// See [DuoPageScope.trailing].
+  final List<DuoAction<A>> trailing;
+
+  /// See [DuoPageScope.automaticallyImplyLeading].
   final bool automaticallyImplyLeading;
+
+  /// See [DuoPageScope.impliedLeading].
+  final DuoImpliedLeading? impliedLeading;
+
+  /// See [DuoPageScope.leadingAtEnd].
+  final bool? leadingAtEnd;
+
+  /// See [DuoPageScope.hoisting].
+  final DuoHoisting? hoisting;
+
+  /// See [DuoPageScope.visible].
+  final bool visible;
+
+  /// See [DuoPageScope.backdrop].
+  final Widget? backdrop;
 
   /// Page content below the title bar (default constructor).
   final Widget? body;
 
-  /// Builds the whole page ([DockPage.custom]).
-  final DockPageBuilder? builder;
+  /// Builds the whole page ([DuoPage.custom]).
+  final DuoPageBuilder<A, B>? builder;
 
   @override
   Widget build(BuildContext context) {
-    final content = _DockPageContent(page: this);
-    // No shell or modal scope above: this page was presented modally on the
-    // root navigator, so it brings its own frame.
-    if (context.getInheritedWidgetOfExactType<DockScope>() != null) {
-      return content;
-    }
-    return DockModalScope(child: content);
-  }
-}
-
-class _DockPageContent extends StatefulWidget {
-  const _DockPageContent({required this.page});
-
-  final DockPage page;
-
-  @override
-  State<_DockPageContent> createState() => _DockPageContentState();
-}
-
-class _DockPageContentState extends State<_DockPageContent> {
-  DockActionRegistration? _registration;
-
-  @override
-  void dispose() {
-    _registration?.dispose();
-    super.dispose();
-  }
-
-  DockAction? _resolveLeading(ModalRoute<Object?>? route) {
-    final page = widget.page;
-    void pop() => Navigator.maybePop(context);
-
-    final explicit = page.leading;
-    if (explicit != null) {
-      return explicit.isBack && explicit.onPressed == null
-          ? explicit.copyWith(onPressed: pop)
-          : explicit;
-    }
-    if (!page.automaticallyImplyLeading || route == null || !route.canPop) {
-      return null;
-    }
-    final l10n = MaterialLocalizations.of(context);
-    final isDialog = route is PageRoute && route.fullscreenDialog;
-    // Same id either way, so back <-> close morphs instead of flickering.
-    return DockAction.back(
-      icon: isDialog ? const Icon(Icons.close) : const BackButtonIcon(),
-      tooltip: isDialog ? l10n.closeButtonTooltip : l10n.backButtonTooltip,
-      onPressed: pop,
+    return DuoPageScope<A, B>(
+      title: title,
+      barPayload: barPayload,
+      leading: leading,
+      trailing: trailing,
+      automaticallyImplyLeading: automaticallyImplyLeading,
+      impliedLeading: impliedLeading,
+      leadingAtEnd: leadingAtEnd,
+      hoisting: hoisting,
+      visible: visible,
+      backdrop: backdrop,
+      child: Builder(
+        builder: (context) {
+          final bar = DuoBarData.of<A, B>(context);
+          final builder = this.builder;
+          if (builder != null) return builder(context, bar);
+          return DuoBuilders.of<Object?, A, B>(
+            context,
+          ).buildPage(context, bar, body!);
+        },
+      ),
     );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final scope = DockScope.maybeOf(context)!;
-    final config = DockNavigation.of(context);
-    final page = widget.page;
-
-    if (_registration?.host != scope.host) {
-      _registration?.dispose();
-      _registration = scope.host.register();
-    }
-    final registration = _registration!;
-
-    assert(() {
-      final ids = page.trailing.map((a) => a.id).toList();
-      return ids.toSet().length == ids.length;
-    }(), 'Trailing actions of one page need unique ids.');
-
-    // Depending on ModalRoute and TickerMode rebuilds this page whenever it
-    // becomes / stops being the visible top page.
-    final route = ModalRoute.of(context);
-    final leading = _resolveLeading(route);
-    assert(
-      leading == null || leading.icon != null,
-      'Leading actions need an icon: they move to the side column when wide.',
-    );
-
-    final hoisted = <DockAction>[
-      for (final a in page.trailing)
-        if (a.canHoist) a,
-      ?leading,
-    ];
-    registration.update(
-      actions: hoisted,
-      // TickerMode.valuesOf needs Flutter 3.41; keep .of while supporting 3.38.
-      // ignore: deprecated_member_use
-      active: (route?.isCurrent ?? true) && TickerMode.of(context),
-      route: route,
-    );
-
-    final wide = scope.mode == DockLayoutMode.wide;
-    final bar = DockBarData(
-      mode: scope.mode,
-      title: page.title,
-      leading: wide || leading == null ? null : registration.guarded(leading),
-      trailing: [
-        for (final a in page.trailing)
-          if (!wide || !a.canHoist) registration.guarded(a),
-      ],
-      hoisted: wide ? hoisted.map(registration.guarded).toList() : const [],
-      sideColumnSide: wide ? scope.side : null,
-      buildAction: (a, placement) =>
-          config.actionBuilder(context, a, placement),
-    );
-
-    final builder = page.builder;
-    if (builder != null) return builder(context, bar);
-    return config.pageBuilder(context, bar, page.body!);
   }
 }

@@ -7,13 +7,12 @@ import 'package:flutter/foundation.dart';
 /// display, only [left] is true, and the side column should sit on the left
 /// rather than in the middle of the display next to the other app.
 ///
-/// [DockNavigation] detects this itself on iOS and Android (via the
-/// window_placement plugin); construct one only to override detection.
-/// Fullscreen = both true; a floating window touching nothing = both false.
+/// A `DuoWindowEdgesSource` reports it to `DuoNavigation`. Fullscreen = both
+/// true; a floating window touching nothing = both false.
 @immutable
-class DockWindowEdges {
+class DuoWindowEdges {
   /// Whether the window touches the display's [left] and [right] edges.
-  const DockWindowEdges({required this.left, required this.right});
+  const DuoWindowEdges({required this.left, required this.right});
 
   /// The window reaches the left edge of the display.
   final bool left;
@@ -32,7 +31,7 @@ class DockWindowEdges {
 
   @override
   bool operator ==(Object other) =>
-      other is DockWindowEdges && other.left == left && other.right == right;
+      other is DuoWindowEdges && other.left == left && other.right == right;
 
   @override
   int get hashCode => Object.hash(left, right);

@@ -1,36 +1,39 @@
-import 'package:nav_dock/nav_dock.dart';
 import 'package:flutter/material.dart';
-
-/// Put on [DockAction.data] to highlight a chip. The package passes
-/// `data` through untouched; only builders that look for it react.
-enum ActionRole { primary }
+import 'package:duo_navigation/material.dart';
 
 /// A complete custom look, built only from the public builder hooks.
 ///
-/// Optional: without it (plain `DockNavigationData()`) nav_dock uses
-/// the Material defaults in `DockDefaults`. Override as many or as few
-/// builders as you like; everything not set keeps its default.
+/// Optional: with `const DuoMaterialBuilders()` instead of [builders],
+/// duo_navigation uses the Material defaults in `DuoMaterial`. Override as many or
+/// as few builders as you like with `DuoMaterialBuilders().merge(...)`.
 ///
 /// Showcases, one hook each:
 /// * [tabBar]: floating capsule instead of a NavigationBar.
 /// * [rail]: rounded rectangle with an animated selection.
 /// * [action]: square chips in the column; bar actions keep the defaults.
-/// * [page]: wraps [DockDefaults.page] with a theme override.
+/// * [page]: wraps [DuoMaterial.page] with a theme override.
 /// * [sideColumn]: rail separated from the actions by a short divider.
 /// * [actionTransition]: chips slide up and fade instead of scaling.
-/// * `DockTab.data` (an int) shows as a badge in bar and rail.
+/// * [tabItem]: one item for bar and rail; `DuoTab.badge` shows as a badge.
 abstract final class CustomStyle {
   static const double _radius = 32;
   static const double _railPadding = 4;
 
-  static DockNavigationData data(DockNavigationData base) {
+  /// Every visual of the custom look.
+  static const DuoBuilders builders = DuoBuilders(
+    tabItem: tabItem,
+    tabBar: tabBar,
+    rail: rail,
+    action: action,
+    page: page,
+    sideColumn: sideColumn,
+    actionTransition: actionTransition,
+    backdrop: DuoMaterial.backdrop, // the strip around the chrome
+  );
+
+  /// The sizes and timings the custom look is designed for.
+  static DuoNavigationData data(DuoNavigationData base) {
     return base.copyWith(
-      tabBarBuilder: tabBar,
-      railBuilder: rail,
-      actionBuilder: action,
-      pageBuilder: page,
-      sideColumnBuilder: sideColumn,
-      actionTransitionBuilder: actionTransition,
       sideColumnWidth: 80,
       sideItemExtent: 60, // rail and chips both read this
       actionSpacing: 12,
@@ -41,7 +44,8 @@ abstract final class CustomStyle {
 
   // ------------------------------------------------------------- tab bar ---
 
-  static Widget tabBar(BuildContext context, DockTabsData data) {
+  static Widget tabBar(
+      BuildContext context, DuoTabsData<Object?> data, List<Widget> items) {
     final scheme = Theme.of(context).colorScheme;
     // The frame reports the bar's full height (margin included) to the body,
     // so lists end above the capsule while full-bleed content shows around it.
@@ -54,12 +58,11 @@ abstract final class CustomStyle {
         elevation: 6,
         child: Padding(
           padding: const EdgeInsets.all(6),
-          child: Row(
-            children: [
-              for (var i = 0; i < data.tabs.length; i++)
-                Expanded(
-                    child: _TabItem(data: data, index: i, showLabel: true)),
-            ],
+          // The items come with their semantics; this marks the tab bar.
+          child: DuoTabBarSemantics(
+            child: Row(
+              children: [for (final item in items) Expanded(child: item)],
+            ),
           ),
         ),
       ),
@@ -68,40 +71,52 @@ abstract final class CustomStyle {
 
   // ---------------------------------------------------------------- rail ---
 
-  static Widget rail(BuildContext context, DockTabsData data) {
+  static Widget rail(
+      BuildContext context, DuoTabsData<Object?> data, List<Widget> items) {
     final scheme = Theme.of(context).colorScheme;
-    final extent = DockNavigation.of(context).sideItemExtent;
+    final extent = DuoNavigation.of(context).sideItemExtent;
     return Material(
       color: scheme.inverseSurface,
       borderRadius: BorderRadius.circular(_radius),
       elevation: 6,
       child: Padding(
         padding: const EdgeInsets.all(_railPadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            for (var i = 0; i < data.tabs.length; i++)
-              SizedBox.square(
-                dimension: extent - 2 * _railPadding,
-                child: _TabItem(data: data, index: i, showLabel: false),
-              ),
-          ],
+        child: DuoTabBarSemantics(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final item in items)
+                SizedBox.square(
+                    dimension: extent - 2 * _railPadding, child: item),
+            ],
+          ),
         ),
       ),
     );
   }
 
+  // ------------------------------------------------------------- tab item ---
+
+  /// One look for both: icon and label in the bar, icon only in the rail.
+  static Widget tabItem(BuildContext context, DuoTabItemData<Object?> data,
+          {Color? accent}) =>
+      _TabItem(
+        data: data,
+        showLabel: data.placement == DuoTabPlacement.bar,
+        accent: accent,
+      );
+
   // ------------------------------------------------------------- actions ---
 
-  static Widget action(
-      BuildContext context, DockAction action, DockActionPlacement placement) {
+  static Widget action(BuildContext context, DuoAction<Object?> action,
+      DuoActionPlacement placement) {
     // Title bar actions: reuse the default look.
-    if (placement != DockActionPlacement.sideColumn) {
-      return DockDefaults.action(context, action, placement);
+    if (placement != DuoActionPlacement.sideColumn) {
+      return DuoMaterial.action(context, action, placement);
     }
     final scheme = Theme.of(context).colorScheme;
-    final extent = DockNavigation.of(context).sideItemExtent;
-    final primary = action.data == ActionRole.primary;
+    final extent = DuoNavigation.of(context).sideItemExtent;
+    final primary = action.role == DuoActionRole.primary;
     final shape =
         RoundedRectangleBorder(borderRadius: BorderRadius.circular(_radius));
     return Material(
@@ -119,7 +134,7 @@ abstract final class CustomStyle {
           fixedSize: Size.square(extent),
           shape: shape,
         ),
-        icon: DockDefaults.morphingIcon(action.icon!),
+        icon: DuoMaterial.morphingIcon(action.icon!),
       ),
     );
   }
@@ -128,7 +143,8 @@ abstract final class CustomStyle {
 
   /// Wrapping a default instead of rewriting it: same Scaffold + AppBar,
   /// different app bar theme.
-  static Widget page(BuildContext context, DockBarData bar, Widget body) {
+  static Widget page(
+      BuildContext context, DuoBarData<Object?, Object?> bar, Widget body) {
     final theme = Theme.of(context);
     return Theme(
       data: theme.copyWith(
@@ -142,7 +158,7 @@ abstract final class CustomStyle {
           ),
         ),
       ),
-      child: DockDefaults.page(context, bar, body),
+      child: DuoMaterial.page(context, bar, body),
     );
   }
 
@@ -156,7 +172,7 @@ abstract final class CustomStyle {
     Widget? tabs,
     bool hasActions,
   ) {
-    final config = DockNavigation.of(context);
+    final config = DuoNavigation.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
@@ -208,27 +224,28 @@ abstract final class CustomStyle {
 class _TabItem extends StatelessWidget {
   const _TabItem({
     required this.data,
-    required this.index,
     required this.showLabel,
+    this.accent,
   });
 
-  final DockTabsData data;
-  final int index;
+  final DuoTabItemData<Object?> data;
   final bool showLabel;
+
+  /// Tint of the selected tab's pill; the primary color without one.
+  final Color? accent;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final tab = data.tabs[index];
-    final selected = index == data.currentIndex;
-    final foreground =
-        selected ? scheme.onPrimaryContainer : scheme.onInverseSurface;
-    final badge = tab.data is int ? tab.data! as int : 0;
+    final tab = data.tab;
+    final selected = data.selected;
+    // Icon and label keep their color when selected; the pill behind them
+    // is a translucent tint, so they stay readable on it.
+    final foreground = scheme.onInverseSurface;
 
-    Widget icon = Badge.count(
-      count: badge,
-      isLabelVisible: badge > 0,
-      child: selected ? tab.selectedIcon ?? tab.icon : tab.icon,
+    Widget icon = DuoMaterial.badge(
+      tab.iconFor(selected: selected).toWidget(),
+      tab.badge,
     );
     if (showLabel && tab.label != null) {
       icon = Column(
@@ -245,27 +262,26 @@ class _TabItem extends StatelessWidget {
       );
     }
 
-    return Semantics(
-      selected: selected,
-      button: true,
-      label: tab.label,
-      child: Tooltip(
-        message: tab.tooltip ?? tab.label ?? '',
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () => data.onSelected(index),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            decoration: BoxDecoration(
-              color: selected ? scheme.primaryContainer : Colors.transparent,
-              borderRadius: BorderRadius.circular(32),
-            ),
-            child: IconTheme.merge(
-              data: IconThemeData(color: foreground),
-              child: Center(heightFactor: 1, child: icon),
-            ),
+    // No Semantics here: the package gives every tab item its semantics
+    // (selected, label, badge, tap).
+    return Tooltip(
+      message: tab.tooltip ?? tab.label ?? '',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: data.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeOut,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            color: selected
+                ? (accent ?? scheme.primary).withValues(alpha: 0.35)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(32),
+          ),
+          child: IconTheme.merge(
+            data: IconThemeData(color: foreground),
+            child: Center(heightFactor: 1, child: icon),
           ),
         ),
       ),

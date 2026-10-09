@@ -1,84 +1,107 @@
 import 'package:flutter/widgets.dart';
 
-import '../defaults.dart';
-import '../models/enums.dart';
-import '../models/window_edges.dart';
-import 'builders.dart';
+import '../actions/tap_guard.dart';
+import '../geometry/body_mode.dart';
+import 'column_inset.dart';
+import 'keyboard.dart';
+import '../models/action.dart';
+import '../geometry/layout_policy.dart';
+import '../geometry/side.dart';
+import '../geometry/window_edges_source.dart';
 
-/// All knobs. Every visual is a builder; the package only owns placement,
-/// visibility, insets, identity and animation timing.
+/// Marks a `copyWith` argument that was not passed, so a nullable field can be
+/// reset to null.
+const Object _unset = Object();
+
+/// How navigation is laid out: when it switches to the wide layout, which edge
+/// the column prefers, where window edges come from, and the column's sizes and
+/// timings.
+///
+/// It has value equality, so rebuilding `DuoNavigation` with equal data
+/// notifies no dependents.
+///
+/// The visuals are not part of it: see `DuoBuilders`.
 @immutable
-class DockNavigationData {
+class DuoNavigationData {
   /// Every argument is optional; the defaults are Material 3.
-  const DockNavigationData({
-    this.breakpoint = 600,
+  const DuoNavigationData({
+    this.layoutPolicy = const DuoLayoutPolicy.shortestSide(600),
+    this.side = DuoSide.end,
+    this.windowEdgesSource,
+    this.bodyMode = DuoBodyMode.inset,
+    this.hoisting = DuoHoisting.iconActions,
+    this.modalLeading = const DuoModalLeading(),
+    this.keyboard = const DuoKeyboard(),
     this.sideColumnWidth = 72,
-    this.side = DockSide.end,
-    this.windowEdges,
-    this.detectWindowEdges = true,
-    this.tabBarBuilder = DockDefaults.tabBar,
-    this.railBuilder = DockDefaults.rail,
-    this.actionBuilder = DockDefaults.action,
-    this.pageBuilder = DockDefaults.page,
-    this.sideColumnBuilder = DockDefaults.sideColumn,
-    this.actionTransitionBuilder = DockDefaults.actionTransition,
+    this.columnInset = DuoColumnInset.overlap,
+    this.columnTextScaleLimit = 1.5,
     this.sideItemExtent = 56,
     this.actionSpacing = 8,
     this.actionAnimationDuration = const Duration(milliseconds: 250),
     this.actionAnimationCurve = Curves.easeOutCubic,
-    this.tapCooldown = const Duration(milliseconds: 350),
+    this.visibilityDuration = const Duration(milliseconds: 250),
+    this.visibilityCurve = Curves.easeInOutCubic,
+    this.tapGuard = const DuoTapGuard(),
   });
 
-  /// Available width (logical px) from which the wide layout is used.
-  /// 600 = Material compact/medium boundary; ~466 is the passport view of the iPhone duo.
-  final double breakpoint;
+  /// Decides between the compact and the wide layout. Default:
+  /// `DuoLayoutPolicy.shortestSide(600)`, wide when the window's shorter
+  /// side is at least 600, so phones stay compact in landscape.
+  final DuoLayoutPolicy layoutPolicy;
 
-  /// Minimum width of the side column. It overlaps the system inset on its
-  /// edge (notch, reserved side strip) and grows to cover it if wider.
+  /// Preferred edge for the side column. Used unless [windowEdgesSource]
+  /// reports that the window touches only the other edge of the display.
+  final DuoSide side;
+
+  /// Where the window's display edges come from (split screen, windowing).
+  ///
+  /// If the window touches only the edge opposite [side] (for example the left
+  /// half of a split screen with `side: end`), the column moves to that edge so
+  /// it sits at the screen border instead of in the middle of the display. In
+  /// every other case (fullscreen, floating, unknown) [side] is used. Null: no
+  /// detection, always [side].
+  final DuoWindowEdgesSource? windowEdgesSource;
+
+  /// How frames lay out their body: beside the bar and column
+  /// ([DuoBodyMode.inset], the default) or under them
+  /// ([DuoBodyMode.overlay]). `DuoShell` and `DuoModalScope` can override
+  /// it.
+  final DuoBodyMode bodyMode;
+
+  /// Whether icon actions move into the side column in wide mode. `DuoShell`,
+  /// `DuoModalScope` and `DuoPageScope` can override it.
+  final DuoHoisting hoisting;
+
+  /// The leading action of every modal's first page, for example
+  /// `DuoModalLeading(implied: DuoImpliedLeading.close, atEnd: true)` for
+  /// an "X" at the top right of every modal. It applies to modal starts only
+  /// (see [DuoModalLeading]); `DuoModalScope` and the page override it.
+  final DuoModalLeading modalLeading;
+
+  /// What the column and the bar do while the software keyboard is open.
+  /// Default: the column lifts above it, the bar is covered.
+  final DuoKeyboard keyboard;
+
+  /// Width of the side column. With [DuoColumnInset.safeArea] it also
+  /// covers the system inset on its edge.
   final double sideColumnWidth;
 
-  /// Preferred edge for the side column. Always used unless [windowEdges]
-  /// says the window touches only the other edge of the display.
-  final DockSide side;
+  /// Whether the column sits over the system inset on its edge
+  /// ([DuoColumnInset.overlap], the default: at the window edge) or after it
+  /// ([DuoColumnInset.safeArea]: clear of cutouts and system buttons).
+  final DuoColumnInset columnInset;
 
-  /// Which display edges the app window touches. Normally leave this null:
-  /// [DockNavigation] detects it on iOS and Android (window_placement).
-  /// Set it to override detection (tests, custom sources).
-  ///
-  /// If the window touches only the edge opposite [side] (e.g. the left half
-  /// of a split screen with `side: end`), the column moves to that edge so it
-  /// sits at the screen border instead of in the middle of the display. In
-  /// every other case (fullscreen, floating, unknown) [side] is used.
-  final DockWindowEdges? windowEdges;
-
-  /// Detect [windowEdges] automatically when it is null. Off: always [side].
-  final bool detectWindowEdges;
-
-  /// Bottom tab bar in compact mode.
-  final DockTabsBuilder tabBarBuilder;
-
-  /// Tab rail at the bottom of the side column in wide mode.
-  final DockTabsBuilder railBuilder;
-
-  /// Every action, in the title bar and as side-column chip.
-  final DockActionBuilder actionBuilder;
-
-  /// Title bar + body of each [DockPage] (not `DockPage.custom`).
-  final DockPageScaffoldBuilder pageBuilder;
-
-  /// Arrangement of action chips and rail inside the side column.
-  final DockSideColumnBuilder sideColumnBuilder;
-
-  /// How side-column chips appear and disappear.
-  final DockActionTransitionBuilder actionTransitionBuilder;
-
-  /// Vertical gap between action chips in the side column.
-  final double actionSpacing;
+  /// How far the column grows with the text scale: its width is
+  /// [sideColumnWidth] times the text scale, at most this factor.
+  final double columnTextScaleLimit;
 
   /// Outer width of the rail pill and the action chips in the side column.
   /// The default builders both read it, so they line up as one column; read
-  /// it in your own rail / chip builders to stay aligned with the defaults.
+  /// it in your own rail and chip builders to stay aligned with the defaults.
   final double sideItemExtent;
+
+  /// Vertical gap between action chips in the side column.
+  final double actionSpacing;
 
   /// Duration of chip in/out animations.
   final Duration actionAnimationDuration;
@@ -86,49 +109,101 @@ class DockNavigationData {
   /// Curve of chip in/out animations (flipped when animating out).
   final Curve actionAnimationCurve;
 
-  /// After an action fires, further action taps from the same frame (shell or
-  /// modal) are ignored for this long. Catches double taps on async handlers.
-  /// Taps are additionally ignored while a route transition is running.
-  final Duration tapCooldown;
+  /// Duration of hiding and showing the navigation. Zero under
+  /// `MediaQuery.disableAnimations`.
+  final Duration visibilityDuration;
 
-  /// A copy with the given fields replaced.
-  DockNavigationData copyWith({
-    double? breakpoint,
+  /// Curve of hiding and showing the navigation.
+  final Curve visibilityCurve;
+
+  /// Guards action taps against double taps and taps during route
+  /// transitions. [DuoTapGuard.disabled] lets every tap through.
+  final DuoTapGuard tapGuard;
+
+  /// A copy with the given fields replaced. Pass null for [windowEdgesSource]
+  /// to remove it.
+  DuoNavigationData copyWith({
+    DuoLayoutPolicy? layoutPolicy,
+    DuoSide? side,
+    Object? windowEdgesSource = _unset,
+    DuoBodyMode? bodyMode,
+    DuoHoisting? hoisting,
+    DuoModalLeading? modalLeading,
+    DuoKeyboard? keyboard,
     double? sideColumnWidth,
-    DockSide? side,
-    DockWindowEdges? windowEdges,
-    bool? detectWindowEdges,
-    DockTabsBuilder? tabBarBuilder,
-    DockTabsBuilder? railBuilder,
-    DockActionBuilder? actionBuilder,
-    DockPageScaffoldBuilder? pageBuilder,
-    DockSideColumnBuilder? sideColumnBuilder,
-    DockActionTransitionBuilder? actionTransitionBuilder,
+    DuoColumnInset? columnInset,
+    double? columnTextScaleLimit,
     double? sideItemExtent,
     double? actionSpacing,
     Duration? actionAnimationDuration,
     Curve? actionAnimationCurve,
-    Duration? tapCooldown,
+    Duration? visibilityDuration,
+    Curve? visibilityCurve,
+    DuoTapGuard? tapGuard,
   }) {
-    return DockNavigationData(
-      breakpoint: breakpoint ?? this.breakpoint,
-      sideColumnWidth: sideColumnWidth ?? this.sideColumnWidth,
+    return DuoNavigationData(
+      layoutPolicy: layoutPolicy ?? this.layoutPolicy,
       side: side ?? this.side,
-      windowEdges: windowEdges ?? this.windowEdges,
-      detectWindowEdges: detectWindowEdges ?? this.detectWindowEdges,
-      tabBarBuilder: tabBarBuilder ?? this.tabBarBuilder,
-      railBuilder: railBuilder ?? this.railBuilder,
-      actionBuilder: actionBuilder ?? this.actionBuilder,
-      pageBuilder: pageBuilder ?? this.pageBuilder,
-      sideColumnBuilder: sideColumnBuilder ?? this.sideColumnBuilder,
-      actionTransitionBuilder:
-          actionTransitionBuilder ?? this.actionTransitionBuilder,
+      windowEdgesSource: identical(windowEdgesSource, _unset)
+          ? this.windowEdgesSource
+          : windowEdgesSource as DuoWindowEdgesSource?,
+      bodyMode: bodyMode ?? this.bodyMode,
+      hoisting: hoisting ?? this.hoisting,
+      modalLeading: modalLeading ?? this.modalLeading,
+      keyboard: keyboard ?? this.keyboard,
+      sideColumnWidth: sideColumnWidth ?? this.sideColumnWidth,
+      columnInset: columnInset ?? this.columnInset,
+      columnTextScaleLimit: columnTextScaleLimit ?? this.columnTextScaleLimit,
       sideItemExtent: sideItemExtent ?? this.sideItemExtent,
       actionSpacing: actionSpacing ?? this.actionSpacing,
       actionAnimationDuration:
           actionAnimationDuration ?? this.actionAnimationDuration,
       actionAnimationCurve: actionAnimationCurve ?? this.actionAnimationCurve,
-      tapCooldown: tapCooldown ?? this.tapCooldown,
+      visibilityDuration: visibilityDuration ?? this.visibilityDuration,
+      visibilityCurve: visibilityCurve ?? this.visibilityCurve,
+      tapGuard: tapGuard ?? this.tapGuard,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is DuoNavigationData &&
+      other.layoutPolicy == layoutPolicy &&
+      other.side == side &&
+      other.windowEdgesSource == windowEdgesSource &&
+      other.bodyMode == bodyMode &&
+      other.hoisting == hoisting &&
+      other.modalLeading == modalLeading &&
+      other.keyboard == keyboard &&
+      other.sideColumnWidth == sideColumnWidth &&
+      other.columnInset == columnInset &&
+      other.columnTextScaleLimit == columnTextScaleLimit &&
+      other.sideItemExtent == sideItemExtent &&
+      other.actionSpacing == actionSpacing &&
+      other.actionAnimationDuration == actionAnimationDuration &&
+      other.actionAnimationCurve == actionAnimationCurve &&
+      other.visibilityDuration == visibilityDuration &&
+      other.visibilityCurve == visibilityCurve &&
+      other.tapGuard == tapGuard;
+
+  @override
+  int get hashCode => Object.hash(
+    layoutPolicy,
+    side,
+    windowEdgesSource,
+    bodyMode,
+    hoisting,
+    modalLeading,
+    keyboard,
+    sideColumnWidth,
+    columnInset,
+    columnTextScaleLimit,
+    sideItemExtent,
+    actionSpacing,
+    actionAnimationDuration,
+    actionAnimationCurve,
+    visibilityDuration,
+    visibilityCurve,
+    tapGuard,
+  );
 }

@@ -1,21 +1,23 @@
-import 'package:nav_dock/nav_dock.dart';
+import 'package:duo_navigation/duo_navigation.dart';
 import 'package:flutter/material.dart';
 
 import '../navigation.dart';
 
-/// Fully custom page. The "map" ignores safe areas and runs under the status
-/// bar, tab bar and side column; the floating title respects them.
+/// Fully custom page (DuoPage.custom). The "map" bleeds under the tab bar
+/// and the side column (DuoBleed); the floating title bar stays beside them
+/// and lays itself out with DuoBarLayout, so its actions follow the column
+/// to the start edge.
 class MapPage extends StatelessWidget {
   const MapPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return DockPage.custom(
+    return DuoPage.custom(
       title: const Text('Map'),
       trailing: [
-        DockAction(
+        DuoAction(
           id: 'locate',
-          icon: const Icon(Icons.my_location),
+          icon: const DuoIcon(Icons.my_location),
           tooltip: 'Locate me',
           onPressed: () => showToast(context, 'Locating…'),
         ),
@@ -24,7 +26,7 @@ class MapPage extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const _FakeMap(),
+            const DuoBleed(child: _FakeMap()),
             SafeArea(
               child: Align(
                 alignment: Alignment.topCenter,
@@ -33,27 +35,20 @@ class MapPage extends StatelessWidget {
                   child: Material(
                     elevation: 2,
                     shape: const StadiumBorder(),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: SizedBox(
-                        height: 48,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          // Bar actions follow the side column to the
-                          // start edge (empty here in wide mode: "locate"
-                          // is in the column).
-                          textDirection: bar.trailingAtStart
-                              ? _flipped(Directionality.of(context))
-                              : null,
-                          children: [
-                            DefaultTextStyle.merge(
-                              style: Theme.of(context).textTheme.titleMedium,
-                              child: bar.title ?? const SizedBox(),
-                            ),
+                    child: SizedBox(
+                      width: 320,
+                      height: 48,
+                      child: DefaultTextStyle.merge(
+                        style: Theme.of(context).textTheme.titleMedium,
+                        child: DuoBarLayout(
+                          title: bar.title,
+                          trailing: [
                             for (final a in bar.trailing)
                               bar.buildAction(
-                                  a, DockActionPlacement.barTrailing),
+                                  a, DuoActionPlacement.barTrailing),
                           ],
+                          centerTitle: true,
+                          actionsAtStart: bar.trailingAtStart,
                         ),
                       ),
                     ),
@@ -67,9 +62,6 @@ class MapPage extends StatelessWidget {
     );
   }
 }
-
-TextDirection _flipped(TextDirection d) =>
-    d == TextDirection.ltr ? TextDirection.rtl : TextDirection.ltr;
 
 class _FakeMap extends StatelessWidget {
   const _FakeMap();

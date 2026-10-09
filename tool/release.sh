@@ -1,12 +1,18 @@
 #!/usr/bin/env bash
-# Release helper. Run from anywhere in the repo.
+# Release helper for the packages in this workspace. Run from anywhere in the
+# repo. <package> is duo_navigation or duo_navigation_window_placement; tags are
+# <package>-v<version>.
 #
-#   tool/release.sh prepare <version>  Set <version> in pubspec.yaml and add
-#                                      a CHANGELOG section.
-#   tool/release.sh check [<tag>]      Check the version files agree (and match
-#                                      <tag>, if given). CI runs this too.
-#   tool/release.sh tag                Check main is ready, then create and push
-#                                      the v<version> tag that starts publishing.
+#   tool/release.sh prepare <package> <version>  Set <version> in the package's
+#                                                pubspec.yaml and add a
+#                                                CHANGELOG section.
+#   tool/release.sh check <package> [<tag>]      Check the version files agree
+#                                                (and match <tag>, if given).
+#                                                CI runs this too.
+#   tool/release.sh tag <package>                Check main is ready, then create
+#                                                and push the tag that starts
+#                                                publishing.
+#   tool/release.sh dir <package>                Print the package directory.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -17,56 +23,75 @@ fail() {
   exit 1
 }
 
-pubspec_version() { sed -n 's/^version: *//p' pubspec.yaml; }
+usage() {
+  sed -n '2,15s/^# \{0,1\}//p' "$0"
+  exit 1
+}
 
-# Prints the CHANGELOG section for $1, without its heading.
+# Prints the directory of package $1, relative to the repo root.
+package_dir() {
+  case ${1:-} in
+    duo_navigation) echo . ;;
+    duo_navigation_window_placement) echo packages/duo_navigation_window_placement ;;
+    '') usage ;;
+    *) fail "unknown package '$1' (duo_navigation or duo_navigation_window_placement)" ;;
+  esac
+}
+
+pubspec_version() { sed -n 's/^version: *//p' "$1/pubspec.yaml"; }
+
+# Prints the CHANGELOG section for version $2 of the package in $1, without its
+# heading.
 changelog_section() {
-  awk -v heading="## $1" '
+  awk -v heading="## $2" '
     $0 == heading { found = 1; next }
     found && /^## / { exit }
     found { print }
-  ' CHANGELOG.md
+  ' "$1/CHANGELOG.md"
 }
 
 prepare() {
-  local version=${1:-}
-  [[ -n $version ]] || fail "usage: tool/release.sh prepare <version>"
+  local package=${1:-} version=${2:-} dir
+  dir=$(package_dir "$package")
+  [[ -n $version ]] || fail "usage: tool/release.sh prepare <package> <version>"
   [[ $version =~ $SEMVER ]] || fail "'$version' is not a version like 1.2.3"
-  [[ $version != "$(pubspec_version)" ]] || fail "pubspec.yaml is already at $version"
+  [[ $version != "$(pubspec_version "$dir")" ]] || fail "$package is already at $version"
 
-  perl -pi -e "s/^version: .*/version: $version/" pubspec.yaml
-  if ! grep -qx "## $version" CHANGELOG.md; then
-    { printf '## %s\n\n* TODO: describe the changes.\n\n' "$version"; cat CHANGELOG.md; } > CHANGELOG.md.tmp
-    mv CHANGELOG.md.tmp CHANGELOG.md
+  perl -pi -e "s/^version: .*/version: $version/" "$dir/pubspec.yaml"
+  if ! grep -qx "## $version" "$dir/CHANGELOG.md"; then
+    { printf '## %s\n\n* TODO: describe the changes.\n\n' "$version"; cat "$dir/CHANGELOG.md"; } > "$dir/CHANGELOG.md.tmp"
+    mv "$dir/CHANGELOG.md.tmp" "$dir/CHANGELOG.md"
   fi
 
-  echo "Set version $version in pubspec.yaml and CHANGELOG.md."
-  echo "Next: describe the changes in CHANGELOG.md, open a PR, merge it, then run tool/release.sh tag."
+  echo "Set $package $version in $dir/pubspec.yaml and $dir/CHANGELOG.md."
+  echo "Next: describe the changes in the CHANGELOG, open a PR, merge it, then run tool/release.sh tag $package."
 }
 
 check() {
-  local tag=${1:-}
-  local version
-  version=$(pubspec_version)
+  local package=${1:-} tag=${2:-} dir version
+  dir=$(package_dir "$package")
+  version=$(pubspec_version "$dir")
 
-  [[ $version =~ $SEMVER ]] || fail "pubspec.yaml version '$version' is not a version like 1.2.3"
-  grep -qx "## $version" CHANGELOG.md || fail "CHANGELOG.md has no '## $version' section"
-  [[ -n $(changelog_section "$version" | tr -d '[:space:]') ]] ||
-    fail "the CHANGELOG.md section for $version is empty"
-  ! changelog_section "$version" | grep -q 'TODO' ||
-    fail "the CHANGELOG.md section for $version still contains a TODO"
-  if [[ -n $tag && $tag != "v$version" ]]; then
-    fail "tag $tag does not match pubspec.yaml version $version (expected v$version)"
+  [[ $version =~ $SEMVER ]] || fail "$dir/pubspec.yaml version '$version' is not a version like 1.2.3"
+  ! grep -q '^publish_to: *none' "$dir/pubspec.yaml" || fail "$package is not published yet (publish_to: none)"
+  grep -qx "## $version" "$dir/CHANGELOG.md" || fail "$dir/CHANGELOG.md has no '## $version' section"
+  [[ -n $(changelog_section "$dir" "$version" | tr -d '[:space:]') ]] ||
+    fail "the CHANGELOG section for $package $version is empty"
+  ! changelog_section "$dir" "$version" | grep -q 'TODO' ||
+    fail "the CHANGELOG section for $package $version still contains a TODO"
+  if [[ -n $tag && $tag != "$package-v$version" ]]; then
+    fail "tag $tag does not match $package $version (expected $package-v$version)"
   fi
 
-  echo "Version $version is consistent."
+  echo "$package $version is consistent."
 }
 
 tag() {
-  check
-  local version tag
-  version=$(pubspec_version)
-  tag="v$version"
+  local package=${1:-} dir version tag
+  dir=$(package_dir "$package")
+  check "$package"
+  version=$(pubspec_version "$dir")
+  tag="$package-v$version"
 
   [[ $(git branch --show-current) == main ]] || fail "switch to main first"
   [[ -z $(git status --porcelain) ]] || fail "the working tree has uncommitted changes"
@@ -77,24 +102,22 @@ tag() {
   [[ -z $(git ls-remote --tags origin "refs/tags/$tag") ]] || fail "tag $tag already exists on origin"
 
   echo "Checking the package with pub..."
-  flutter pub publish --dry-run
+  (cd "$dir" && flutter pub publish --dry-run)
 
   echo
   git log -1 --format='Tagging %h %s' HEAD
   read -r -p "Create and push $tag? This starts the publish workflow. [y/N] " answer
   [[ $answer == [yY] ]] || fail "cancelled"
 
-  git tag -a "$tag" -m "nav_dock $version"
+  git tag -a "$tag" -m "$package $version"
   git push origin "$tag"
   echo "Pushed $tag. Approve the run in the pub.dev environment to publish."
 }
 
 case ${1:-} in
-  prepare) prepare "${2:-}" ;;
-  check) check "${2:-}" ;;
-  tag) tag ;;
-  *)
-    sed -n '2,9s/^# \{0,1\}//p' "$0"
-    exit 1
-    ;;
+  prepare) prepare "${2:-}" "${3:-}" ;;
+  check) check "${2:-}" "${3:-}" ;;
+  tag) tag "${2:-}" ;;
+  dir) package_dir "${2:-}" ;;
+  *) usage ;;
 esac

@@ -1,4 +1,10 @@
+include: package:flutter_lints/flutter.yaml
+
 analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
   exclude:
     - build/**
     - android/**
@@ -7,4 +13,7 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
-include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    - public_member_api_docs

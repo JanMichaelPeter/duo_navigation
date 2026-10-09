@@ -1,154 +1,545 @@
-import 'dart:math' as math;
+// 0.0.1 code that the 0.1.0 redesign replaces (#42).
+// ignore_for_file: public_member_api_docs
 
+import 'dart:async';
+
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
+import '../a11y/focus.dart';
 import '../actions/action_host.dart';
+import '../builders/builders.dart';
 import '../config/navigation.dart';
+import '../config/keyboard.dart';
+import '../config/navigation_data.dart';
+import '../geometry/body_mode.dart';
+import '../geometry/layout_mode.dart';
+import '../geometry/side.dart';
+import '../keys.dart';
+import '../models/action.dart';
 import '../models/enums.dart';
 import '../models/tab.dart';
 import '../models/tabs_data.dart';
-import 'frame_layout.dart';
-import 'obstructed_body.dart';
+import '../tabs/tab_item.dart';
+import 'body_scope.dart';
+import 'render_frame.dart';
 import 'side_column.dart';
 
 /// Exposes the current layout mode and action host to pages.
-class DockScope extends InheritedWidget {
-  const DockScope._({
+class DuoScope extends InheritedWidget {
+  const DuoScope._({
     required this.mode,
     required this.host,
     required this.isModal,
     required this.side,
+    required this.hoisting,
+    required this.route,
+    required this.impliedLeading,
+    required this.leadingAtEnd,
     required super.child,
   });
 
-  /// Compact or wide, decided by the frame's width and the breakpoint.
-  final DockLayoutMode mode;
+  /// Compact or wide, decided by the layout policy.
+  final DuoLayoutMode mode;
 
   /// Edge the side column is on (after window-edge resolution), relative to
   /// [Directionality]. Only meaningful in wide mode.
-  final DockSide side;
+  final DuoSide side;
 
   /// Collects the actions of the pages in this frame.
-  final DockActionHost host;
+  final DuoActionHost host;
 
-  /// True for an [DockModalScope] (no tabs), false inside an DockShell.
+  /// True for an [DuoModalScope] (no tabs), false inside an DuoShell.
   final bool isModal;
 
-  /// The nearest scope, or null outside any shell or modal frame.
-  static DockScope? maybeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<DockScope>();
+  /// Whether icon actions move into the column, for pages that don't decide
+  /// themselves.
+  final DuoHoisting hoisting;
 
-  /// Current mode; outside any scope it falls back to the screen width.
-  static DockLayoutMode modeOf(BuildContext context) {
-    final scope = maybeOf(context);
-    if (scope != null) return scope.mode;
-    final config = DockNavigation.of(context);
-    return MediaQuery.sizeOf(context).width >= config.breakpoint
-        ? DockLayoutMode.wide
-        : DockLayoutMode.compact;
-  }
+  /// The route the modal frame is on; null in a shell. Its first page
+  /// dismisses the modal by popping this route.
+  final ModalRoute<Object?>? route;
+
+  /// The leading action the modal's first page implies; null: from [route]
+  /// (close for a full-screen dialog, else back).
+  final DuoImpliedLeading? impliedLeading;
+
+  /// Whether the modal's first page has its leading action at the end.
+  final bool leadingAtEnd;
+
+  /// The nearest scope, or null outside any shell or modal frame.
+  static DuoScope? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<DuoScope>();
+
+  /// Current mode; outside any scope it is [DuoNavigation.modeOf].
+  static DuoLayoutMode modeOf(BuildContext context) =>
+      maybeOf(context)?.mode ?? DuoNavigation.modeOf(context);
 
   @override
-  bool updateShouldNotify(DockScope oldWidget) =>
+  bool updateShouldNotify(DuoScope oldWidget) =>
       mode != oldWidget.mode ||
       host != oldWidget.host ||
       isModal != oldWidget.isModal ||
-      side != oldWidget.side;
+      side != oldWidget.side ||
+      hoisting != oldWidget.hoisting ||
+      route != oldWidget.route ||
+      impliedLeading != oldWidget.impliedLeading ||
+      leadingAtEnd != oldWidget.leadingAtEnd;
 }
 
+/// Decides whether a tab may be selected; see `DuoShell.canSelectTab`.
+typedef DuoTabVeto = FutureOr<bool> Function(int index);
+
 /// Shared implementation of the shell and modal frames. Not exported.
-class DockFrame extends StatefulWidget {
-  const DockFrame({
+class DuoFrame<T, A, B> extends StatefulWidget {
+  const DuoFrame({
     super.key,
     required this.isModal,
+    this.implicitModal = false,
     required this.child,
     this.tabs,
     this.currentIndex = 0,
     this.onTabSelected,
+    this.onTabReselected,
+    this.canSelectTab,
+    this.bodyMode,
+    this.hoisting,
+    this.builders,
+    this.navigationVisible = true,
+    this.backdrop,
+    this.impliedLeading,
+    this.leadingAtEnd,
+    this.keyboard,
   });
 
   final bool isModal;
+
+  /// A frame that a page without a scope above creates around itself. Every
+  /// page on the root navigator gets one, so it is a modal start only if its
+  /// route presents as one (see [_isModalStart]).
+  final bool implicitModal;
   final Widget child;
-  final List<DockTab>? tabs;
+  final List<DuoTab<T>>? tabs;
   final int currentIndex;
   final ValueChanged<int>? onTabSelected;
+  final ValueChanged<int>? onTabReselected;
+  final DuoTabVeto? canSelectTab;
+
+  /// Null: [DuoNavigationData.bodyMode].
+  final DuoBodyMode? bodyMode;
+
+  /// Null: [DuoNavigationData.hoisting].
+  final DuoHoisting? hoisting;
+
+  /// Overrides on top of the builders above; null fields fall back to them.
+  final DuoBuilders<T, A, B>? builders;
+
+  /// Whether the bar and column show; pages can hide them too.
+  final bool navigationVisible;
+
+  /// Painted across the whole frame under everything, unless the active page
+  /// has its own.
+  final Widget? backdrop;
+  final DuoImpliedLeading? impliedLeading;
+  final bool? leadingAtEnd;
+  final DuoKeyboard? keyboard;
 
   @override
-  State<DockFrame> createState() => _DockFrameState();
+  State<DuoFrame<T, A, B>> createState() => _DuoFrameState<T, A, B>();
 }
 
-class _DockFrameState extends State<DockFrame> {
-  final DockActionHost _host = DockActionHost();
+class _DuoFrameState<T, A, B> extends State<DuoFrame<T, A, B>>
+    with TickerProviderStateMixin {
+  final DuoActionHost _host = DuoActionHost();
+
+  /// How far the bar and column are shown. Only ticks while they animate.
+  /// Created in [initState], not lazily: [dispose] must not be the first to
+  /// touch it (it would look up TickerMode on a deactivated element).
+  late final AnimationController _visibility;
+  late final CurvedAnimation _curved;
+
+  /// Hides the chrome while the keyboard is open, for
+  /// [DuoKeyboardBehavior.hide]. Combined with [_visibility] by product.
+  late final AnimationController _keyboardShown;
+  late final CurvedAnimation _keyboardCurved;
+  late final Animation<double> _shown;
+  bool _keyboardHides = false;
+
+  /// Moves focus to the same tab or action when the layout mode changes.
+  final DuoFocusRegistry _focus = DuoFocusRegistry();
+  DuoLayoutMode? _lastMode;
+  Duration _visibilityDuration = Duration.zero;
+
+  /// The shell's and the active page's wish together.
+  bool get _wantsNavigation =>
+      widget.navigationVisible && (_host.active?.navigationVisible ?? true);
+
+  @override
+  void initState() {
+    super.initState();
+    _visibility = AnimationController(
+      vsync: this,
+      value: widget.navigationVisible ? 1 : 0,
+    );
+    _curved = CurvedAnimation(parent: _visibility, curve: Curves.linear);
+    _keyboardShown = AnimationController(vsync: this, value: 1);
+    _keyboardCurved = CurvedAnimation(
+      parent: _keyboardShown,
+      curve: Curves.linear,
+    );
+    _shown = _Product(_curved, _keyboardCurved);
+    _host.addListener(_syncVisibility);
+  }
+
+  @override
+  void didUpdateWidget(DuoFrame<T, A, B> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.navigationVisible != oldWidget.navigationVisible) {
+      _syncVisibility();
+    }
+  }
+
+  /// The active page's backdrop, else the frame's, else the builders'
+  /// default; a change of owner cross-fades.
+  Widget _backdrop(BuildContext context, DuoNavigationData config) {
+    final page = _host.active;
+    final pageBackdrop = page?.backdrop;
+    final Object owner = pageBackdrop != null ? page! : 'frame';
+    final child =
+        pageBackdrop ??
+        widget.backdrop ??
+        DuoBuilders.of<T, A, B>(context).backdrop?.call(context);
+    return AnimatedSwitcher(
+      duration: _visibilityDuration == Duration.zero
+          ? Duration.zero
+          : config.actionAnimationDuration,
+      // Backdrops fill the frame, also while two of them cross-fade.
+      layoutBuilder: (current, previous) =>
+          Stack(fit: StackFit.expand, children: [...previous, ?current]),
+      child: KeyedSubtree(
+        key: ValueKey<Object>(child == null ? 'none' : owner),
+        child: child ?? const SizedBox.expand(),
+      ),
+    );
+  }
+
+  /// Starts hiding or showing the chrome for the keyboard. Called during
+  /// layout, where the mode is known; the render object follows the
+  /// animation without a rebuild.
+  void _hideForKeyboard(bool hide) {
+    if (hide == _keyboardHides) return;
+    _keyboardHides = hide;
+    _keyboardShown.animateTo(hide ? 0 : 1, duration: _visibilityDuration);
+  }
+
+  void _syncVisibility() {
+    if (!mounted) return;
+    final target = _wantsNavigation ? 1.0 : 0.0;
+    if (_visibility.value == target && !_visibility.isAnimating) return;
+    // Rebuild so the chrome leaves (or joins) hit testing, focus and
+    // semantics right away, not when the animation ends.
+    setState(() {});
+    _visibility.animateTo(target, duration: _visibilityDuration);
+  }
 
   @override
   void dispose() {
+    _host.removeListener(_syncVisibility);
+    _curved.dispose();
+    _visibility.dispose();
+    _keyboardCurved.dispose();
+    _keyboardShown.dispose();
     _host.dispose();
     super.dispose();
   }
 
+  /// Applies the shell's rules: a tap on the current tab re-selects it, a
+  /// tap on another tab asks the veto first.
+  void _select(int index) {
+    final widget = this.widget;
+    if (index == widget.currentIndex) {
+      (widget.onTabReselected ?? widget.onTabSelected)?.call(index);
+      return;
+    }
+    final veto = widget.canSelectTab;
+    if (veto == null) {
+      widget.onTabSelected?.call(index);
+      return;
+    }
+    final allowed = veto(index);
+    if (allowed is bool) {
+      if (allowed) widget.onTabSelected?.call(index);
+      return;
+    }
+    allowed.then((ok) {
+      if (ok && mounted) this.widget.onTabSelected?.call(index);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final config = DockNavigation.of(context);
-    _host.tapCooldown = config.tapCooldown;
+    // The scope sits above everything the frame builds, so the bar, the
+    // column and the pages all see the shell's builders.
+    return DuoBuildersScope(
+      builders: widget.builders,
+      child: DuoFocusRegistryScope(
+        registry: _focus,
+        child: Builder(builder: _build),
+      ),
+    );
+  }
+
+  /// Whether this frame starts a modal, so the app-wide
+  /// `DuoNavigationData.modalLeading` applies to its first page: an explicit
+  /// `DuoModalScope`, or an implicit frame on a full-screen dialog or a modal
+  /// route that isn't a page (a sheet, a dialog). A plain page pushed on the
+  /// root navigator is not one.
+  bool _isModalStart(ModalRoute<Object?>? route) {
+    if (!widget.isModal) return false;
+    if (!widget.implicitModal) return true;
+    return switch (route) {
+      PageRoute(:final fullscreenDialog) => fullscreenDialog,
+      null => false,
+      _ => true,
+    };
+  }
+
+  List<Widget> _items(
+    BuildContext context,
+    DuoBuilders<T, A, B> builders,
+    DuoTabsData<T> data,
+  ) {
+    return [
+      for (var i = 0; i < data.tabs.length; i++)
+        Builder(
+          builder: (context) {
+            final item = data.itemData(i);
+            return DuoTabItem<T>(
+              data: item,
+              child: builders.buildTabItem(context, item),
+            );
+          },
+        ),
+    ];
+  }
+
+  /// Hands a chip's action to the typed action builder.
+  Widget _chip(
+    BuildContext context,
+    DuoBuilders<T, A, B> builders,
+    DuoAction<Object?> action,
+  ) {
+    if (action is! DuoAction<A>) {
+      throw FlutterError.fromParts([
+        ErrorSummary('A page action does not match this frame.'),
+        ErrorDescription(
+          'The action ${action.id} is a ${action.runtimeType}, and this '
+          'frame draws DuoAction<$A>.',
+        ),
+        ErrorHint(
+          'Give the shell or modal scope the action payload type its pages '
+          'use, for example DuoShell<MyTab, MyAction>.',
+        ),
+      ]);
+    }
+    return builders.buildAction(context, action, DuoActionPlacement.sideColumn);
+  }
+
+  Widget _build(BuildContext context) {
+    final config = DuoNavigation.of(context);
+    _host.tapGuard = config.tapGuard;
     final padding = MediaQuery.paddingOf(context);
+    final window = MediaQuery.sizeOf(context);
+    final textScale = MediaQuery.textScalerOf(context).scale(1);
     final ltr = Directionality.of(context) == TextDirection.ltr;
-    final preferRight = (config.side == DockSide.end) == ltr;
-    final sideOnRight =
-        config.windowEdges?.resolveRight(preferRight: preferRight) ??
-        preferRight;
-    final systemInset = sideOnRight ? padding.right : padding.left;
+    final columnOnRight = DuoNavigation.sideOnRight(context);
+    final side = columnOnRight == ltr ? DuoSide.end : DuoSide.start;
+    final builders = DuoBuilders.of<T, A, B>(context);
+    _visibilityDuration = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : config.visibilityDuration;
+    _curved.curve = config.visibilityCurve;
+    _keyboardCurved.curve = config.visibilityCurve;
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+    final keyboardConfig = widget.keyboard ?? config.keyboard;
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= config.breakpoint;
-        final mode = wide ? DockLayoutMode.wide : DockLayoutMode.compact;
+        final mode = config.layoutPolicy.resolve(
+          window: window,
+          frame: constraints.biggest,
+        );
+        // Before the old chrome goes: remember which tab or action has focus,
+        // and give it to the same one in the new layout.
+        if (_lastMode != null && mode != _lastMode) {
+          final focused = _focus.focusedId();
+          if (focused != null) _focus.restoreAfterFrame(focused);
+        }
+        _lastMode = mode;
+        final behavior = mode == DuoLayoutMode.compact
+            ? keyboardConfig.bar
+            : keyboardConfig.column;
+        _hideForKeyboard(keyboard > 0 && behavior == DuoKeyboardBehavior.hide);
+        final hidden = !_wantsNavigation || _keyboardHides;
         final tabs = widget.tabs == null
             ? null
-            : DockTabsData(
+            : DuoTabsData<T>(
                 tabs: widget.tabs!,
                 currentIndex: widget.currentIndex,
-                onSelected: widget.onTabSelected ?? (_) {},
+                onSelected: _select,
                 mode: mode,
               );
 
-        return DockScope._(
+        // Only modal frames need their route; a shell doesn't rebuild when
+        // routes change above it.
+        final route = widget.isModal ? ModalRoute.of(context) : null;
+        final modalStart = _isModalStart(route);
+        return DuoScope._(
           mode: mode,
           host: _host,
           isModal: widget.isModal,
-          side: sideOnRight == ltr ? DockSide.end : DockSide.start,
-          child: CustomMultiChildLayout(
-            delegate: FrameLayout(
-              wide: wide,
-              // The column sits inside the system inset on its edge (notch,
-              // reserved side strip) rather than beside it.
-              sideExtent: math.max(config.sideColumnWidth, systemInset),
-              sideOnRight: sideOnRight,
-            ),
-            children: [
-              // Body is always the first child of the same type, so switching
-              // modes (rotation, split view) keeps its State.
-              LayoutId(
-                id: FrameSlot.body,
-                child: ObstructedBody(child: widget.child),
+          side: side,
+          hoisting: widget.hoisting ?? config.hoisting,
+          route: route,
+          impliedLeading:
+              widget.impliedLeading ??
+              (modalStart ? config.modalLeading.implied : null),
+          leadingAtEnd:
+              widget.leadingAtEnd ?? (modalStart && config.modalLeading.atEnd),
+          // Focus and semantics order, the same in both modes: the page
+          // first, then the chrome (the column's actions above its rail, or
+          // the tab bar).
+          child: FocusTraversalGroup(
+            policy: OrderedTraversalPolicy(),
+            child: DuoFrameLayout(
+              mode: mode,
+              side: side,
+              columnOnRight: columnOnRight,
+              columnWidth:
+                  config.sideColumnWidth *
+                  textScale.clamp(1.0, config.columnTextScaleLimit),
+              columnInset: config.columnInset,
+              bodyMode: widget.bodyMode ?? config.bodyMode,
+              systemPadding: padding,
+              visibility: _shown,
+              keyboard: keyboard,
+              liftColumn: keyboardConfig.column == DuoKeyboardBehavior.lift,
+              liftBar: keyboardConfig.bar == DuoKeyboardBehavior.lift,
+              liftBody: keyboardConfig.body == DuoBodyKeyboardBehavior.lift,
+              // The body keeps its slot in every mode, so switching modes
+              // (rotation, split view) keeps its State.
+              body: _Ordered(
+                order: 1,
+                child: DuoBodyScope(child: widget.child),
               ),
-              if (!wide && tabs != null)
-                LayoutId(
-                  id: FrameSlot.bar,
-                  child: config.tabBarBuilder(context, tabs),
-                ),
-              if (wide)
-                LayoutId(
-                  id: FrameSlot.side,
+              backdrop: ListenableBuilder(
+                listenable: _host,
+                builder: (context, _) => _backdrop(context, config),
+              ),
+              bar: tabs == null || mode != DuoLayoutMode.compact
+                  ? null
+                  : _Ordered(
+                      order: 2,
+                      child: KeyedSubtree(
+                        key: DuoKeys.bar,
+                        child: _Inert(
+                          inert: hidden,
+                          // The bar sits at the bottom, so the status bar is
+                          // not its concern (as with Scaffold's bottom bar);
+                          // it owns the bottom padding.
+                          child: MediaQuery.removePadding(
+                            context: context,
+                            removeTop: true,
+                            child: Builder(
+                              builder: (context) => builders.buildTabBar(
+                                context,
+                                tabs,
+                                _items(context, builders, tabs),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+              column: _Ordered(
+                order: 2,
+                child: _Inert(
+                  inert: hidden,
                   child: SideColumn(
+                    key: DuoKeys.column,
                     host: _host,
-                    tabs: tabs,
-                    sideOnRight: sideOnRight,
+                    rail: tabs == null || mode != DuoLayoutMode.wide
+                        ? null
+                        : KeyedSubtree(
+                            key: DuoKeys.rail,
+                            // Scrolls when the tabs don't fit the column.
+                            child: SingleChildScrollView(
+                              child: builders.buildRail(
+                                context,
+                                tabs,
+                                _items(context, builders, tabs),
+                              ),
+                            ),
+                          ),
+                    columnOnRight: columnOnRight,
+                    columnInset: config.columnInset,
+                    buildChip: (context, action) =>
+                        _chip(context, builders, action),
                   ),
                 ),
-            ],
+              ),
+            ),
           ),
         );
       },
     );
   }
+}
+
+/// Takes hidden chrome out of hit testing, focus and semantics. Inserted
+/// always, so the chrome keeps its state across hiding and showing.
+class _Inert extends StatelessWidget {
+  const _Inert({required this.inert, required this.child});
+
+  final bool inert;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+    ignoring: inert,
+    child: ExcludeFocus(
+      excluding: inert,
+      child: ExcludeSemantics(excluding: inert, child: child),
+    ),
+  );
+}
+
+/// The product of two animations: shown only while both are.
+class _Product extends CompoundAnimation<double> {
+  _Product(Animation<double> first, Animation<double> next)
+    : super(first: first, next: next);
+
+  @override
+  double get value => first.value * next.value;
+}
+
+/// Puts a frame part at [order] in focus traversal and in the semantics
+/// order.
+class _Ordered extends StatelessWidget {
+  const _Ordered({required this.order, required this.child});
+
+  final double order;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => FocusTraversalOrder(
+    order: NumericFocusOrder(order),
+    child: FocusTraversalGroup(
+      child: Semantics(
+        container: true,
+        sortKey: OrdinalSortKey(order),
+        child: child,
+      ),
+    ),
+  );
 }

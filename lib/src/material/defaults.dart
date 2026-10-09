@@ -1,0 +1,293 @@
+import 'package:flutter/material.dart';
+
+import '../builders/builders.dart';
+import 'app_bar.dart';
+import '../config/navigation.dart';
+import '../frame/side_column_layout.dart';
+import '../tabs/tab_item.dart';
+import '../models/action.dart';
+import '../models/dock_badge.dart';
+import '../models/dock_icon.dart';
+import '../models/icon_morph.dart';
+import '../models/bar_data.dart';
+import '../models/enums.dart';
+import '../models/tabs_data.dart';
+
+/// Every [DuoBuilders] field set to the Material 3 defaults in
+/// [DuoMaterial].
+///
+/// ```dart
+/// DuoNavigation(builders: const DuoMaterialBuilders(), child: ...)
+/// ```
+///
+/// Replace single builders with [DuoBuilders.merge]:
+/// `const DuoMaterialBuilders().merge(DuoBuilders(tabBar: myTabBar))`.
+/// [T], [A] and [B] are the tabs', actions' and bars' payload types; the
+/// defaults work for any, so a typed app can use
+/// `DuoMaterialBuilders<MyTab, MyAction, MyBar>()` as a base for typed
+/// overrides.
+class DuoMaterialBuilders<T, A, B> extends DuoBuilders<T, A, B> {
+  /// The Material defaults.
+  const DuoMaterialBuilders()
+    : super(
+        tabItem: DuoMaterial.tabItem,
+        tabBar: DuoMaterial.tabBar,
+        rail: DuoMaterial.rail,
+        action: DuoMaterial.action,
+        page: DuoMaterial.page,
+        sideColumn: DuoMaterial.sideColumn,
+        actionTransition: DuoMaterial.actionTransition,
+        backdrop: DuoMaterial.backdrop,
+        tabPosition: DuoMaterial.tabPosition,
+        actionLabel: DuoMaterial.actionLabel,
+      );
+}
+
+/// The Material 3 visuals behind [DuoMaterialBuilders]. They are plain
+/// functions: call and wrap them from your own builders instead of rewriting
+/// them.
+abstract final class DuoMaterial {
+  static const double _railPadding = 4;
+
+  /// A tab: a [NavigationDestination] in the tab bar, a selectable
+  /// [IconButton] in the rail. Badges are Material [Badge]s.
+  static Widget tabItem(BuildContext context, DuoTabItemData<Object?> data) {
+    final tab = data.tab;
+    Widget icon(bool selected) =>
+        badge(DuoMaterial.icon(tab.iconFor(selected: selected)), tab.badge);
+    if (data.placement == DuoTabPlacement.bar) {
+      return NavigationDestination(
+        icon: icon(false),
+        selectedIcon: icon(true),
+        label: tab.label ?? '',
+        tooltip: tab.tooltip,
+      );
+    }
+    final scheme = Theme.of(context).colorScheme;
+    final extent = DuoNavigation.of(context).sideItemExtent - 2 * _railPadding;
+    return IconButton(
+      isSelected: data.selected,
+      icon: icon(false),
+      selectedIcon: icon(true),
+      tooltip: tab.tooltip ?? tab.label,
+      onPressed: data.onTap,
+      style: IconButton.styleFrom(
+        fixedSize: Size.square(extent),
+        backgroundColor: data.selected
+            ? scheme.secondaryContainer
+            : Colors.transparent,
+        foregroundColor: data.selected
+            ? scheme.onSecondaryContainer
+            : scheme.onSurfaceVariant,
+      ),
+    );
+  }
+
+  /// [icon] with a Material [Badge] for [badge]; [icon] itself without one.
+  static Widget badge(Widget icon, DuoBadge? badge) {
+    if (badge == null) return icon;
+    final label = badge.label;
+    return Badge(label: label == null ? null : Text(label), child: icon);
+  }
+
+  /// A Material 3 [NavigationBar] of the items. It marks itself as a tab bar
+  /// for assistive technology.
+  static Widget tabBar(
+    BuildContext context,
+    DuoTabsData<Object?> data,
+    List<Widget> items,
+  ) {
+    return NavigationBar(
+      selectedIndex: data.currentIndex,
+      onDestinationSelected: data.onSelected,
+      destinations: items,
+    );
+  }
+
+  /// One vertical pill of the items, `sideItemExtent` wide, marked as a tab
+  /// bar with [DuoTabBarSemantics].
+  static Widget rail(
+    BuildContext context,
+    DuoTabsData<Object?> data,
+    List<Widget> items,
+  ) {
+    final scheme = Theme.of(context).colorScheme;
+    return Material(
+      color: scheme.surfaceContainerHigh,
+      elevation: 3,
+      shape: const StadiumBorder(),
+      child: DuoTabBarSemantics(
+        child: Padding(
+          padding: const EdgeInsets.all(_railPadding),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (final item in items)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: item,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Round chip in the side column; icon or text button in the bar.
+  ///
+  /// [DuoActionRole.primary] chips use the primary container color. A text
+  /// action shows its label; an icon action uses it as tooltip.
+  static Widget action(
+    BuildContext context,
+    DuoAction<Object?> action,
+    DuoActionPlacement placement,
+  ) {
+    final l10n = MaterialLocalizations.of(context);
+    final tooltip =
+        action.tooltip ??
+        action.label ??
+        switch (action.role) {
+          DuoActionRole.back => l10n.backButtonTooltip,
+          DuoActionRole.close => l10n.closeButtonTooltip,
+          _ => null,
+        };
+    final icon = action.icon;
+    Widget semantic(Widget child) {
+      final label = action.semanticLabel;
+      return label == null ? child : Semantics(label: label, child: child);
+    }
+
+    if (icon == null) {
+      return semantic(
+        TextButton(
+          onPressed: action.onPressed,
+          child: badge(Text(action.label!), action.badge),
+        ),
+      );
+    }
+    final glyph = badge(morphingIcon(icon), action.badge);
+    if (placement == DuoActionPlacement.sideColumn) {
+      final scheme = Theme.of(context).colorScheme;
+      final primary = action.role == DuoActionRole.primary;
+      return semantic(
+        Material(
+          color: primary
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerHigh,
+          elevation: 3,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: IconButton(
+            tooltip: tooltip,
+            onPressed: action.onPressed,
+            color: primary ? scheme.onPrimaryContainer : null,
+            icon: glyph,
+            style: IconButton.styleFrom(
+              fixedSize: Size.square(DuoNavigation.of(context).sideItemExtent),
+            ),
+          ),
+        ),
+      );
+    }
+    return semantic(
+      IconButton(tooltip: tooltip, onPressed: action.onPressed, icon: glyph),
+    );
+  }
+
+  /// [icon] as a Material widget: [DuoIcon.back] is a [BackButtonIcon]
+  /// (chevron or arrow by platform), [DuoIcon.close] the close icon, the
+  /// others their own widget.
+  static Widget icon(DuoIcon icon, {double? size, Color? color}) =>
+      switch (icon) {
+        DuoPlatformIcon(kind: DuoPlatformIconKind.back) =>
+          const BackButtonIcon(),
+        DuoPlatformIcon(kind: DuoPlatformIconKind.close) => Icon(
+          Icons.close,
+          size: size,
+          color: color,
+        ),
+        _ => icon.toWidget(size: size, color: color),
+      };
+
+  /// "Tab 2 of 3", from [MaterialLocalizations.tabLabel].
+  static String tabPosition(BuildContext context, int index, int count) =>
+      MaterialLocalizations.of(
+        context,
+      ).tabLabel(tabIndex: index + 1, tabCount: count);
+
+  /// "Back" or "Close" for the implied leading actions, from
+  /// [MaterialLocalizations]; null for other actions without a label.
+  static String? actionLabel(BuildContext context, DuoAction<Object?> action) {
+    final l10n = MaterialLocalizations.of(context);
+    return switch (action.role) {
+      DuoActionRole.back => l10n.backButtonTooltip,
+      DuoActionRole.close => l10n.closeButtonTooltip,
+      _ => null,
+    };
+  }
+
+  /// [icon] as a Material icon that cross-fades when it changes (back →
+  /// close, star → filled star): [DuoIconMorph] with [DuoMaterial.icon].
+  /// Use [DuoIconMorph] directly to render the icons your own way.
+  static Widget morphingIcon(DuoIcon icon) => DuoIconMorph(
+    icon: icon,
+    builder: (context, icon) => DuoMaterial.icon(icon),
+  );
+
+  /// A [Scaffold] with a [DuoAppBar]. When the side column is at the start
+  /// edge, the bar's actions move to the start too, so everything sits on
+  /// one side.
+  static Widget page(
+    BuildContext context,
+    DuoBarData<Object?, Object?> bar,
+    Widget body,
+  ) {
+    return Scaffold(appBar: const DuoAppBar(), body: body);
+  }
+
+  /// Actions fill the top and anchor to the bottom, with the rail below them.
+  /// The rail gets its height first ([DuoSideColumnLayout]).
+  static Widget sideColumn(
+    BuildContext context,
+    Widget actions,
+    Widget? tabs,
+    bool hasActions,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: DuoSideColumnLayout(actions: actions, rail: tabs),
+    );
+  }
+
+  /// Chips grow from the bottom while fading and scaling in.
+  static Widget actionTransition(
+    BuildContext context,
+    Animation<double> animation,
+    Widget child,
+  ) {
+    // Height grows from the bottom, so the chips above glide into place.
+    return ClipRect(
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, child) => Align(
+          alignment: Alignment.bottomCenter,
+          heightFactor: animation.value.clamp(0.0, 1.0),
+          child: child,
+        ),
+        child: FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: Tween<double>(begin: 0.6, end: 1).animate(animation),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The theme's scaffold background, so the strip around the chrome matches
+  /// the pages.
+  static Widget backdrop(BuildContext context) =>
+      ColoredBox(color: Theme.of(context).scaffoldBackgroundColor);
+}

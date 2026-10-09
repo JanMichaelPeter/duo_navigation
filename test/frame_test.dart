@@ -1,0 +1,495 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:duo_navigation/material.dart';
+
+const _tabs = [
+  DuoTab<Object?>(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab<Object?>(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
+];
+
+const _plain = Key('plain');
+const _safe = Key('safe');
+
+/// A body with one plain box and one box in a horizontal SafeArea, stacked.
+const Widget _probeBody = Column(
+  crossAxisAlignment: CrossAxisAlignment.stretch,
+  children: [
+    Expanded(
+      child: ColoredBox(key: _plain, color: Color(0xFF00FF00)),
+    ),
+    Expanded(
+      child: SafeArea(
+        top: false,
+        bottom: false,
+        child: ColoredBox(key: _safe, color: Color(0xFF0000FF)),
+      ),
+    ),
+  ],
+);
+
+enum _Frame { shell, modal }
+
+Widget _app({
+  DuoNavigationData data = const DuoNavigationData(),
+  DuoBuilders<Object?, Object?, Object?>? builders,
+  EdgeInsets padding = EdgeInsets.zero,
+  EdgeInsets viewInsets = EdgeInsets.zero,
+  TextDirection direction = TextDirection.ltr,
+  _Frame frame = _Frame.shell,
+  DuoBodyMode? bodyMode,
+  Widget body = _probeBody,
+}) {
+  return MaterialApp(
+    builder: (context, child) => MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        padding: padding,
+        viewPadding: padding,
+        viewInsets: viewInsets,
+      ),
+      child: Directionality(
+        textDirection: direction,
+        child: DuoNavigation(
+          builders: const DuoMaterialBuilders<Object?, Object?, Object?>()
+              .merge(builders),
+          data: data,
+          child: child!,
+        ),
+      ),
+    ),
+    home: switch (frame) {
+      _Frame.shell => DuoShell<Object?, Object?, Object?>(
+        tabs: _tabs,
+        currentIndex: 0,
+        onTabSelected: (_) {},
+        bodyMode: bodyMode,
+        child: body,
+      ),
+      _Frame.modal => DuoModalScope<Object?, Object?>(
+        bodyMode: bodyMode,
+        child: body,
+      ),
+    },
+  );
+}
+
+void main() {
+  Future<void> pump(
+    WidgetTester tester,
+    Widget app, {
+    Size size = const Size(1000, 700),
+  }) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(app);
+    await tester.pumpAndSettle();
+  }
+
+  Rect rectOf(WidgetTester tester, Key key) => tester.getRect(find.byKey(key));
+
+  MediaQueryData bodyMediaQuery(WidgetTester tester) =>
+      MediaQuery.of(tester.element(find.byKey(_plain)));
+
+  DuoGeometry geometry(WidgetTester tester) =>
+      DuoGeometry.of(tester.element(find.byKey(_plain)));
+
+  group('inset (default), wide', () {
+    for (final frame in _Frame.values) {
+      testWidgets('${frame.name}: column at the end', (tester) async {
+        await pump(tester, _app(frame: frame));
+        expect(rectOf(tester, _plain).left, 0);
+        expect(rectOf(tester, _plain).right, 1000 - 72);
+        expect(rectOf(tester, _safe).right, 1000 - 72);
+        expect(bodyMediaQuery(tester).padding, EdgeInsets.zero);
+      });
+
+      testWidgets('${frame.name}: column at the start', (tester) async {
+        await pump(
+          tester,
+          _app(
+            frame: frame,
+            data: const DuoNavigationData(side: DuoSide.start),
+          ),
+        );
+        expect(rectOf(tester, _plain).left, 72);
+        expect(rectOf(tester, _plain).right, 1000);
+      });
+
+      testWidgets('${frame.name}: right to left', (tester) async {
+        await pump(tester, _app(frame: frame, direction: TextDirection.rtl));
+        expect(rectOf(tester, _plain).left, 72);
+        expect(rectOf(tester, _plain).right, 1000);
+        expect(geometry(tester).side, DuoSide.end);
+        expect(geometry(tester).columnOnRight, isFalse);
+      });
+
+      testWidgets('${frame.name}: window-edge flip', (tester) async {
+        await pump(
+          tester,
+          _app(
+            frame: frame,
+            data: const DuoNavigationData(
+              windowEdgesSource: DuoWindowEdgesSource.fixed(
+                DuoWindowEdges(left: true, right: false),
+              ),
+            ),
+          ),
+        );
+        expect(rectOf(tester, _plain).left, 72);
+        expect(geometry(tester).side, DuoSide.start);
+      });
+    }
+
+    testWidgets('a DuoPage without a frame brings its own', (tester) async {
+      await pump(
+        tester,
+        MaterialApp(
+          builder: (context, child) => DuoNavigation(
+            builders: const DuoMaterialBuilders(),
+            child: child!,
+          ),
+          home: const DuoPage<Object?, Object?>(body: _probeBody),
+        ),
+      );
+      expect(rectOf(tester, _plain).right, 1000 - 72);
+    });
+
+    testWidgets('the column sits at the edge, over the system inset', (
+      tester,
+    ) async {
+      // An inset wider than the column: the body keeps the rest of it.
+      await pump(tester, _app(padding: const EdgeInsets.only(right: 100)));
+      expect(rectOf(tester, _plain).right, 1000 - 72);
+      expect(geometry(tester).chrome, const EdgeInsets.only(right: 72));
+      expect(bodyMediaQuery(tester).padding.right, 28);
+      expect(bodyMediaQuery(tester).viewPadding.right, 28);
+
+      // A narrower one is covered by the column.
+      await pump(tester, _app(padding: const EdgeInsets.only(right: 40)));
+      expect(rectOf(tester, _plain).right, 1000 - 72);
+      expect(bodyMediaQuery(tester).padding.right, 0);
+    });
+
+    testWidgets('safeArea: the column sits after the system inset', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _app(
+          padding: const EdgeInsets.only(right: 100),
+          data: const DuoNavigationData(columnInset: DuoColumnInset.safeArea),
+        ),
+      );
+      expect(rectOf(tester, _plain).right, 1000 - 100 - 72);
+      expect(geometry(tester).chrome, const EdgeInsets.only(right: 172));
+      expect(geometry(tester).strip, const EdgeInsets.only(right: 172));
+      expect(bodyMediaQuery(tester).padding.right, 0);
+      expect(bodyMediaQuery(tester).viewPadding.right, 0);
+    });
+
+    testWidgets('the inset on the opposite edge is kept', (tester) async {
+      await pump(tester, _app(padding: const EdgeInsets.only(left: 30)));
+      expect(rectOf(tester, _plain).left, 0);
+      expect(rectOf(tester, _safe).left, 30);
+      expect(bodyMediaQuery(tester).padding, const EdgeInsets.only(left: 30));
+    });
+
+    testWidgets('top and bottom system padding are kept', (tester) async {
+      const padding = EdgeInsets.only(top: 24, bottom: 20);
+      await pump(tester, _app(padding: padding));
+      expect(bodyMediaQuery(tester).padding, padding);
+    });
+  });
+
+  group('inset (default), compact', () {
+    const phone = Size(400, 800);
+
+    testWidgets('the body ends above the bar', (tester) async {
+      await pump(tester, _app(), size: phone);
+      final bar = tester.getRect(find.byType(NavigationBar));
+      expect(bar.bottom, 800);
+      expect(rectOf(tester, _plain).left, 0);
+      expect(rectOf(tester, _plain).right, 400);
+      expect(tester.getRect(find.byKey(_safe)).bottom, bar.top);
+      expect(geometry(tester).chrome, EdgeInsets.only(bottom: bar.height));
+    });
+
+    testWidgets('the bar owns the bottom safe area', (tester) async {
+      await pump(
+        tester,
+        _app(padding: const EdgeInsets.only(bottom: 34)),
+        size: phone,
+      );
+      final bar = tester.getRect(find.byType(NavigationBar));
+      expect(tester.getRect(find.byKey(_safe)).bottom, bar.top);
+      expect(bodyMediaQuery(tester).padding.bottom, 0);
+    });
+
+    testWidgets('a SafeArea in the bar adds the bottom inset, not the top', (
+      tester,
+    ) async {
+      const bar = Key('bar');
+      await pump(
+        tester,
+        _app(
+          padding: const EdgeInsets.only(top: 40, bottom: 20),
+          builders: DuoBuilders<Object?, Object?, Object?>(
+            // A bar that pads itself on every side, as design systems do.
+            tabBar: (context, tabs, items) => const SafeArea(
+              child: SizedBox(key: bar, height: 56, width: double.infinity),
+            ),
+          ),
+        ),
+        size: phone,
+      );
+      expect(tester.getSize(find.byKey(DuoKeys.bar)).height, 56 + 20);
+      expect(tester.getRect(find.byKey(bar)).bottom, 800 - 20);
+    });
+
+    testWidgets('the body follows a bar that animates its height', (
+      tester,
+    ) async {
+      final tall = ValueNotifier(false);
+      addTearDown(tall.dispose);
+      await pump(
+        tester,
+        _app(
+          builders: DuoBuilders<Object?, Object?, Object?>(
+            tabBar: (context, tabs, items) => ValueListenableBuilder(
+              valueListenable: tall,
+              builder: (context, isTall, _) => AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                height: isTall ? 120 : 60,
+              ),
+            ),
+          ),
+        ),
+        size: phone,
+      );
+      expect(rectOf(tester, _safe).bottom, 800 - 60);
+
+      tall.value = true;
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      final mid = rectOf(tester, _safe).bottom;
+      expect(mid, lessThan(800 - 60));
+      expect(mid, greaterThan(800 - 120));
+
+      await tester.pumpAndSettle();
+      expect(rectOf(tester, _safe).bottom, 800 - 120);
+    });
+
+    testWidgets('the body keeps its height and sees the uncovered keyboard', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _app(viewInsets: const EdgeInsets.only(bottom: 300)),
+        size: phone,
+      );
+      final bar = tester.getRect(find.byKey(DuoKeys.bar));
+      expect(rectOf(tester, _safe).bottom, bar.top);
+      // The bar's strip is already off the body; the page sees the rest.
+      expect(bodyMediaQuery(tester).viewInsets.bottom, 300 - bar.height);
+      expect(geometry(tester).keyboard, 0);
+    });
+
+    testWidgets('lift: the body ends above the keyboard and sees none', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _app(
+          viewInsets: const EdgeInsets.only(bottom: 300),
+          data: const DuoNavigationData(
+            keyboard: DuoKeyboard(body: DuoBodyKeyboardBehavior.lift),
+          ),
+        ),
+        size: phone,
+      );
+      expect(rectOf(tester, _safe).bottom, 800 - 300);
+      expect(bodyMediaQuery(tester).viewInsets.bottom, 0);
+      expect(geometry(tester).keyboard, 300);
+    });
+
+    testWidgets('a short bar under a home indicator is reported', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _app(
+          padding: const EdgeInsets.only(bottom: 34),
+          builders: DuoBuilders<Object?, Object?, Object?>(
+            tabBar: (context, tabs, items) => const SizedBox(height: 20),
+          ),
+        ),
+        size: phone,
+      );
+      expect(
+        tester.takeException().toString(),
+        contains('shorter than the bottom safe area'),
+      );
+    });
+  });
+
+  testWidgets('a plain Scaffold page keeps its bottom button clear of the '
+      'chrome in both modes', (tester) async {
+    const button = Key('button');
+    final app = _app(
+      body: Scaffold(
+        body: Column(
+          children: [
+            const Expanded(child: Placeholder()),
+            FilledButton(
+              key: button,
+              onPressed: () {},
+              child: const Text('Go'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await pump(tester, app, size: const Size(400, 800));
+    final bar = tester.getRect(find.byType(NavigationBar));
+    expect(rectOf(tester, button).bottom, lessThanOrEqualTo(bar.top));
+
+    await pump(tester, app);
+    expect(rectOf(tester, button).right, lessThanOrEqualTo(1000 - 72));
+  });
+
+  group('overlay', () {
+    testWidgets('reproduces 0.0.1: the body covers the frame', (tester) async {
+      await pump(
+        tester,
+        _app(bodyMode: DuoBodyMode.overlay),
+        size: const Size(800, 600),
+      );
+      expect(rectOf(tester, _plain).left, 0);
+      expect(rectOf(tester, _plain).right, 800);
+      expect(rectOf(tester, _safe).right, 728);
+      expect(bodyMediaQuery(tester).padding.right, 72);
+      expect(geometry(tester).strip, EdgeInsets.zero);
+      expect(geometry(tester).chrome, const EdgeInsets.only(right: 72));
+    });
+
+    testWidgets('can be the app default', (tester) async {
+      await pump(
+        tester,
+        _app(data: const DuoNavigationData(bodyMode: DuoBodyMode.overlay)),
+      );
+      expect(rectOf(tester, _plain).right, 1000);
+    });
+
+    testWidgets('a bar covered by the keyboard is not padding', (tester) async {
+      await pump(
+        tester,
+        _app(
+          bodyMode: DuoBodyMode.overlay,
+          viewInsets: const EdgeInsets.only(bottom: 300),
+        ),
+        size: const Size(400, 800),
+      );
+      expect(bodyMediaQuery(tester).padding.bottom, 0);
+      expect(bodyMediaQuery(tester).viewInsets.bottom, 300);
+    });
+  });
+
+  testWidgets('a mode switch keeps the body State', (tester) async {
+    final app = _app(body: const Material(child: TextField()));
+    await pump(tester, app, size: const Size(400, 800));
+    await tester.enterText(find.byType(TextField), 'kept');
+    final state = tester.state(find.byType(TextField));
+
+    tester.view.physicalSize = const Size(1000, 700);
+    await tester.pumpAndSettle();
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(tester.state(find.byType(TextField)), same(state));
+    expect(find.text('kept'), findsOneWidget);
+  });
+
+  testWidgets('geometry aspects limit rebuilds', (tester) async {
+    final modeBuilds = <DuoLayoutMode>[];
+    final chromeBuilds = <EdgeInsets>[];
+    final tall = ValueNotifier(false);
+    addTearDown(tall.dispose);
+    await pump(
+      tester,
+      _app(
+        builders: DuoBuilders<Object?, Object?, Object?>(
+          tabBar: (context, tabs, items) => ValueListenableBuilder(
+            valueListenable: tall,
+            builder: (context, isTall, _) =>
+                SizedBox(height: isTall ? 120 : 60),
+          ),
+        ),
+        body: Column(
+          children: [
+            Builder(
+              builder: (context) {
+                modeBuilds.add(
+                  DuoGeometry.of(context, aspect: DuoGeometryAspect.mode).mode,
+                );
+                return const SizedBox();
+              },
+            ),
+            Builder(
+              builder: (context) {
+                chromeBuilds.add(
+                  DuoGeometry.of(
+                    context,
+                    aspect: DuoGeometryAspect.chrome,
+                  ).chrome,
+                );
+                return const SizedBox();
+              },
+            ),
+          ],
+        ),
+      ),
+      size: const Size(400, 800),
+    );
+    expect(modeBuilds, hasLength(1));
+    expect(chromeBuilds, hasLength(1));
+
+    tall.value = true;
+    await tester.pump();
+    expect(modeBuilds, hasLength(1));
+    expect(chromeBuilds.last, const EdgeInsets.only(bottom: 120));
+  });
+
+  testWidgets('DuoGeometry.of fails loudly outside a frame', (tester) async {
+    late BuildContext context;
+    await tester.pumpWidget(
+      Builder(
+        builder: (c) {
+          context = c;
+          return const SizedBox();
+        },
+      ),
+    );
+    expect(DuoGeometry.maybeOf(context), isNull);
+    expect(() => DuoGeometry.of(context), throwsFlutterError);
+  });
+
+  testWidgets('taps reach the column over the body and the body elsewhere', (
+    tester,
+  ) async {
+    var bodyTaps = 0;
+    await pump(
+      tester,
+      _app(
+        bodyMode: DuoBodyMode.overlay,
+        body: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => bodyTaps++,
+          child: const SizedBox.expand(),
+        ),
+      ),
+    );
+    await tester.tapAt(const Offset(500, 350));
+    expect(bodyTaps, 1);
+    await tester.tap(find.byIcon(Icons.person));
+    expect(bodyTaps, 1);
+  });
+}

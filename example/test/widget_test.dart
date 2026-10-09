@@ -5,7 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:window_placement/window_placement.dart';
 import 'package:window_placement/window_placement_platform_interface.dart';
 
-import 'package:nav_dock_example/main.dart';
+import 'package:duo_navigation/duo_navigation.dart';
+import 'package:duo_navigation_example/main.dart';
+import 'package:duo_navigation_example/main_go_router.dart';
 
 void main() {
   Future<void> pumpAt(WidgetTester tester, Size size) async {
@@ -46,6 +48,29 @@ void main() {
     expect(find.widgetWithText(AppBar, 'Items'), findsOneWidget);
   });
 
+  testWidgets('setup flow: step 1 closes the flow, later steps go back',
+      (tester) async {
+    await pumpAt(tester, const Size(390, 844));
+    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Run setup flow'));
+    await tester.pumpAndSettle();
+    expect(find.text('Step 1 of 3'), findsOneWidget);
+    expect(inAppBar(find.byIcon(Icons.close)), findsOneWidget);
+
+    await tester.tap(find.text('Next'));
+    await tester.pumpAndSettle();
+    expect(find.text('Step 2 of 3'), findsOneWidget);
+    expect(inAppBar(find.byType(BackButtonIcon)), findsOneWidget);
+
+    await tester.tap(find.byType(BackButtonIcon));
+    await tester.pumpAndSettle();
+    await tester.tap(inAppBar(find.byIcon(Icons.close)));
+    await tester.pumpAndSettle();
+    expect(find.text('Step 1 of 3'), findsNothing);
+    expect(find.text('Run setup flow'), findsOneWidget);
+  });
+
   testWidgets('tab switch moves the column to the new page', (tester) async {
     await pumpAt(tester, const Size(1024, 768));
     await tester.tap(find.byIcon(Icons.map_outlined));
@@ -69,10 +94,82 @@ void main() {
     await tester.pumpAndSettle();
     expect(dividerOpacity(), 0);
 
-    // Settings subpage: back + help chips.
+    // Settings: a plain Scaffold page, the column holds only the rail.
     await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
-    expect(dividerOpacity(), 1);
+    expect(dividerOpacity(), 0);
+  });
+
+  testWidgets('a plain Scaffold page reads the layout', (tester) async {
+    await pumpAt(tester, const Size(1024, 768));
+    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BackButton), findsOneWidget);
+    expect(find.textContaining('wide, column on the end edge'), findsOneWidget);
+  });
+
+  testWidgets('the map bleeds under the chrome', (tester) async {
+    await pumpAt(tester, const Size(1024, 768));
+    await tester.tap(find.byIcon(Icons.map_outlined));
+    await tester.pumpAndSettle();
+    final map = find.descendant(
+      of: find.byType(DuoBleed),
+      matching: find.byType(CustomPaint),
+    );
+    expect(tester.getRect(map.first).right, 1024);
+    // The column covers the map's right edge.
+    expect(tester.getRect(find.byKey(DuoKeys.column)).right, 1024);
+  });
+
+  testWidgets('the camera page hides the navigation', (tester) async {
+    await pumpAt(tester, const Size(1024, 768));
+    await tester.tap(find.byIcon(Icons.person_outline));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Camera'));
+    await tester.pumpAndSettle();
+    final camera = tester.element(find.byIcon(Icons.camera_alt_outlined));
+    expect(DuoGeometry.of(camera).isHidden, isTrue);
+
+    // The close button stays reachable in the bar, at the top right.
+    final close = inAppBar(find.byIcon(Icons.close));
+    expect(tester.getRect(close).right,
+        greaterThan(tester.getRect(find.byType(AppBar)).width - 64));
+    await tester.tap(close);
+    await tester.pumpAndSettle();
+    expect(
+      DuoGeometry.of(tester.element(find.text('Camera'))).isHidden,
+      isFalse,
+    );
+  });
+
+  for (final size in const [Size(390, 844), Size(1024, 768)]) {
+    testWidgets('the edit modal has a text Cancel at ${size.width}', (
+      tester,
+    ) async {
+      await pumpAt(tester, size);
+      await tester.tap(find.byKey(DuoKeys.tab('profile')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
+      expect(inAppBar(find.text('Cancel')), findsOneWidget);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit profile'), findsNothing);
+    });
+  }
+
+  testWidgets('the go_router setup works the same', (tester) async {
+    tester.view.physicalSize = const Size(1024, 768);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const GoRouterExampleApp());
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(AppBar, 'Items'), findsOneWidget);
+    await tester.tap(find.byKey(DuoKeys.tab('map')));
+    await tester.pumpAndSettle();
+    expect(find.byIcon(Icons.my_location), findsOneWidget);
   });
 
   testWidgets('column follows the window to the only touching edge',

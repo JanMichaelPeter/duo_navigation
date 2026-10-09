@@ -1,6 +1,9 @@
+// 0.0.1 code that the 0.1.0 redesign replaces (#42).
+// ignore_for_file: public_member_api_docs
+
 import 'package:flutter/widgets.dart';
 
-import '../config/builders.dart';
+import '../builders/builders.dart';
 
 class ActionPresence extends StatefulWidget {
   const ActionPresence({
@@ -18,7 +21,7 @@ class ActionPresence extends StatefulWidget {
   final bool animateIn;
   final Duration duration;
   final Curve curve;
-  final DockActionTransitionBuilder transitionBuilder;
+  final DuoActionTransitionBuilder transitionBuilder;
   final VoidCallback onDismissed;
   final Widget child;
 

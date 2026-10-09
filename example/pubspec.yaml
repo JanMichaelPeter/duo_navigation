@@ -1,23 +1,33 @@
-name: nav_dock_example
-description: Demo of nav_dock.
+name: duo_navigation_example
+description: Demo of duo_navigation.
 publish_to: none
 version: 1.0.0+1
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
 
+resolution: workspace
+
 dependencies:
   flutter:
     sdk: flutter
-  nav_dock:
+  # Not ^17.5: from 17.5 on, go_router needs Dart 3.10.
+  go_router: ^17.0.0
+  duo_navigation:
     path: ../
+  duo_navigation_window_placement:
+    path: ../packages/duo_navigation_window_placement
 
 flutter:
   uses-material-design: true
+  # The same iOS setup on every supported Flutter: without it, Flutter 3.35
+  # falls back to CocoaPods with a deployment target current Xcode rejects.
+  config:
+    enable-swift-package-manager: true
 
 dev_dependencies:
   # Tests fake the plugin's platform side.
-  window_placement: ^0.0.1
+  window_placement: ^0.0.2
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter

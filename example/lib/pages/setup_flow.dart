@@ -1,14 +1,15 @@
-import 'package:nav_dock/nav_dock.dart';
+import 'package:duo_navigation/duo_navigation.dart';
 import 'package:flutter/material.dart';
 
-/// Multi-step modal: one DockModalScope around its own Navigator, so all
-/// steps share one side column. Step 1's close chip morphs into a back chip.
+/// Multi-step modal: one DuoModalScope around its own Navigator, so all
+/// steps share one side column. Step 1's implied close chip morphs into a
+/// back chip.
 class SetupFlow extends StatelessWidget {
   const SetupFlow({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return DockModalScope(
+    return DuoModalScope(
       child: Navigator(
         onGenerateRoute: (_) =>
             MaterialPageRoute(builder: (_) => const SetupStep(step: 1)),
@@ -27,26 +28,21 @@ class SetupStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DockPage(
+    return DuoPage(
       title: Text('Step $step of 3'),
-      // Back-id with a close icon: same chip as the later back buttons.
-      leading: step == 1
-          ? DockAction.back(
-              icon: const Icon(Icons.close),
-              tooltip: 'Close',
-              onPressed: () => _closeFlow(context),
-            )
-          : null,
+      // No leading: step 1, the modal's first page, gets a close action that
+      // dismisses the flow (the route is a full-screen dialog), the later
+      // steps get back. Close and back share one identity, so the chip morphs.
       trailing: [
         if (step < 3)
-          DockAction(
+          DuoAction(
             id: 'next',
             label: 'Next',
             onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(builder: (_) => SetupStep(step: step + 1))),
           )
         else
-          DockAction(
+          DuoAction(
               id: 'done', label: 'Done', onPressed: () => _closeFlow(context)),
       ],
       body: Center(
