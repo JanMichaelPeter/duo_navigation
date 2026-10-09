@@ -77,7 +77,10 @@ the design is in the
   app from closing) and doesn't clip.
 * Tab bars that build their children from data: `DockTabsData.itemData(i)`
   gives a tab's state and tap, and `DockTabsData.wrap(i, child)` adds the
-  package's keys and semantics.
+  package's keys and semantics. For bars that build their item widgets
+  themselves, `itemData(i).semanticsOf(context)` and
+  `DockSemantics.tabProperties` give the tab semantics as
+  `SemanticsProperties`.
 * The rail scrolls when the tabs don't fit and keeps the selected tab visible;
   `DockSideColumnLayout` gives the rail its height before the actions. The
   column grows with the text scale up to `columnTextScaleLimit` (1.5).

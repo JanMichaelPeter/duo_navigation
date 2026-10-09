@@ -212,6 +212,31 @@ tabBar: (context, tabs, items) => DockTabBarSemantics(
 Such a bar needs no `tabItem` builder (the rail still does, unless it is built the same way). Carry the design
 system's item description in `DockTab.payload`, typed with `DockShell<MyTabSpec, ...>` if you like.
 
+**A bar that builds its item widgets itself.** Some bars take only the item descriptions and build every item widget
+inside, so nothing can be wrapped around an item. If the item description has a semantics hook, pass it the tab's
+semantics as a value, `tabs.itemData(i).semanticsOf(context)`. It carries the tab role, the selected state, the label,
+the badge, the position and the tap action:
+
+```dart
+tabBar: (context, tabs, items) => DockTabBarSemantics(
+  child: MyTabBar(
+    items: [
+      for (var i = 0; i < tabs.tabs.length; i++)
+        MyTabBarItem(
+          spec: tabs.tabs[i].payload! as MyTabSpec,
+          onTap: tabs.itemData(i).onTap,
+          additionalSemantics: tabs.itemData(i).semanticsOf(context),
+        ),
+    ],
+  ),
+),
+```
+
+`DockTabBarSemantics` requires every semantics node directly below it to be a tab. Flutter reports
+"Children of TabBar must have the tab role" when one isn't, for example around a bar whose items carry no tab semantics.
+A bar without any per-item hook keeps its own semantics and goes without `DockTabBarSemantics`. Its items then read as
+buttons rather than tabs.
+
 **The bottom safe area.** The bar owns it: its height includes `MediaQuery.paddingOf(context).bottom`, and a debug error
 reports a bar that is shorter. Its `MediaQuery` has no top padding, so a bar that wraps itself in `SafeArea` grows only
 by the bottom inset. To make the tap targets reach the screen edge, put the inset inside each item, under its

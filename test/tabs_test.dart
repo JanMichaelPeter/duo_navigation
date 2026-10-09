@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:nav_dock/material.dart';
 import 'package:nav_dock/testing.dart';
@@ -324,6 +325,94 @@ void main() {
       expect(item.selected, isTrue);
       expect(item.placement, DockTabPlacement.rail);
       expect(() => data.itemData(2), throwsRangeError);
+    });
+  });
+
+  group('a bar that builds its own item widgets', () {
+    DockBuilders<Object?, Object?, Object?> builders({
+      required bool withSemantics,
+    }) {
+      Widget bar(BuildContext context, DockTabsData<Object?> tabs, Axis axis) =>
+          DockTabBarSemantics(
+            child: _DsTabBar(
+              axis: axis,
+              items: [
+                for (var i = 0; i < tabs.tabs.length; i++)
+                  _DsItem(
+                    (tabs.tabs[i].payload! as _Item).name,
+                    tabs.itemData(i).onTap,
+                    withSemantics
+                        ? tabs.itemData(i).semanticsOf(context)
+                        : null,
+                  ),
+              ],
+            ),
+          );
+      return DockBuilders(
+        tabBar: (context, tabs, items) =>
+            SafeArea(child: bar(context, tabs, Axis.horizontal)),
+        rail: (context, tabs, items) => bar(context, tabs, Axis.vertical),
+      );
+    }
+
+    for (final mode in DockLayoutMode.values) {
+      testWidgets('${mode.name}: items with semanticsOf are tabs', (
+        tester,
+      ) async {
+        final handle = tester.ensureSemantics();
+        await pump(
+          tester,
+          shell(initial: 1),
+          mode: mode,
+          builders: const DockMaterialBuilders<Object?, Object?, Object?>()
+              .merge(builders(withSemantics: true)),
+        );
+        expect(tester.takeException(), isNull);
+        SemanticsNode item(String text) => tester.getSemantics(
+          find
+              .ancestor(of: find.text(text), matching: find.byType(Semantics))
+              .first,
+        );
+        for (final (text, label, selected, hint) in const [
+          ('me item', 'Me', true, 'Tab 2 of 2'),
+          ('home item', 'Home', false, 'Tab 1 of 2'),
+        ]) {
+          final node = item(text);
+          expect(node.getSemanticsData().role, SemanticsRole.tab);
+          expect(node.getSemanticsData().hint, hint);
+          expect(
+            node,
+            // containsSemantics: deprecated after 3.40, but 3.35 lacks isSemantics.
+            // ignore: deprecated_member_use
+            containsSemantics(
+              label: label,
+              isSelected: selected,
+              hasSelectedState: true,
+              hasTapAction: true,
+            ),
+          );
+        }
+        expect(item('me item').getSemanticsData().value, '3');
+        handle.dispose();
+      });
+    }
+
+    testWidgets('without them, DockTabBarSemantics reports its children', (
+      tester,
+    ) async {
+      final handle = tester.ensureSemantics();
+      await pump(
+        tester,
+        shell(),
+        builders: const DockMaterialBuilders<Object?, Object?, Object?>().merge(
+          builders(withSemantics: false),
+        ),
+      );
+      expect(
+        tester.takeException().toString(),
+        contains('Children of TabBar must have the tab role'),
+      );
+      handle.dispose();
     });
   });
 
@@ -651,5 +740,46 @@ class _SpinnerState extends State<_Spinner>
       widget.values.add(_controller.value);
       return const SizedBox();
     },
+  );
+}
+
+/// A design system's item description: what its tab bar builds a tab from.
+class _DsItem {
+  const _DsItem(this.label, this.onTap, this.semantics);
+
+  final String label;
+  final VoidCallback onTap;
+
+  /// The design system's per-item semantics hook.
+  final SemanticsProperties? semantics;
+}
+
+/// A design system's tab bar: it takes item descriptions and builds the item
+/// widgets itself, so nothing can be wrapped around them.
+class _DsTabBar extends StatelessWidget {
+  const _DsTabBar({required this.axis, required this.items});
+
+  final Axis axis;
+  final List<_DsItem> items;
+
+  @override
+  Widget build(BuildContext context) => Flex(
+    direction: axis,
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (final item in items)
+        Semantics.fromProperties(
+          container: true,
+          properties: item.semantics ?? const SemanticsProperties(),
+          child: GestureDetector(
+            onTap: item.onTap,
+            child: SizedBox(
+              width: 72,
+              height: 56,
+              child: ExcludeSemantics(child: Text(item.label)),
+            ),
+          ),
+        ),
+    ],
   );
 }
