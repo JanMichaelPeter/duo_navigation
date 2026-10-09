@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nav_dock/material.dart';
-import 'package:nav_dock/testing.dart';
+import 'package:duo_navigation/material.dart';
+import 'package:duo_navigation/testing.dart';
 
 /// Acceptance checks of the 0.1.0 redesign that no other test covers as a
 /// whole: plain Scaffold pages across every layout, state across a mode
@@ -15,7 +15,7 @@ const _tabs = <DockTab<Object?>>[
 const _phone = Size(400, 800);
 const _tablet = Size(1000, 700);
 
-/// A plain Scaffold page with no nav_dock type: a list and a button below it.
+/// A plain Scaffold page with no duo_navigation type: a list and a button below it.
 class _PlainPage extends StatelessWidget {
   const _PlainPage(this.name);
 
