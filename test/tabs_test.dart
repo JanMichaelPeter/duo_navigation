@@ -379,6 +379,9 @@ void main() {
         ]) {
           final node = item(text);
           expect(node.getSemanticsData().role, SemanticsRole.tab);
+          // One node per tab: the tile's own tap merges into it, so a screen
+          // reader stops once.
+          expect(node.childrenCount, 0, reason: '$text has child nodes');
           expect(node.getSemanticsData().hint, hint);
           expect(
             node,

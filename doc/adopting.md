@@ -231,7 +231,7 @@ system's item description in `DuoTab.payload`, typed with `DuoShell<MyTabSpec, .
 **A bar that builds its item widgets itself.** Some bars take only the item descriptions and build every item widget
 inside, so nothing can be wrapped around an item. If the item description has a semantics hook, pass it the tab's
 semantics as a value, `tabs.itemData(i).semanticsOf(context)`. It carries the tab role, the selected state, the label,
-the badge, the position and the tap action:
+the badge and the position:
 
 ```dart
 tabBar: (context, tabs, items) => DuoTabBarSemantics(
@@ -248,8 +248,23 @@ tabBar: (context, tabs, items) => DuoTabBarSemantics(
 ),
 ```
 
-`DuoTabBarSemantics` requires every semantics node directly below it to be a tab. Flutter reports
-"Children of TabBar must have the tab role" when one isn't, for example around a bar whose items carry no tab semantics.
+* **The tap comes from the item.** `semanticsOf` leaves the tap action out, because the item's own tap target (its
+  `InkWell` or `GestureDetector`) provides it in the same node. With a second tap action in the semantics, Flutter
+  would split the item into two nodes, and a screen reader would stop twice per tab. Only an item without a tap target
+  of its own needs `semanticsOf(context, tap: true)`.
+* **Every field must arrive, `role` in particular.** A design system that merges the hook's properties field by field
+  and doesn't copy `role` loses the tab role.
+* **`DuoTabBarSemantics` requires every semantics node directly below it to be a tab.** Flutter reports "Children of
+  TabBar must have the tab role" when one isn't. It checks this only while semantics are on: in a test with
+  `tester.ensureSemantics()`, or in a debug run with a screen reader. So test the bar with semantics on:
+
+  ```dart
+  final semantics = tester.ensureSemantics();
+  await tester.pumpWidget(app); // compact mode, so the tab bar shows
+  expect(tester.takeException(), isNull); // no "Children of TabBar must have the tab role"
+  semantics.dispose();
+  ```
+
 A bar without any per-item hook keeps its own semantics and goes without `DuoTabBarSemantics`. Its items then read as
 buttons rather than tabs.
 
