@@ -30,6 +30,7 @@ class DockNavigationData {
     this.windowEdgesSource,
     this.bodyMode = DockBodyMode.inset,
     this.hoisting = DockHoisting.iconActions,
+    this.modalLeading = const DockModalLeading(),
     this.keyboard = const DockKeyboard(),
     this.sideColumnWidth = 72,
     this.columnInset = DockColumnInset.overlap,
@@ -69,6 +70,12 @@ class DockNavigationData {
   /// Whether icon actions move into the side column in wide mode. `DockShell`,
   /// `DockModalScope` and `DockPageScope` can override it.
   final DockHoisting hoisting;
+
+  /// The leading action of every modal's first page, for example
+  /// `DockModalLeading(implied: DockImpliedLeading.close, atEnd: true)` for
+  /// an "X" at the top right of every modal. `DockModalScope` and the page
+  /// override it.
+  final DockModalLeading modalLeading;
 
   /// What the column and the bar do while the software keyboard is open.
   /// Default: the column lifts above it, the bar is covered.
@@ -120,6 +127,7 @@ class DockNavigationData {
     Object? windowEdgesSource = _unset,
     DockBodyMode? bodyMode,
     DockHoisting? hoisting,
+    DockModalLeading? modalLeading,
     DockKeyboard? keyboard,
     double? sideColumnWidth,
     DockColumnInset? columnInset,
@@ -140,6 +148,7 @@ class DockNavigationData {
           : windowEdgesSource as DockWindowEdgesSource?,
       bodyMode: bodyMode ?? this.bodyMode,
       hoisting: hoisting ?? this.hoisting,
+      modalLeading: modalLeading ?? this.modalLeading,
       keyboard: keyboard ?? this.keyboard,
       sideColumnWidth: sideColumnWidth ?? this.sideColumnWidth,
       columnInset: columnInset ?? this.columnInset,
@@ -163,6 +172,7 @@ class DockNavigationData {
       other.windowEdgesSource == windowEdgesSource &&
       other.bodyMode == bodyMode &&
       other.hoisting == hoisting &&
+      other.modalLeading == modalLeading &&
       other.keyboard == keyboard &&
       other.sideColumnWidth == sideColumnWidth &&
       other.columnInset == columnInset &&
@@ -182,6 +192,7 @@ class DockNavigationData {
     windowEdgesSource,
     bodyMode,
     hoisting,
+    modalLeading,
     keyboard,
     sideColumnWidth,
     columnInset,

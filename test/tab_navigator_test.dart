@@ -143,6 +143,22 @@ void main() {
     expect(canHandlePop.last, isTrue);
   });
 
+  test('a navigator key passed as key is reported', () {
+    expect(
+      () => DockTabNavigator(key: GlobalKey<NavigatorState>()),
+      throwsA(
+        isA<AssertionError>().having(
+          (e) => e.message,
+          'message',
+          contains('navigatorKey'),
+        ),
+      ),
+    );
+    // Other keys are fine.
+    expect(() => DockTabNavigator(key: GlobalKey()), returnsNormally);
+    expect(() => const DockTabNavigator(key: ValueKey('tab')), returnsNormally);
+  });
+
   testWidgets('does not clip', (tester) async {
     await pump(tester);
     final navigator = tester.widget<Navigator>(

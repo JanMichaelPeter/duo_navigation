@@ -78,7 +78,8 @@ the design is in the
   the column (`DockTabStack.isActiveOf`).
 * New `DockTabNavigator`: a tab's `Navigator` that handles Android's system
   back (the shown tab's pages first, and a hidden tab's pages don't keep the
-  app from closing) and doesn't clip.
+  app from closing) and doesn't clip. Its navigator's key is `navigatorKey`;
+  a `GlobalKey<NavigatorState>` passed as `key` is reported in debug mode.
 * Tab bars that build their children from data: `DockTabsData.itemData(i)`
   gives a tab's state and tap, and `DockTabsData.wrap(i, child)` adds the
   package's keys and semantics. For bars that build their item widgets
@@ -106,10 +107,14 @@ the design is in the
   (close only for full-screen dialogs). A modal's first page, also the first
   page of a `Navigator` inside a `DockModalScope`, gets an implied action that
   dismisses the modal.
-* New `leadingAtEnd` on `DockPageScope` and `DockPage`
+* New `leadingAtEnd` on `DockPageScope`, `DockPage` and `DockModalScope`
   (`DockBarData.leadingAtEnd`): the leading action sits at the end of the
   title bar, such as a close button at the top right; in wide mode it is
   still the lowest chip.
+* New `DockNavigationData.modalLeading` (`DockModalLeading(implied:, atEnd:)`):
+  app-wide defaults for the leading action of every modal's first page,
+  including the implicit modal frame of a page pushed on the root navigator.
+  A `DockModalScope`'s or a page's own setting wins.
 * **BREAKING** The tap guard's cooldown applies per action, so different
   actions no longer block each other. `DockTapGuard.onRejected` reports each
   dropped tap with a reason; rejections are logged in debug mode.
@@ -167,7 +172,8 @@ the design is in the
 * New `DockBleed`, `DockInset`, `DockBleedItem` and `DockInset.wrapAll`
   (also in `geometry.dart`): single components run under the column and the
   bar while the body stays beside them; `DockBleed.insetOf(context)` returns
-  the strip. A debug message names an ancestor that clips a bleed.
+  the strip. A debug message names an ancestor that clips a bleed, and what
+  to change; clips set to `Clip.none` are not reported.
 * Accessibility: actions get package-owned semantics like tabs (button,
   label, enabled, badge, tap); tabs announce their position. New
   `DockSemantics.tab` / `DockSemantics.action` and the localizable

@@ -307,24 +307,62 @@ void main() {
       expect(bleed.debugLayer, isNull);
     });
 
-    testWidgets('names a clipping ancestor in debug mode', (tester) async {
-      final messages = <String>[];
-      final previous = debugPrint;
-      debugPrint = (message, {wrapWidth}) => messages.add(message ?? '');
-      try {
-        await pump(
-          tester,
-          const ClipRect(child: DockBleed(child: SizedBox.expand())),
-        );
-      } finally {
-        // flutter_test checks that debugPrint is restored when the body ends.
-        debugPrint = previous;
+    group('names a clipping ancestor in debug mode', () {
+      /// The bleed messages printed while pumping [body].
+      Future<List<String>> messages(WidgetTester tester, Widget body) async {
+        final printed = <String>[];
+        final previous = debugPrint;
+        debugPrint = (message, {wrapWidth}) => printed.add(message ?? '');
+        try {
+          await pump(tester, body);
+        } finally {
+          // flutter_test checks that debugPrint is restored when the body ends.
+          debugPrint = previous;
+        }
+        return printed
+            .where((m) => m.contains('DockBleed is clipped'))
+            .toList();
       }
-      expect(
-        messages.where((m) => m.contains('DockBleed is clipped')),
-        hasLength(1),
+
+      const bleed = DockBleed(child: SizedBox.expand());
+      Widget navigator({Clip clip = Clip.hardEdge}) => Navigator(
+        clipBehavior: clip,
+        onGenerateRoute: (_) => MaterialPageRoute<void>(builder: (_) => bleed),
       );
-      expect(messages.first, contains('RenderClipRect'));
+
+      testWidgets('a ClipRect', (tester) async {
+        final printed = await messages(tester, const ClipRect(child: bleed));
+        expect(printed, hasLength(1));
+        expect(printed.single, contains('a ClipRect'));
+      });
+
+      testWidgets('a Navigator\'s Overlay', (tester) async {
+        final printed = await messages(tester, navigator());
+        expect(printed, hasLength(1));
+        expect(printed.single, contains('the Overlay of a Navigator'));
+        expect(printed.single, contains('clipBehavior: Clip.none'));
+      });
+
+      testWidgets('but not clips that are off', (tester) async {
+        expect(await messages(tester, navigator(clip: Clip.none)), isEmpty);
+        expect(
+          await messages(
+            tester,
+            DockTabNavigator(
+              onGenerateRoute: (_) =>
+                  MaterialPageRoute<void>(builder: (_) => bleed),
+            ),
+          ),
+          isEmpty,
+        );
+        expect(
+          await messages(
+            tester,
+            const ClipRect(clipBehavior: Clip.none, child: bleed),
+          ),
+          isEmpty,
+        );
+      });
     });
 
     testWidgets('a list bleeds as a whole, with inset rows and a bleeding '

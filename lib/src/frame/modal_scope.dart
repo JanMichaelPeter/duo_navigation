@@ -25,6 +25,7 @@ class DockModalScope<A, B> extends StatelessWidget {
     this.navigationVisible = true,
     this.backdrop,
     this.impliedLeading,
+    this.leadingAtEnd,
     required this.child,
   });
 
@@ -56,10 +57,15 @@ class DockModalScope<A, B> extends StatelessWidget {
 
   /// The leading action of the modal's first page (the page on the route this
   /// scope is on, or the first page of a Navigator inside it) when that page
-  /// declares none. It dismisses the modal. Null: [DockImpliedLeading.close]
-  /// if the route is a full-screen dialog, else [DockImpliedLeading.back].
-  /// Pages pushed inside the modal keep back.
+  /// declares none. It dismisses the modal. Null:
+  /// `DockNavigationData.modalLeading`, whose default is
+  /// [DockImpliedLeading.close] if the route is a full-screen dialog, else
+  /// [DockImpliedLeading.back]. Pages pushed inside the modal keep back.
   final DockImpliedLeading? impliedLeading;
+
+  /// Whether the leading action of the modal's first page sits at the end of
+  /// the title bar. Null: `DockNavigationData.modalLeading`.
+  final bool? leadingAtEnd;
 
   /// The modal content, typically its own Navigator.
   final Widget child;
@@ -74,6 +80,7 @@ class DockModalScope<A, B> extends StatelessWidget {
     navigationVisible: navigationVisible,
     backdrop: backdrop,
     impliedLeading: impliedLeading,
+    leadingAtEnd: leadingAtEnd,
     child: child,
   );
 }

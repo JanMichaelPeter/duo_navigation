@@ -47,7 +47,7 @@ class DockPageScope<A, B> extends StatefulWidget {
     this.trailing = const [],
     this.automaticallyImplyLeading = true,
     this.impliedLeading,
-    this.leadingAtEnd = false,
+    this.leadingAtEnd,
     this.hoisting,
     this.visible = true,
     this.backdrop,
@@ -93,8 +93,13 @@ class DockPageScope<A, B> extends StatefulWidget {
   /// Whether the leading action sits at the end of the title bar, after the
   /// other actions, instead of at the start: a close action at the top right,
   /// as in iOS sheets. It keeps its back/close identity, and in wide mode it
-  /// is still the lowest chip in the column.
-  final bool leadingAtEnd;
+  /// is still the lowest chip in the column. Without a leading action it does
+  /// nothing.
+  ///
+  /// Null: on a modal's first page the modal's choice
+  /// (`DockModalScope.leadingAtEnd`, `DockNavigationData.modalLeading`),
+  /// elsewhere false.
+  final bool? leadingAtEnd;
 
   /// Whether this page's icon actions move into the column in wide mode.
   /// Null: the frame's (`DockShell.hoisting`, `DockModalScope.hoisting`,
@@ -128,22 +133,27 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
     super.dispose();
   }
 
-  DockAction<A>? _resolveLeading(DockScope scope, ModalRoute<Object?>? route) {
-    final page = widget;
-    // The modal's first page: on the modal's own route, or the first page of
-    // a Navigator inside the modal. It dismisses the modal when it can't pop
-    // its own route.
+  /// Whether this is the modal's first page: on the modal's own route, or the
+  /// first page of a Navigator inside the modal.
+  static bool _isModalFirst(DockScope scope, ModalRoute<Object?>? route) {
     final modal = scope.route;
-    final first =
-        modal != null &&
+    return modal != null &&
         route != null &&
         (route == modal ||
             (route.isFirst && route.navigator != modal.navigator));
+  }
+
+  DockAction<A>? _resolveLeading(DockScope scope, ModalRoute<Object?>? route) {
+    final page = widget;
+    // The modal's first page dismisses the modal when it can't pop its own
+    // route.
+    final modal = scope.route;
+    final first = _isModalFirst(scope, route);
     final ModalRoute<Object?>? popped = route == null
         ? null
         : route.canPop
         ? route
-        : first && modal.canPop
+        : first && modal!.canPop
         ? modal
         : null;
     void pop() {
@@ -275,7 +285,9 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
       ],
       hoisted: wide ? hoisted.map(registration.guarded).toList() : const [],
       sideColumnSide: moves ? scope.side : null,
-      leadingAtEnd: page.leadingAtEnd,
+      leadingAtEnd:
+          page.leadingAtEnd ??
+          (_isModalFirst(scope, route) && scope.leadingAtEnd),
       buildAction: (a, placement) => KeyedSubtree(
         key: DockKeys.action(a.id),
         child: DockActionItem(

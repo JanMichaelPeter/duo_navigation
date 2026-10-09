@@ -83,7 +83,9 @@ semantics for the hidden tabs. The differences:
 A tab with a long-running animation (a video, a map camera) that relied on `IndexedStack` keeping it running needs
 `maintainTickers: true`.
 
-**`Navigator` → `DockTabNavigator`.** It takes the same arguments and adds two things:
+**`Navigator` → `DockTabNavigator`.** It takes the `Navigator`'s arguments, except the key. Pass the
+`GlobalKey<NavigatorState>` you used as `Navigator(key: ...)` as `navigatorKey:`, because `key:` keys the
+`DockTabNavigator` itself (a debug assertion catches the mix-up). It adds two things:
 
 * Android's system back pops the shown tab's pages before it leaves the app. A hidden tab's pages don't keep the app
   from closing. With a plain `Navigator` per tab, you had to wire this yourself with `NavigatorPopHandler`.
@@ -128,6 +130,9 @@ thing in one widget, for pages that don't need their own `Scaffold`.
   page of a `Navigator` inside a `DockModalScope` gets an action that dismisses the whole modal.
 * **"Cancel" and a close button at the top right.** `DockAction.back(icon: null, label: 'Cancel')` is a text-only leading
   action that stays in the bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the bar.
+  Without a leading action it does nothing, so a page whose close action is conditional can set it unconditionally.
+  If all your modals close at the top right, set it once:
+  `DockNavigationData(modalLeading: DockModalLeading(implied: DockImpliedLeading.close, atEnd: true))`.
 * **Actions that should never move** get `hoist: DockHoist.never`. `DockHoisting.none` on `DockNavigationData`, a
   shell or a page keeps all of them in the bar.
 
