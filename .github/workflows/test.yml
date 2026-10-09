@@ -64,12 +64,16 @@ jobs:
       - run: flutter pub get
       - name: Public API diff against the last release
         run: |
+          # dart_apitool compares versions of one package, so there is nothing
+          # to compare until duo_navigation has a release on pub.dev.
+          if ! curl -sf https://pub.dev/api/packages/duo_navigation >/dev/null; then
+            echo "duo_navigation is not on pub.dev yet; no API diff." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           dart pub global activate dart_apitool
-          # duo_navigation is new on pub.dev; compare with its predecessor,
-          # nav_dock, until it has a release of its own.
-          dart pub global run dart_apitool:main diff --old pub://nav_dock --new . \
+          dart pub global run dart_apitool:main diff --old pub://duo_navigation --new . \
             --version-check-mode=none --report-format=markdown --report-file-path=api.md
-          { echo "## Public API changes (against nav_dock on pub.dev)"; cat api.md; } >> "$GITHUB_STEP_SUMMARY"
+          { echo "## duo_navigation public API changes"; cat api.md; } >> "$GITHUB_STEP_SUMMARY"
 
   # duo_navigation has no native code; building the example checks that it and
   # window_placement compile on each platform.
