@@ -4,26 +4,26 @@ import 'package:duo_navigation/material.dart';
 import 'package:duo_navigation/testing.dart';
 
 const _tabs = [
-  DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+  DuoTab<Object?>(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab<Object?>(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
 ];
 
 /// A shell with one page that has a 'share' action counting its taps.
 Widget _app(Widget Function(Widget child) harness, List<int> taps) {
   return MaterialApp(
     builder: (context, child) => harness(child!),
-    home: DockShell<Object?, Object?, Object?>(
+    home: DuoShell<Object?, Object?, Object?>(
       tabs: _tabs,
       currentIndex: 0,
       onTabSelected: (_) {},
       child: Navigator(
         onGenerateRoute: (_) => MaterialPageRoute<void>(
-          builder: (_) => DockPage<Object?, Object?>(
+          builder: (_) => DuoPage<Object?, Object?>(
             title: const Text('Home'),
             trailing: [
-              DockAction<Object?>(
+              DuoAction<Object?>(
                 id: 'share',
-                icon: const DockIcon(Icons.share),
+                icon: const DuoIcon(Icons.share),
                 onPressed: () => taps.add(taps.length),
               ),
             ],
@@ -50,43 +50,43 @@ void main() {
     return taps;
   }
 
-  final share = find.byKey(DockKeys.action('share'));
+  final share = find.byKey(DuoKeys.action('share'));
   double columnX(WidgetTester tester) =>
-      tester.getCenter(find.byKey(DockKeys.column)).dx;
+      tester.getCenter(find.byKey(DuoKeys.column)).dx;
 
-  group('DockTestHarness pins', () {
+  group('DuoTestHarness pins', () {
     testWidgets('the mode, whatever the surface', (tester) async {
       await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
-          mode: DockLayoutMode.compact,
+        (child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
+          mode: DuoLayoutMode.compact,
           child: child,
         ),
       );
-      expect(find.byKey(DockKeys.bar), findsOneWidget);
-      expect(find.byKey(DockKeys.column), findsNothing);
+      expect(find.byKey(DuoKeys.bar), findsOneWidget);
+      expect(find.byKey(DuoKeys.column), findsNothing);
 
       await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
-          mode: DockLayoutMode.wide,
+        (child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
+          mode: DuoLayoutMode.wide,
           child: child,
         ),
         size: const Size(400, 800),
       );
-      expect(find.byKey(DockKeys.column), findsOneWidget);
-      expect(find.byKey(DockKeys.rail), findsOneWidget);
-      expect(find.byKey(DockKeys.bar), findsNothing);
+      expect(find.byKey(DuoKeys.column), findsOneWidget);
+      expect(find.byKey(DuoKeys.rail), findsOneWidget);
+      expect(find.byKey(DuoKeys.bar), findsNothing);
     });
 
     testWidgets('the side and the text direction', (tester) async {
       await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
-          side: DockSide.start,
+        (child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
+          side: DuoSide.start,
           child: child,
         ),
       );
@@ -94,8 +94,8 @@ void main() {
 
       await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
+        (child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
           textDirection: TextDirection.rtl,
           child: child,
         ),
@@ -106,9 +106,9 @@ void main() {
     testWidgets('fixed window edges', (tester) async {
       await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
-          windowEdges: const DockWindowEdges(left: true, right: false),
+        (child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
+          windowEdges: const DuoWindowEdges(left: true, right: false),
           child: child,
         ),
       );
@@ -119,8 +119,8 @@ void main() {
       final edges = FakeWindowEdgesSource();
       await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
+        (child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
           windowEdgesSource: edges,
           child: child,
         ),
@@ -128,7 +128,7 @@ void main() {
       expect(edges.hasListener, isTrue);
       expect(columnX(tester), greaterThan(900));
 
-      edges.push(const DockWindowEdges(left: true, right: false));
+      edges.push(const DuoWindowEdges(left: true, right: false));
       await tester.pump();
       expect(columnX(tester), lessThan(100));
 
@@ -140,14 +140,14 @@ void main() {
     testWidgets('on top of a given configuration', (tester) async {
       await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
-          data: const DockNavigationData(sideColumnWidth: 100),
-          mode: DockLayoutMode.wide,
+        (child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
+          data: const DuoNavigationData(sideColumnWidth: 100),
+          mode: DuoLayoutMode.wide,
           child: child,
         ),
       );
-      expect(tester.getSize(find.byKey(DockKeys.column)).width, 100);
+      expect(tester.getSize(find.byKey(DuoKeys.column)).width, 100);
     });
   });
 
@@ -155,10 +155,8 @@ void main() {
     testWidgets('follows the frames in the harness', (tester) async {
       final taps = await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
-          child: child,
-        ),
+        (child) =>
+            DuoTestHarness(builders: const DuoMaterialBuilders(), child: child),
       );
       await tester.tap(share);
       await tester.tap(share); // same frame: within the cooldown
@@ -170,12 +168,12 @@ void main() {
     });
 
     testWidgets('can be a fake clock', (tester) async {
-      final clock = FakeDockClock();
+      final clock = FakeDuoClock();
       final taps = await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
-          tapGuard: DockTapGuard(clock: clock),
+        (child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
+          tapGuard: DuoTapGuard(clock: clock),
           child: child,
         ),
       );
@@ -192,9 +190,9 @@ void main() {
     testWidgets('a disabled guard lets every tap through', (tester) async {
       final taps = await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
-          tapGuard: DockTapGuard.disabled,
+        (child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
+          tapGuard: DuoTapGuard.disabled,
           child: child,
         ),
       );
@@ -204,13 +202,13 @@ void main() {
     });
   });
 
-  group('DockKeys', () {
+  group('DuoKeys', () {
     testWidgets('find an action in the bar and in the column', (tester) async {
       await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
-          mode: DockLayoutMode.compact,
+        (child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
+          mode: DuoLayoutMode.compact,
           child: child,
         ),
       );
@@ -221,23 +219,23 @@ void main() {
 
       await pump(
         tester,
-        (child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
-          mode: DockLayoutMode.wide,
+        (child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
+          mode: DuoLayoutMode.wide,
           child: child,
         ),
       );
       expect(
-        find.descendant(of: find.byKey(DockKeys.column), matching: share),
+        find.descendant(of: find.byKey(DuoKeys.column), matching: share),
         findsOneWidget,
       );
     });
 
     test('are equal for equal ids and print readably', () {
-      expect(DockKeys.action('a'), DockKeys.action('a'));
-      expect(DockKeys.action('a'), isNot(DockKeys.action('b')));
-      expect(DockKeys.action(1), isNot(DockKeys.action('1')));
-      expect(DockKeys.action('a').toString(), contains("DockKeys.action(a)"));
+      expect(DuoKeys.action('a'), DuoKeys.action('a'));
+      expect(DuoKeys.action('a'), isNot(DuoKeys.action('b')));
+      expect(DuoKeys.action(1), isNot(DuoKeys.action('1')));
+      expect(DuoKeys.action('a').toString(), contains("DuoKeys.action(a)"));
     });
   });
 }

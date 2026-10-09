@@ -5,18 +5,18 @@ import 'package:flutter/widgets.dart';
 /// share an id, and so do an action in the title bar and its chip in the
 /// column.
 ///
-/// The frame owns one registry. Chrome items register a [DockFocusMarker];
+/// The frame owns one registry. Chrome items register a [DuoFocusMarker];
 /// before a mode switch the frame asks which marked item has focus, and
 /// after it focuses the first focusable widget inside the item with the same
 /// id.
-class DockFocusRegistry {
+class DuoFocusRegistry {
   final Map<Object, BuildContext> _markers = {};
 
   /// The id of the marked item that has focus, if any belongs to this
   /// registry.
   Object? focusedId() {
     final context = FocusManager.instance.primaryFocus?.context;
-    final marker = context?.findAncestorStateOfType<_DockFocusMarkerState>();
+    final marker = context?.findAncestorStateOfType<_DuoFocusMarkerState>();
     if (marker == null || !identical(marker._registry, this)) return null;
     return marker.widget.id;
   }
@@ -55,32 +55,32 @@ class DockFocusRegistry {
   }
 }
 
-/// Provides a frame's [DockFocusRegistry] to its chrome and pages.
-class DockFocusRegistryScope extends InheritedWidget {
+/// Provides a frame's [DuoFocusRegistry] to its chrome and pages.
+class DuoFocusRegistryScope extends InheritedWidget {
   /// Provides [registry] to [child].
-  const DockFocusRegistryScope({
+  const DuoFocusRegistryScope({
     super.key,
     required this.registry,
     required super.child,
   });
 
   /// The frame's registry.
-  final DockFocusRegistry registry;
+  final DuoFocusRegistry registry;
 
   /// The registry of the nearest frame, or null.
-  static DockFocusRegistry? maybeOf(BuildContext context) =>
-      context.getInheritedWidgetOfExactType<DockFocusRegistryScope>()?.registry;
+  static DuoFocusRegistry? maybeOf(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<DuoFocusRegistryScope>()?.registry;
 
   @override
-  bool updateShouldNotify(DockFocusRegistryScope oldWidget) =>
+  bool updateShouldNotify(DuoFocusRegistryScope oldWidget) =>
       !identical(registry, oldWidget.registry);
 }
 
 /// Registers a chrome item ([id]: a tab or an action) with the frame's
-/// [DockFocusRegistry].
-class DockFocusMarker extends StatefulWidget {
+/// [DuoFocusRegistry].
+class DuoFocusMarker extends StatefulWidget {
   /// Marks [child] as the item [id].
-  const DockFocusMarker({super.key, required this.id, required this.child});
+  const DuoFocusMarker({super.key, required this.id, required this.child});
 
   /// The item's identity, the same in both layouts.
   final Object id;
@@ -89,16 +89,16 @@ class DockFocusMarker extends StatefulWidget {
   final Widget child;
 
   @override
-  State<DockFocusMarker> createState() => _DockFocusMarkerState();
+  State<DuoFocusMarker> createState() => _DuoFocusMarkerState();
 }
 
-class _DockFocusMarkerState extends State<DockFocusMarker> {
-  DockFocusRegistry? _registry;
+class _DuoFocusMarkerState extends State<DuoFocusMarker> {
+  DuoFocusRegistry? _registry;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final registry = DockFocusRegistryScope.maybeOf(context);
+    final registry = DuoFocusRegistryScope.maybeOf(context);
     if (!identical(registry, _registry)) {
       _unregister();
       _registry = registry;
@@ -107,7 +107,7 @@ class _DockFocusMarkerState extends State<DockFocusMarker> {
   }
 
   @override
-  void didUpdateWidget(DockFocusMarker oldWidget) {
+  void didUpdateWidget(DuoFocusMarker oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.id != oldWidget.id) {
       _unregister(oldWidget.id);

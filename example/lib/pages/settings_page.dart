@@ -16,7 +16,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final geometry = DockGeometry.of(context);
+    final geometry = DuoGeometry.of(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(

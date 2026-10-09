@@ -13,49 +13,49 @@ import '../models/bar_data.dart';
 import '../models/enums.dart';
 import '../models/tabs_data.dart';
 
-/// Every [DockBuilders] field set to the Material 3 defaults in
-/// [DockMaterial].
+/// Every [DuoBuilders] field set to the Material 3 defaults in
+/// [DuoMaterial].
 ///
 /// ```dart
-/// DockNavigation(builders: const DockMaterialBuilders(), child: ...)
+/// DuoNavigation(builders: const DuoMaterialBuilders(), child: ...)
 /// ```
 ///
-/// Replace single builders with [DockBuilders.merge]:
-/// `const DockMaterialBuilders().merge(DockBuilders(tabBar: myTabBar))`.
+/// Replace single builders with [DuoBuilders.merge]:
+/// `const DuoMaterialBuilders().merge(DuoBuilders(tabBar: myTabBar))`.
 /// [T], [A] and [B] are the tabs', actions' and bars' payload types; the
 /// defaults work for any, so a typed app can use
-/// `DockMaterialBuilders<MyTab, MyAction, MyBar>()` as a base for typed
+/// `DuoMaterialBuilders<MyTab, MyAction, MyBar>()` as a base for typed
 /// overrides.
-class DockMaterialBuilders<T, A, B> extends DockBuilders<T, A, B> {
+class DuoMaterialBuilders<T, A, B> extends DuoBuilders<T, A, B> {
   /// The Material defaults.
-  const DockMaterialBuilders()
+  const DuoMaterialBuilders()
     : super(
-        tabItem: DockMaterial.tabItem,
-        tabBar: DockMaterial.tabBar,
-        rail: DockMaterial.rail,
-        action: DockMaterial.action,
-        page: DockMaterial.page,
-        sideColumn: DockMaterial.sideColumn,
-        actionTransition: DockMaterial.actionTransition,
-        backdrop: DockMaterial.backdrop,
-        tabPosition: DockMaterial.tabPosition,
-        actionLabel: DockMaterial.actionLabel,
+        tabItem: DuoMaterial.tabItem,
+        tabBar: DuoMaterial.tabBar,
+        rail: DuoMaterial.rail,
+        action: DuoMaterial.action,
+        page: DuoMaterial.page,
+        sideColumn: DuoMaterial.sideColumn,
+        actionTransition: DuoMaterial.actionTransition,
+        backdrop: DuoMaterial.backdrop,
+        tabPosition: DuoMaterial.tabPosition,
+        actionLabel: DuoMaterial.actionLabel,
       );
 }
 
-/// The Material 3 visuals behind [DockMaterialBuilders]. They are plain
+/// The Material 3 visuals behind [DuoMaterialBuilders]. They are plain
 /// functions: call and wrap them from your own builders instead of rewriting
 /// them.
-abstract final class DockMaterial {
+abstract final class DuoMaterial {
   static const double _railPadding = 4;
 
   /// A tab: a [NavigationDestination] in the tab bar, a selectable
   /// [IconButton] in the rail. Badges are Material [Badge]s.
-  static Widget tabItem(BuildContext context, DockTabItemData<Object?> data) {
+  static Widget tabItem(BuildContext context, DuoTabItemData<Object?> data) {
     final tab = data.tab;
     Widget icon(bool selected) =>
-        badge(DockMaterial.icon(tab.iconFor(selected: selected)), tab.badge);
-    if (data.placement == DockTabPlacement.bar) {
+        badge(DuoMaterial.icon(tab.iconFor(selected: selected)), tab.badge);
+    if (data.placement == DuoTabPlacement.bar) {
       return NavigationDestination(
         icon: icon(false),
         selectedIcon: icon(true),
@@ -64,7 +64,7 @@ abstract final class DockMaterial {
       );
     }
     final scheme = Theme.of(context).colorScheme;
-    final extent = DockNavigation.of(context).sideItemExtent - 2 * _railPadding;
+    final extent = DuoNavigation.of(context).sideItemExtent - 2 * _railPadding;
     return IconButton(
       isSelected: data.selected,
       icon: icon(false),
@@ -84,7 +84,7 @@ abstract final class DockMaterial {
   }
 
   /// [icon] with a Material [Badge] for [badge]; [icon] itself without one.
-  static Widget badge(Widget icon, DockBadge? badge) {
+  static Widget badge(Widget icon, DuoBadge? badge) {
     if (badge == null) return icon;
     final label = badge.label;
     return Badge(label: label == null ? null : Text(label), child: icon);
@@ -94,7 +94,7 @@ abstract final class DockMaterial {
   /// for assistive technology.
   static Widget tabBar(
     BuildContext context,
-    DockTabsData<Object?> data,
+    DuoTabsData<Object?> data,
     List<Widget> items,
   ) {
     return NavigationBar(
@@ -105,10 +105,10 @@ abstract final class DockMaterial {
   }
 
   /// One vertical pill of the items, `sideItemExtent` wide, marked as a tab
-  /// bar with [DockTabBarSemantics].
+  /// bar with [DuoTabBarSemantics].
   static Widget rail(
     BuildContext context,
-    DockTabsData<Object?> data,
+    DuoTabsData<Object?> data,
     List<Widget> items,
   ) {
     final scheme = Theme.of(context).colorScheme;
@@ -116,7 +116,7 @@ abstract final class DockMaterial {
       color: scheme.surfaceContainerHigh,
       elevation: 3,
       shape: const StadiumBorder(),
-      child: DockTabBarSemantics(
+      child: DuoTabBarSemantics(
         child: Padding(
           padding: const EdgeInsets.all(_railPadding),
           child: Column(
@@ -136,20 +136,20 @@ abstract final class DockMaterial {
 
   /// Round chip in the side column; icon or text button in the bar.
   ///
-  /// [DockActionRole.primary] chips use the primary container color. A text
+  /// [DuoActionRole.primary] chips use the primary container color. A text
   /// action shows its label; an icon action uses it as tooltip.
   static Widget action(
     BuildContext context,
-    DockAction<Object?> action,
-    DockActionPlacement placement,
+    DuoAction<Object?> action,
+    DuoActionPlacement placement,
   ) {
     final l10n = MaterialLocalizations.of(context);
     final tooltip =
         action.tooltip ??
         action.label ??
         switch (action.role) {
-          DockActionRole.back => l10n.backButtonTooltip,
-          DockActionRole.close => l10n.closeButtonTooltip,
+          DuoActionRole.back => l10n.backButtonTooltip,
+          DuoActionRole.close => l10n.closeButtonTooltip,
           _ => null,
         };
     final icon = action.icon;
@@ -167,9 +167,9 @@ abstract final class DockMaterial {
       );
     }
     final glyph = badge(morphingIcon(icon), action.badge);
-    if (placement == DockActionPlacement.sideColumn) {
+    if (placement == DuoActionPlacement.sideColumn) {
       final scheme = Theme.of(context).colorScheme;
-      final primary = action.role == DockActionRole.primary;
+      final primary = action.role == DuoActionRole.primary;
       return semantic(
         Material(
           color: primary
@@ -184,7 +184,7 @@ abstract final class DockMaterial {
             color: primary ? scheme.onPrimaryContainer : null,
             icon: glyph,
             style: IconButton.styleFrom(
-              fixedSize: Size.square(DockNavigation.of(context).sideItemExtent),
+              fixedSize: Size.square(DuoNavigation.of(context).sideItemExtent),
             ),
           ),
         ),
@@ -195,14 +195,14 @@ abstract final class DockMaterial {
     );
   }
 
-  /// [icon] as a Material widget: [DockIcon.back] is a [BackButtonIcon]
-  /// (chevron or arrow by platform), [DockIcon.close] the close icon, the
+  /// [icon] as a Material widget: [DuoIcon.back] is a [BackButtonIcon]
+  /// (chevron or arrow by platform), [DuoIcon.close] the close icon, the
   /// others their own widget.
-  static Widget icon(DockIcon icon, {double? size, Color? color}) =>
+  static Widget icon(DuoIcon icon, {double? size, Color? color}) =>
       switch (icon) {
-        DockPlatformIcon(kind: DockPlatformIconKind.back) =>
+        DuoPlatformIcon(kind: DuoPlatformIconKind.back) =>
           const BackButtonIcon(),
-        DockPlatformIcon(kind: DockPlatformIconKind.close) => Icon(
+        DuoPlatformIcon(kind: DuoPlatformIconKind.close) => Icon(
           Icons.close,
           size: size,
           color: color,
@@ -218,36 +218,36 @@ abstract final class DockMaterial {
 
   /// "Back" or "Close" for the implied leading actions, from
   /// [MaterialLocalizations]; null for other actions without a label.
-  static String? actionLabel(BuildContext context, DockAction<Object?> action) {
+  static String? actionLabel(BuildContext context, DuoAction<Object?> action) {
     final l10n = MaterialLocalizations.of(context);
     return switch (action.role) {
-      DockActionRole.back => l10n.backButtonTooltip,
-      DockActionRole.close => l10n.closeButtonTooltip,
+      DuoActionRole.back => l10n.backButtonTooltip,
+      DuoActionRole.close => l10n.closeButtonTooltip,
       _ => null,
     };
   }
 
   /// [icon] as a Material icon that cross-fades when it changes (back →
-  /// close, star → filled star): [DockIconMorph] with [DockMaterial.icon].
-  /// Use [DockIconMorph] directly to render the icons your own way.
-  static Widget morphingIcon(DockIcon icon) => DockIconMorph(
+  /// close, star → filled star): [DuoIconMorph] with [DuoMaterial.icon].
+  /// Use [DuoIconMorph] directly to render the icons your own way.
+  static Widget morphingIcon(DuoIcon icon) => DuoIconMorph(
     icon: icon,
-    builder: (context, icon) => DockMaterial.icon(icon),
+    builder: (context, icon) => DuoMaterial.icon(icon),
   );
 
-  /// A [Scaffold] with a [DockAppBar]. When the side column is at the start
+  /// A [Scaffold] with a [DuoAppBar]. When the side column is at the start
   /// edge, the bar's actions move to the start too, so everything sits on
   /// one side.
   static Widget page(
     BuildContext context,
-    DockBarData<Object?, Object?> bar,
+    DuoBarData<Object?, Object?> bar,
     Widget body,
   ) {
-    return Scaffold(appBar: const DockAppBar(), body: body);
+    return Scaffold(appBar: const DuoAppBar(), body: body);
   }
 
   /// Actions fill the top and anchor to the bottom, with the rail below them.
-  /// The rail gets its height first ([DockSideColumnLayout]).
+  /// The rail gets its height first ([DuoSideColumnLayout]).
   static Widget sideColumn(
     BuildContext context,
     Widget actions,
@@ -256,7 +256,7 @@ abstract final class DockMaterial {
   ) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 12),
-      child: DockSideColumnLayout(actions: actions, rail: tabs),
+      child: DuoSideColumnLayout(actions: actions, rail: tabs),
     );
   }
 

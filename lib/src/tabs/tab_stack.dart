@@ -2,15 +2,15 @@ import 'package:flutter/widgets.dart';
 
 /// Shows the child at [index] and keeps the others alive but inert.
 ///
-/// Use it as the child of a `DockShell`, one child per tab (often a
+/// Use it as the child of a `DuoShell`, one child per tab (often a
 /// `Navigator` each):
 ///
 /// ```dart
-/// DockShell(
+/// DuoShell(
 ///   tabs: tabs,
 ///   currentIndex: index,
 ///   onTabSelected: (i) => setState(() => index = i),
-///   child: DockTabStack(index: index, children: [homeNavigator, meNavigator]),
+///   child: DuoTabStack(index: index, children: [homeNavigator, meNavigator]),
 /// )
 /// ```
 ///
@@ -22,7 +22,7 @@ import 'package:flutter/widgets.dart';
 /// they are shown, unless [lazy] is false.
 ///
 /// It does not clip, so content can bleed under the bar and column. Any other
-/// container works with `DockShell` too, as long as it wraps inactive tabs in
+/// container works with `DuoShell` too, as long as it wraps inactive tabs in
 /// `TickerMode(enabled: false)`.
 ///
 /// Coming from an [IndexedStack] (inactive children not painted, hit-tested,
@@ -31,9 +31,9 @@ import 'package:flutter/widgets.dart';
 /// children running (here: [maintainTickers]) and lets their heroes fly.
 /// In an [IndexedStack], the pages of inactive tabs also claim the side
 /// column unless each tab is wrapped in `TickerMode(enabled: false)`.
-class DockTabStack extends StatefulWidget {
+class DuoTabStack extends StatefulWidget {
   /// Shows `children[index]`.
-  const DockTabStack({
+  const DuoTabStack({
     super.key,
     required this.index,
     required this.children,
@@ -58,16 +58,16 @@ class DockTabStack extends StatefulWidget {
   final bool maintainTickers;
 
   /// Whether the tab around [context] is the shown one: false inside an
-  /// inactive tab of a [DockTabStack], true everywhere else.
+  /// inactive tab of a [DuoTabStack], true everywhere else.
   static bool isActiveOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_TabActivity>()?.active ??
       true;
 
   @override
-  State<DockTabStack> createState() => _DockTabStackState();
+  State<DuoTabStack> createState() => _DuoTabStackState();
 }
 
-class _DockTabStackState extends State<DockTabStack> {
+class _DuoTabStackState extends State<DuoTabStack> {
   final Set<int> _built = {};
 
   @override

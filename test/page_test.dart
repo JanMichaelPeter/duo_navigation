@@ -10,20 +10,20 @@ class _Title {
   final String text;
 }
 
-const _tabs = <DockTab<Object?>>[
-  DockTab(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+const _tabs = <DuoTab<Object?>>[
+  DuoTab(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
 ];
 
-Finder _action(Object id) => find.byKey(DockKeys.action(id));
+Finder _action(Object id) => find.byKey(DuoKeys.action(id));
 Finder _inColumn(Finder finder) =>
-    find.descendant(of: find.byKey(DockKeys.column), matching: finder);
+    find.descendant(of: find.byKey(DuoKeys.column), matching: finder);
 Finder _inBar(Finder finder) =>
     find.descendant(of: find.byType(AppBar), matching: finder);
 
-DockAction<Object?> _share() => DockAction<Object?>(
+DuoAction<Object?> _share() => DuoAction<Object?>(
   id: 'share',
-  icon: const DockIcon(Icons.share),
+  icon: const DuoIcon(Icons.share),
   onPressed: () {},
 );
 
@@ -31,14 +31,14 @@ void main() {
   Future<void> pump(
     WidgetTester tester,
     Widget home, {
-    DockLayoutMode mode = DockLayoutMode.wide,
-    DockNavigationData data = const DockNavigationData(),
+    DuoLayoutMode mode = DuoLayoutMode.wide,
+    DuoNavigationData data = const DuoNavigationData(),
     TextDirection? textDirection,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
-        builder: (context, child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
+        builder: (context, child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
           data: data,
           mode: mode,
           textDirection: textDirection,
@@ -52,8 +52,8 @@ void main() {
 
   /// A shell whose single tab navigator pushes [page] on top of a root page,
   /// so the page has an implied back action.
-  Widget shellWithPushed(Widget page, {DockHoisting? hoisting}) =>
-      DockShell<Object?, Object?, Object?>(
+  Widget shellWithPushed(Widget page, {DuoHoisting? hoisting}) =>
+      DuoShell<Object?, Object?, Object?>(
         tabs: _tabs,
         currentIndex: 0,
         onTabSelected: (_) {},
@@ -66,20 +66,20 @@ void main() {
         ),
       );
 
-  group('DockPageScope', () {
-    for (final mode in DockLayoutMode.values) {
-      testWidgets('${mode.name}: a custom Scaffold with DockAppBar', (
+  group('DuoPageScope', () {
+    for (final mode in DuoLayoutMode.values) {
+      testWidgets('${mode.name}: a custom Scaffold with DuoAppBar', (
         tester,
       ) async {
         await pump(
           tester,
           shellWithPushed(
-            DockPageScope<Object?, Object?>(
+            DuoPageScope<Object?, Object?>(
               title: const Text('Details'),
               trailing: [_share()],
               child: Scaffold(
                 key: const Key('details'),
-                appBar: const DockAppBar(),
+                appBar: const DuoAppBar(),
                 bottomNavigationBar: const SizedBox(
                   height: 40,
                   child: Text('toolbar'),
@@ -98,18 +98,18 @@ void main() {
         expect(find.text('toolbar'), findsOneWidget);
         expect(find.byType(FloatingActionButton), findsOneWidget);
         expect(_inBar(find.text('Details')), findsOneWidget);
-        if (mode == DockLayoutMode.compact) {
+        if (mode == DuoLayoutMode.compact) {
           expect(_inBar(_action('share')), findsOneWidget);
-          expect(_inBar(_action(DockAction.backId)), findsOneWidget);
+          expect(_inBar(_action(DuoAction.backId)), findsOneWidget);
         } else {
           expect(_inColumn(_action('share')), findsOneWidget);
-          expect(_inColumn(_action(DockAction.backId)), findsOneWidget);
+          expect(_inColumn(_action(DuoAction.backId)), findsOneWidget);
           expect(_inBar(_action('share')), findsNothing);
         }
       });
     }
 
-    testWidgets('DockBarData.of fails loudly outside a page', (tester) async {
+    testWidgets('DuoBarData.of fails loudly outside a page', (tester) async {
       late BuildContext context;
       await tester.pumpWidget(
         Builder(
@@ -119,26 +119,26 @@ void main() {
           },
         ),
       );
-      expect(DockBarData.maybeOf<Object?, Object?>(context), isNull);
+      expect(DuoBarData.maybeOf<Object?, Object?>(context), isNull);
       expect(
-        () => DockBarData.of<Object?, Object?>(context),
+        () => DuoBarData.of<Object?, Object?>(context),
         throwsA(
           isA<FlutterError>().having(
             (e) => e.message,
             'message',
-            contains('No DockPageScope found.'),
+            contains('No DuoPageScope found.'),
           ),
         ),
       );
     });
 
-    testWidgets('DockBarData.of names the types when they do not match', (
+    testWidgets('DuoBarData.of names the types when they do not match', (
       tester,
     ) async {
       late BuildContext inside;
       await pump(
         tester,
-        DockPageScope<Object?, _Title>(
+        DuoPageScope<Object?, _Title>(
           child: Builder(
             builder: (context) {
               inside = context;
@@ -147,15 +147,15 @@ void main() {
           ),
         ),
       );
-      expect(DockBarData.of<Object?, _Title>(inside), isNotNull);
-      expect(DockBarData.of<Object?, Object?>(inside), isNotNull);
+      expect(DuoBarData.of<Object?, _Title>(inside), isNotNull);
+      expect(DuoBarData.of<Object?, Object?>(inside), isNotNull);
       expect(
-        () => DockBarData.of<Object?, String>(inside),
+        () => DuoBarData.of<Object?, String>(inside),
         throwsA(
           isA<FlutterError>().having(
             (e) => e.toStringDeep(),
             'message',
-            contains('DockBarData<Object?, String>'),
+            contains('DuoBarData<Object?, String>'),
           ),
         ),
       );
@@ -165,10 +165,10 @@ void main() {
       final key = GlobalKey();
       await pump(
         tester,
-        DockPageScope<Object?, Object?>(
+        DuoPageScope<Object?, Object?>(
           key: key,
           trailing: [_share()],
-          child: const Scaffold(appBar: DockAppBar()),
+          child: const Scaffold(appBar: DuoAppBar()),
         ),
       );
       expect(_inColumn(_action('share')), findsOneWidget);
@@ -179,24 +179,24 @@ void main() {
   testWidgets('a typed bar payload reaches the page builder', (tester) async {
     await pump(
       tester,
-      DockShell<Object?, Object?, _Title>(
+      DuoShell<Object?, Object?, _Title>(
         tabs: _tabs,
         currentIndex: 0,
         onTabSelected: (_) {},
-        builders: DockBuilders<Object?, Object?, _Title>(
+        builders: DuoBuilders<Object?, Object?, _Title>(
           page: (context, bar, body) => Text(bar.payload!.text),
         ),
-        child: const DockPage<Object?, _Title>(
+        child: const DuoPage<Object?, _Title>(
           barPayload: _Title('structured title'),
           body: SizedBox(),
         ),
       ),
-      mode: DockLayoutMode.compact,
+      mode: DuoLayoutMode.compact,
     );
     expect(find.text('structured title'), findsOneWidget);
   });
 
-  group('DockBarLayout', () {
+  group('DuoBarLayout', () {
     const leading = Key('leading'), title = Key('title'), a = Key('a');
 
     Future<void> layout(
@@ -214,7 +214,7 @@ void main() {
             child: SizedBox(
               width: 400,
               height: 56,
-              child: DockBarLayout(
+              child: DuoBarLayout(
                 leading: withLeading
                     ? const SizedBox(key: leading, width: 40, height: 40)
                     : null,
@@ -233,7 +233,7 @@ void main() {
     }
 
     Rect rect(WidgetTester tester, Key key) {
-      final origin = tester.getTopLeft(find.byType(DockBarLayout));
+      final origin = tester.getTopLeft(find.byType(DuoBarLayout));
       return tester.getRect(find.byKey(key)).shift(-origin);
     }
 
@@ -292,17 +292,17 @@ void main() {
     });
   });
 
-  testWidgets('DockAppBar passes AppBar\'s parameters through', (tester) async {
+  testWidgets('DuoAppBar passes AppBar\'s parameters through', (tester) async {
     const style = SystemUiOverlayStyle.light;
     const shape = RoundedRectangleBorder();
     const space = SizedBox(key: Key('space'));
     await pump(
       tester,
-      DockPage<Object?, Object?>.custom(
+      DuoPage<Object?, Object?>.custom(
         title: const Text('Title'),
         trailing: [_share()],
         builder: (context, bar) => const Scaffold(
-          appBar: DockAppBar(
+          appBar: DuoAppBar(
             foregroundColor: Color(0xFF123456),
             elevation: 3,
             scrolledUnderElevation: 5,
@@ -313,7 +313,7 @@ void main() {
           ),
         ),
       ),
-      mode: DockLayoutMode.compact,
+      mode: DuoLayoutMode.compact,
     );
     final appBar = tester.widget<AppBar>(find.byType(AppBar));
     expect(appBar.foregroundColor, const Color(0xFF123456));
@@ -331,9 +331,9 @@ void main() {
   });
 
   group('leading at the end', () {
-    Widget sheet() => DockPage<Object?, Object?>(
+    Widget sheet() => DuoPage<Object?, Object?>(
       title: const Text('Sheet'),
-      leading: DockAction<Object?>.close(onPressed: () {}),
+      leading: DuoAction<Object?>.close(onPressed: () {}),
       leadingAtEnd: true,
       trailing: [_share()],
       body: const SizedBox.expand(),
@@ -342,13 +342,9 @@ void main() {
     testWidgets('compact: the close action sits at the end of the bar', (
       tester,
     ) async {
-      await pump(
-        tester,
-        shellWithPushed(sheet()),
-        mode: DockLayoutMode.compact,
-      );
+      await pump(tester, shellWithPushed(sheet()), mode: DuoLayoutMode.compact);
       final bar = tester.getRect(find.byType(AppBar));
-      final close = tester.getRect(_inBar(_action(DockAction.backId)));
+      final close = tester.getRect(_inBar(_action(DuoAction.backId)));
       final share = tester.getRect(_inBar(_action('share')));
       expect(close.right, greaterThan(share.right));
       expect(close.right, closeTo(bar.right, 8));
@@ -359,7 +355,7 @@ void main() {
       tester,
     ) async {
       await pump(tester, shellWithPushed(sheet()));
-      final close = tester.getRect(_inColumn(_action(DockAction.backId)));
+      final close = tester.getRect(_inColumn(_action(DuoAction.backId)));
       final share = tester.getRect(_inColumn(_action('share')));
       expect(close.top, greaterThan(share.top));
     });
@@ -367,30 +363,30 @@ void main() {
 
   group('implied leading', () {
     late BuildContext root;
-    final roles = <String, DockActionRole?>{};
+    final roles = <String, DuoActionRole?>{};
     final atEnd = <String, bool>{};
 
     /// A page that records the role and the place of its leading action
     /// under [name].
     Widget page(
       String name, {
-      DockImpliedLeading? impliedLeading,
+      DuoImpliedLeading? impliedLeading,
       bool? leadingAtEnd,
-      DockAction<Object?>? leading,
-    }) => DockPage<Object?, Object?>.custom(
+      DuoAction<Object?>? leading,
+    }) => DuoPage<Object?, Object?>.custom(
       impliedLeading: impliedLeading,
       leadingAtEnd: leadingAtEnd,
       leading: leading,
       builder: (context, bar) {
         roles[name] = bar.leading?.role;
         atEnd[name] = bar.leadingAtEnd;
-        return Scaffold(appBar: const DockAppBar(), body: Text(name));
+        return Scaffold(appBar: const DuoAppBar(), body: Text(name));
       },
     );
 
     Future<void> start(
       WidgetTester tester, {
-      DockNavigationData data = const DockNavigationData(),
+      DuoNavigationData data = const DuoNavigationData(),
     }) async {
       roles.clear();
       atEnd.clear();
@@ -402,7 +398,7 @@ void main() {
             return const SizedBox.expand();
           },
         ),
-        mode: DockLayoutMode.compact,
+        mode: DuoLayoutMode.compact,
         data: data,
       );
     }
@@ -413,7 +409,7 @@ void main() {
     }
 
     Future<void> tapLeading(WidgetTester tester) async {
-      await tester.tap(_action(DockAction.backId).last);
+      await tester.tap(_action(DuoAction.backId).last);
       await tester.pumpAndSettle();
     }
 
@@ -429,8 +425,8 @@ void main() {
           builder: (_) => page('dialog'),
         ),
       );
-      expect(roles['page'], DockActionRole.back);
-      expect(roles['dialog'], DockActionRole.close);
+      expect(roles['page'], DuoActionRole.back);
+      expect(roles['dialog'], DuoActionRole.close);
     });
 
     testWidgets('a modal scope can ask for close on any route', (tester) async {
@@ -438,13 +434,13 @@ void main() {
       await push(
         tester,
         MaterialPageRoute(
-          builder: (_) => DockModalScope<Object?, Object?>(
-            impliedLeading: DockImpliedLeading.close,
+          builder: (_) => DuoModalScope<Object?, Object?>(
+            impliedLeading: DuoImpliedLeading.close,
             child: page('modal'),
           ),
         ),
       );
-      expect(roles['modal'], DockActionRole.close);
+      expect(roles['modal'], DuoActionRole.close);
       await tapLeading(tester);
       expect(find.text('modal'), findsNothing);
     });
@@ -457,7 +453,7 @@ void main() {
         tester,
         MaterialPageRoute(
           fullscreenDialog: true,
-          builder: (_) => DockModalScope<Object?, Object?>(
+          builder: (_) => DuoModalScope<Object?, Object?>(
             child: Navigator(
               onGenerateRoute: (_) => MaterialPageRoute<void>(
                 builder: (context) {
@@ -469,13 +465,13 @@ void main() {
           ),
         ),
       );
-      expect(roles['step 1'], DockActionRole.close);
+      expect(roles['step 1'], DuoActionRole.close);
 
       Navigator.of(
         inner,
       ).push(MaterialPageRoute<void>(builder: (_) => page('step 2')));
       await tester.pumpAndSettle();
-      expect(roles['step 2'], DockActionRole.back);
+      expect(roles['step 2'], DuoActionRole.back);
       await tapLeading(tester);
       expect(find.text('step 2'), findsNothing);
       expect(find.text('step 1'), findsOneWidget);
@@ -485,9 +481,9 @@ void main() {
     });
 
     group('app-wide modal defaults', () {
-      const xTopRight = DockNavigationData(
-        modalLeading: DockModalLeading(
-          implied: DockImpliedLeading.close,
+      const xTopRight = DuoNavigationData(
+        modalLeading: DuoModalLeading(
+          implied: DuoImpliedLeading.close,
           atEnd: true,
         ),
       );
@@ -500,7 +496,7 @@ void main() {
         await push(
           tester,
           MaterialPageRoute(
-            builder: (_) => DockModalScope<Object?, Object?>(
+            builder: (_) => DuoModalScope<Object?, Object?>(
               child: Navigator(
                 onGenerateRoute: (_) => MaterialPageRoute<void>(
                   builder: (context) {
@@ -512,14 +508,14 @@ void main() {
             ),
           ),
         );
-        expect(roles['first'], DockActionRole.close);
+        expect(roles['first'], DuoActionRole.close);
         expect(atEnd['first'], isTrue);
 
         Navigator.of(
           inner,
         ).push(MaterialPageRoute<void>(builder: (_) => page('second')));
         await tester.pumpAndSettle();
-        expect(roles['second'], DockActionRole.back);
+        expect(roles['second'], DuoActionRole.back);
         expect(atEnd['second'], isFalse);
       });
 
@@ -533,7 +529,7 @@ void main() {
             builder: (_) => page('root'),
           ),
         );
-        expect(roles['root'], DockActionRole.close);
+        expect(roles['root'], DuoActionRole.close);
         expect(atEnd['root'], isTrue);
 
         await push(
@@ -542,7 +538,7 @@ void main() {
             fullscreenDialog: true,
             builder: (_) => page(
               'confirmation',
-              leading: DockAction<Object?>.close(onPressed: () {}),
+              leading: DuoAction<Object?>.close(onPressed: () {}),
             ),
           ),
         );
@@ -560,8 +556,8 @@ void main() {
           ),
         );
         await push(tester, MaterialPageRoute(builder: (_) => page('address')));
-        expect(roles['checkout'], DockActionRole.close);
-        expect(roles['address'], DockActionRole.back);
+        expect(roles['checkout'], DuoActionRole.close);
+        expect(roles['address'], DuoActionRole.back);
         expect(atEnd['address'], isFalse);
       });
 
@@ -571,7 +567,7 @@ void main() {
           tester,
           DialogRoute<void>(context: root, builder: (_) => page('dialog')),
         );
-        expect(roles['dialog'], DockActionRole.close);
+        expect(roles['dialog'], DuoActionRole.close);
         expect(atEnd['dialog'], isTrue);
       });
 
@@ -580,14 +576,14 @@ void main() {
         await push(
           tester,
           MaterialPageRoute(
-            builder: (_) => DockModalScope<Object?, Object?>(
-              impliedLeading: DockImpliedLeading.back,
+            builder: (_) => DuoModalScope<Object?, Object?>(
+              impliedLeading: DuoImpliedLeading.back,
               leadingAtEnd: false,
               child: page('scope'),
             ),
           ),
         );
-        expect(roles['scope'], DockActionRole.back);
+        expect(roles['scope'], DuoActionRole.back);
         expect(atEnd['scope'], isFalse);
 
         await push(
@@ -595,12 +591,12 @@ void main() {
           MaterialPageRoute(
             builder: (_) => page(
               'page',
-              impliedLeading: DockImpliedLeading.back,
+              impliedLeading: DuoImpliedLeading.back,
               leadingAtEnd: false,
             ),
           ),
         );
-        expect(roles['page'], DockActionRole.back);
+        expect(roles['page'], DuoActionRole.back);
         expect(atEnd['page'], isFalse);
       });
 
@@ -608,10 +604,10 @@ void main() {
         await pump(
           tester,
           shellWithPushed(page('tab page')),
-          mode: DockLayoutMode.compact,
+          mode: DuoLayoutMode.compact,
           data: xTopRight,
         );
-        expect(roles['tab page'], DockActionRole.back);
+        expect(roles['tab page'], DuoActionRole.back);
         expect(atEnd['tab page'], isFalse);
       });
     });
@@ -622,36 +618,36 @@ void main() {
         tester,
         MaterialPageRoute(
           builder: (_) =>
-              page('sheet', impliedLeading: DockImpliedLeading.close),
+              page('sheet', impliedLeading: DuoImpliedLeading.close),
         ),
       );
-      expect(roles['sheet'], DockActionRole.close);
+      expect(roles['sheet'], DuoActionRole.close);
     });
   });
 
   group('hoisting off', () {
     /// Records the bar data a page gets.
-    Widget recordingPage(List<DockBarData<Object?, Object?>> bars) =>
-        DockPage<Object?, Object?>.custom(
-          leading: const DockAction<Object?>.back(icon: null, label: 'Cancel'),
+    Widget recordingPage(List<DuoBarData<Object?, Object?>> bars) =>
+        DuoPage<Object?, Object?>.custom(
+          leading: const DuoAction<Object?>.back(icon: null, label: 'Cancel'),
           trailing: [_share()],
           builder: (context, bar) {
             bars.add(bar);
-            return Scaffold(appBar: const DockAppBar());
+            return Scaffold(appBar: const DuoAppBar());
           },
         );
 
     testWidgets('keeps every action in the bar and the data equal in both '
         'modes', (tester) async {
-      final bars = <DockBarData<Object?, Object?>>[];
-      for (final mode in DockLayoutMode.values) {
+      final bars = <DuoBarData<Object?, Object?>>[];
+      for (final mode in DuoLayoutMode.values) {
         await pump(
           tester,
           shellWithPushed(recordingPage(bars)),
           mode: mode,
-          data: const DockNavigationData(
-            hoisting: DockHoisting.none,
-            side: DockSide.start,
+          data: const DuoNavigationData(
+            hoisting: DuoHoisting.none,
+            side: DuoSide.start,
           ),
         );
         expect(_inBar(_action('share')), findsOneWidget);
@@ -665,31 +661,31 @@ void main() {
       expect(wide.hoisted, isEmpty);
       expect(wide.trailingAtStart, isFalse);
       // The column holds only the rail.
-      expect(find.byKey(DockKeys.rail), findsOneWidget);
+      expect(find.byKey(DuoKeys.rail), findsOneWidget);
     });
 
     testWidgets('can be set per shell', (tester) async {
       await pump(
         tester,
         shellWithPushed(
-          DockPage<Object?, Object?>(
+          DuoPage<Object?, Object?>(
             trailing: [_share()],
             body: const SizedBox(),
           ),
-          hoisting: DockHoisting.none,
+          hoisting: DuoHoisting.none,
         ),
       );
       expect(_inBar(_action('share')), findsOneWidget);
-      expect(_inBar(_action(DockAction.backId)), findsOneWidget);
-      expect(_inColumn(_action(DockAction.backId)), findsNothing);
+      expect(_inBar(_action(DuoAction.backId)), findsOneWidget);
+      expect(_inColumn(_action(DuoAction.backId)), findsNothing);
     });
 
     testWidgets('can be set per page', (tester) async {
       await pump(
         tester,
         shellWithPushed(
-          DockPage<Object?, Object?>(
-            hoisting: DockHoisting.none,
+          DuoPage<Object?, Object?>(
+            hoisting: DuoHoisting.none,
             trailing: [_share()],
             body: const SizedBox(),
           ),
@@ -708,7 +704,7 @@ void main() {
       ),
     );
 
-    for (final mode in DockLayoutMode.values) {
+    for (final mode in DuoLayoutMode.values) {
       testWidgets('${mode.name}: tabs, switching and a nested navigator', (
         tester,
       ) async {
@@ -720,31 +716,30 @@ void main() {
         await pump(
           tester,
           StatefulBuilder(
-            builder: (context, setState) =>
-                DockShell<Object?, Object?, Object?>(
-                  tabs: _tabs,
-                  currentIndex: index,
-                  onTabSelected: (i) => setState(() => index = i),
-                  child: DockTabStack(
-                    index: index,
-                    children: [
-                      for (var i = 0; i < 2; i++)
-                        Navigator(
-                          key: navigators[i],
-                          onGenerateRoute: (_) => MaterialPageRoute<void>(
-                            builder: (context) => plain(
-                              'tab $i',
-                              onOpen: () => navigators[i].currentState!.push(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => plain('detail $i'),
-                                ),
-                              ),
+            builder: (context, setState) => DuoShell<Object?, Object?, Object?>(
+              tabs: _tabs,
+              currentIndex: index,
+              onTabSelected: (i) => setState(() => index = i),
+              child: DuoTabStack(
+                index: index,
+                children: [
+                  for (var i = 0; i < 2; i++)
+                    Navigator(
+                      key: navigators[i],
+                      onGenerateRoute: (_) => MaterialPageRoute<void>(
+                        builder: (context) => plain(
+                          'tab $i',
+                          onOpen: () => navigators[i].currentState!.push(
+                            MaterialPageRoute<void>(
+                              builder: (_) => plain('detail $i'),
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
           mode: mode,
         );
@@ -755,24 +750,24 @@ void main() {
         expect(find.text('detail 0'), findsOneWidget);
         // The plain AppBar has its own back button; the column has no chips.
         expect(find.byType(BackButton), findsOneWidget);
-        expect(find.byKey(DockKeys.action(DockAction.backId)), findsNothing);
+        expect(find.byKey(DuoKeys.action(DuoAction.backId)), findsNothing);
 
-        await tester.tap(find.byKey(DockKeys.tab('me')));
+        await tester.tap(find.byKey(DuoKeys.tab('me')));
         await tester.pumpAndSettle();
         expect(find.text('tab 1'), findsOneWidget);
 
-        await tester.tap(find.byKey(DockKeys.tab('home')));
+        await tester.tap(find.byKey(DuoKeys.tab('home')));
         await tester.pumpAndSettle();
         expect(find.text('detail 0'), findsOneWidget);
 
-        final chrome = mode == DockLayoutMode.wide
-            ? find.byKey(DockKeys.column)
-            : find.byKey(DockKeys.bar);
+        final chrome = mode == DuoLayoutMode.wide
+            ? find.byKey(DuoKeys.column)
+            : find.byKey(DuoKeys.bar);
         expect(chrome, findsOneWidget);
         // The body sits beside the chrome: the AppBar ends where it starts.
         final appBar = tester.getRect(find.byType(AppBar).last);
         final chromeRect = tester.getRect(chrome);
-        if (mode == DockLayoutMode.wide) {
+        if (mode == DuoLayoutMode.wide) {
           expect(appBar.right, lessThanOrEqualTo(chromeRect.left));
         } else {
           expect(appBar.bottom, lessThanOrEqualTo(chromeRect.top));
@@ -784,7 +779,7 @@ void main() {
       ) async {
         await pump(
           tester,
-          DockModalScope<Object?, Object?>(child: plain('modal')),
+          DuoModalScope<Object?, Object?>(child: plain('modal')),
           mode: mode,
         );
         expect(find.text('modal'), findsOneWidget);

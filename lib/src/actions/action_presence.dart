@@ -21,7 +21,7 @@ class ActionPresence extends StatefulWidget {
   final bool animateIn;
   final Duration duration;
   final Curve curve;
-  final DockActionTransitionBuilder transitionBuilder;
+  final DuoActionTransitionBuilder transitionBuilder;
   final VoidCallback onDismissed;
   final Widget child;
 

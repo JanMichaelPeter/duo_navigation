@@ -7,8 +7,8 @@ import 'edit_profile_page.dart';
 import 'settings_page.dart';
 import 'setup_flow.dart';
 
-/// A page with its own Scaffold: DockPageScope declares the bar and the
-/// actions, DockAppBar draws them. The gradient is the page's backdrop: it
+/// A page with its own Scaffold: DuoPageScope declares the bar and the
+/// actions, DuoAppBar draws them. The gradient is the page's backdrop: it
 /// runs under the tab bar and the side column, behind a transparent page.
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -16,11 +16,11 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    return DockPageScope(
+    return DuoPageScope(
       title: const Text('Profile'),
       trailing: [
         // Label-only: stays in the title bar even in wide mode.
-        DockAction(
+        DuoAction(
           id: 'edit',
           label: 'Edit',
           onPressed: () => presentModally(context, const EditProfilePage()),
@@ -37,7 +37,7 @@ class ProfilePage extends StatelessWidget {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: const DockAppBar(backgroundColor: Colors.transparent),
+        appBar: const DuoAppBar(backgroundColor: Colors.transparent),
         body: ListView(
           children: [
             const ListTile(

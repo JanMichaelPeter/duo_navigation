@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:duo_navigation/duo_navigation.dart';
 
-/// Root-level modal. DockPage notices there's no shell above it and adds its
+/// Root-level modal. DuoPage notices there's no shell above it and adds its
 /// own frame. A text-only leading action ("Cancel") stays in the title bar in
 /// every mode; with the keyboard open, the side column lifts above it.
 class EditProfilePage extends StatelessWidget {
@@ -9,19 +9,19 @@ class EditProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DockPage(
+    return DuoPage(
       title: const Text('Edit profile'),
-      leading: DockAction.back(
+      leading: DuoAction.back(
         icon: null,
         label: 'Cancel',
         onPressed: () => Navigator.of(context).pop(),
       ),
       trailing: [
-        DockAction(
+        DuoAction(
           id: 'save',
-          icon: const DockIcon(Icons.check),
+          icon: const DuoIcon(Icons.check),
           tooltip: 'Save',
-          role: DockActionRole.primary,
+          role: DuoActionRole.primary,
           onPressed: () => Navigator.of(context).pop(),
         ),
       ],

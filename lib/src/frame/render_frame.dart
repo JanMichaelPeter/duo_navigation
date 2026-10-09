@@ -12,7 +12,7 @@ import '../geometry/layout_mode.dart';
 import '../geometry/side.dart';
 
 /// The frame's children.
-enum DockFrameSlot {
+enum DuoFrameSlot {
   /// Painted across the whole frame, under the body and the chrome.
   backdrop,
 
@@ -30,18 +30,18 @@ enum DockFrameSlot {
 /// [geometry], which is only known after the bar has been measured.
 ///
 /// The body scope reads them during layout and publishes the geometry.
-class DockFrameConstraints extends BoxConstraints {
+class DuoFrameConstraints extends BoxConstraints {
   /// Tight constraints of [size] that carry [geometry].
-  DockFrameConstraints.tight(super.size, {required this.geometry})
+  DuoFrameConstraints.tight(super.size, {required this.geometry})
     : super.tight();
 
   /// The frame's geometry for this layout.
-  final DockGeometry geometry;
+  final DuoGeometry geometry;
 
   @override
   bool operator ==(Object other) =>
       super == other &&
-      other is DockFrameConstraints &&
+      other is DuoFrameConstraints &&
       other.geometry == geometry;
 
   @override
@@ -49,18 +49,18 @@ class DockFrameConstraints extends BoxConstraints {
 }
 
 /// Lays out a frame: the bar or the column first, then the body in the free
-/// area ([DockBodyMode.inset]) or across the whole frame
-/// ([DockBodyMode.overlay]).
-class DockFrameLayout
-    extends SlottedMultiChildRenderObjectWidget<DockFrameSlot, RenderBox> {
+/// area ([DuoBodyMode.inset]) or across the whole frame
+/// ([DuoBodyMode.overlay]).
+class DuoFrameLayout
+    extends SlottedMultiChildRenderObjectWidget<DuoFrameSlot, RenderBox> {
   /// Lays out [body] with [bar] (compact) or [column] (wide).
-  const DockFrameLayout({
+  const DuoFrameLayout({
     super.key,
     required this.mode,
     required this.side,
     required this.columnOnRight,
     required this.columnWidth,
-    this.columnInset = DockColumnInset.overlap,
+    this.columnInset = DuoColumnInset.overlap,
     required this.bodyMode,
     required this.systemPadding,
     required this.visibility,
@@ -75,10 +75,10 @@ class DockFrameLayout
   });
 
   /// The layout mode; the column is only laid out in wide mode.
-  final DockLayoutMode mode;
+  final DuoLayoutMode mode;
 
   /// The column's logical edge, for the published geometry.
-  final DockSide side;
+  final DuoSide side;
 
   /// Whether the column is on the physical right edge.
   final bool columnOnRight;
@@ -87,10 +87,10 @@ class DockFrameLayout
   final double columnWidth;
 
   /// Whether the column sits over the system inset on its edge or after it.
-  final DockColumnInset columnInset;
+  final DuoColumnInset columnInset;
 
   /// Whether the body is laid out beside the chrome or under it.
-  final DockBodyMode bodyMode;
+  final DuoBodyMode bodyMode;
 
   /// The `MediaQuery.padding` above the frame.
   final EdgeInsets systemPadding;
@@ -125,18 +125,18 @@ class DockFrameLayout
   final Widget? column;
 
   @override
-  Iterable<DockFrameSlot> get slots => DockFrameSlot.values;
+  Iterable<DuoFrameSlot> get slots => DuoFrameSlot.values;
 
   @override
-  Widget? childForSlot(DockFrameSlot slot) => switch (slot) {
-    DockFrameSlot.backdrop => backdrop,
-    DockFrameSlot.body => body,
-    DockFrameSlot.bar => mode == DockLayoutMode.compact ? bar : null,
-    DockFrameSlot.column => mode == DockLayoutMode.wide ? column : null,
+  Widget? childForSlot(DuoFrameSlot slot) => switch (slot) {
+    DuoFrameSlot.backdrop => backdrop,
+    DuoFrameSlot.body => body,
+    DuoFrameSlot.bar => mode == DuoLayoutMode.compact ? bar : null,
+    DuoFrameSlot.column => mode == DuoLayoutMode.wide ? column : null,
   };
 
   @override
-  RenderDockFrame createRenderObject(BuildContext context) => RenderDockFrame(
+  RenderDuoFrame createRenderObject(BuildContext context) => RenderDuoFrame(
     mode: mode,
     side: side,
     columnOnRight: columnOnRight,
@@ -152,7 +152,7 @@ class DockFrameLayout
   );
 
   @override
-  void updateRenderObject(BuildContext context, RenderDockFrame renderObject) {
+  void updateRenderObject(BuildContext context, RenderDuoFrame renderObject) {
     renderObject
       ..mode = mode
       ..side = side
@@ -169,17 +169,17 @@ class DockFrameLayout
   }
 }
 
-/// The render object of [DockFrameLayout].
-class RenderDockFrame extends RenderBox
-    with SlottedContainerRenderObjectMixin<DockFrameSlot, RenderBox> {
+/// The render object of [DuoFrameLayout].
+class RenderDuoFrame extends RenderBox
+    with SlottedContainerRenderObjectMixin<DuoFrameSlot, RenderBox> {
   /// Creates the frame's render object.
-  RenderDockFrame({
-    required DockLayoutMode mode,
-    required DockSide side,
+  RenderDuoFrame({
+    required DuoLayoutMode mode,
+    required DuoSide side,
     required bool columnOnRight,
     required double columnWidth,
-    DockColumnInset columnInset = DockColumnInset.overlap,
-    required DockBodyMode bodyMode,
+    DuoColumnInset columnInset = DuoColumnInset.overlap,
+    required DuoBodyMode bodyMode,
     required EdgeInsets systemPadding,
     required Animation<double> visibility,
     double keyboard = 0,
@@ -199,25 +199,25 @@ class RenderDockFrame extends RenderBox
        _bodyMode = bodyMode,
        _systemPadding = systemPadding;
 
-  /// See [DockFrameLayout.mode].
-  DockLayoutMode get mode => _mode;
-  DockLayoutMode _mode;
-  set mode(DockLayoutMode value) {
+  /// See [DuoFrameLayout.mode].
+  DuoLayoutMode get mode => _mode;
+  DuoLayoutMode _mode;
+  set mode(DuoLayoutMode value) {
     if (value == _mode) return;
     _mode = value;
     markNeedsLayout();
   }
 
-  /// See [DockFrameLayout.side].
-  DockSide get side => _side;
-  DockSide _side;
-  set side(DockSide value) {
+  /// See [DuoFrameLayout.side].
+  DuoSide get side => _side;
+  DuoSide _side;
+  set side(DuoSide value) {
     if (value == _side) return;
     _side = value;
     markNeedsLayout();
   }
 
-  /// See [DockFrameLayout.columnOnRight].
+  /// See [DuoFrameLayout.columnOnRight].
   bool get columnOnRight => _columnOnRight;
   bool _columnOnRight;
   set columnOnRight(bool value) {
@@ -226,7 +226,7 @@ class RenderDockFrame extends RenderBox
     markNeedsLayout();
   }
 
-  /// See [DockFrameLayout.columnWidth].
+  /// See [DuoFrameLayout.columnWidth].
   double get columnWidth => _columnWidth;
   double _columnWidth;
   set columnWidth(double value) {
@@ -235,16 +235,16 @@ class RenderDockFrame extends RenderBox
     markNeedsLayout();
   }
 
-  /// See [DockFrameLayout.bodyMode].
-  DockBodyMode get bodyMode => _bodyMode;
-  DockBodyMode _bodyMode;
-  set bodyMode(DockBodyMode value) {
+  /// See [DuoFrameLayout.bodyMode].
+  DuoBodyMode get bodyMode => _bodyMode;
+  DuoBodyMode _bodyMode;
+  set bodyMode(DuoBodyMode value) {
     if (value == _bodyMode) return;
     _bodyMode = value;
     markNeedsLayout();
   }
 
-  /// See [DockFrameLayout.systemPadding].
+  /// See [DuoFrameLayout.systemPadding].
   EdgeInsets get systemPadding => _systemPadding;
   EdgeInsets _systemPadding;
   set systemPadding(EdgeInsets value) {
@@ -253,7 +253,7 @@ class RenderDockFrame extends RenderBox
     markNeedsLayout();
   }
 
-  /// See [DockFrameLayout.keyboard].
+  /// See [DuoFrameLayout.keyboard].
   double get keyboard => _keyboard;
   double _keyboard;
   set keyboard(double value) {
@@ -262,16 +262,16 @@ class RenderDockFrame extends RenderBox
     markNeedsLayout();
   }
 
-  /// See [DockFrameLayout.columnInset].
-  DockColumnInset get columnInset => _columnInset;
-  DockColumnInset _columnInset;
-  set columnInset(DockColumnInset value) {
+  /// See [DuoFrameLayout.columnInset].
+  DuoColumnInset get columnInset => _columnInset;
+  DuoColumnInset _columnInset;
+  set columnInset(DuoColumnInset value) {
     if (value == _columnInset) return;
     _columnInset = value;
     markNeedsLayout();
   }
 
-  /// See [DockFrameLayout.liftColumn].
+  /// See [DuoFrameLayout.liftColumn].
   bool get liftColumn => _liftColumn;
   bool _liftColumn;
   set liftColumn(bool value) {
@@ -280,7 +280,7 @@ class RenderDockFrame extends RenderBox
     markNeedsLayout();
   }
 
-  /// See [DockFrameLayout.liftBody].
+  /// See [DuoFrameLayout.liftBody].
   bool get liftBody => _liftBody;
   bool _liftBody;
   set liftBody(bool value) {
@@ -289,7 +289,7 @@ class RenderDockFrame extends RenderBox
     markNeedsLayout();
   }
 
-  /// See [DockFrameLayout.liftBar].
+  /// See [DuoFrameLayout.liftBar].
   bool get liftBar => _liftBar;
   bool _liftBar;
   set liftBar(bool value) {
@@ -298,7 +298,7 @@ class RenderDockFrame extends RenderBox
     markNeedsLayout();
   }
 
-  /// See [DockFrameLayout.visibility].
+  /// See [DuoFrameLayout.visibility].
   Animation<double> get visibility => _visibility;
   Animation<double> _visibility;
   set visibility(Animation<double> value) {
@@ -323,10 +323,10 @@ class RenderDockFrame extends RenderBox
 
   double get _shown => _visibility.value.clamp(0.0, 1.0);
 
-  RenderBox? get _backdrop => childForSlot(DockFrameSlot.backdrop);
-  RenderBox? get _body => childForSlot(DockFrameSlot.body);
-  RenderBox? get _bar => childForSlot(DockFrameSlot.bar);
-  RenderBox? get _column => childForSlot(DockFrameSlot.column);
+  RenderBox? get _backdrop => childForSlot(DuoFrameSlot.backdrop);
+  RenderBox? get _body => childForSlot(DuoFrameSlot.body);
+  RenderBox? get _bar => childForSlot(DuoFrameSlot.bar);
+  RenderBox? get _column => childForSlot(DuoFrameSlot.column);
 
   /// Children in paint order: backdrop, body, then the chrome over them.
   List<RenderBox> get _paintOrder => [?_backdrop, ?_body, ?_bar, ?_column];
@@ -337,7 +337,7 @@ class RenderDockFrame extends RenderBox
   void performLayout() {
     assert(
       constraints.hasBoundedWidth && constraints.hasBoundedHeight,
-      'DockShell and DockModalScope fill the space they get, so they need '
+      'DuoShell and DuoModalScope fill the space they get, so they need '
       'bounded constraints. Got $constraints.',
     );
     size = constraints.biggest;
@@ -353,7 +353,7 @@ class RenderDockFrame extends RenderBox
     final column = _column;
     final bar = _bar;
     if (column != null) {
-      final inset = _columnInset == DockColumnInset.safeArea
+      final inset = _columnInset == DuoColumnInset.safeArea
           ? (_columnOnRight ? _systemPadding.right : _systemPadding.left)
           : 0.0;
       final width = inset + _columnWidth;
@@ -418,7 +418,7 @@ class RenderDockFrame extends RenderBox
       }());
     }
 
-    final geometry = DockGeometry(
+    final geometry = DuoGeometry(
       mode: _mode,
       side: _side,
       columnOnRight: _columnOnRight,
@@ -426,7 +426,7 @@ class RenderDockFrame extends RenderBox
       systemPadding: _systemPadding,
       chrome: chrome,
       visibility: shown,
-      keyboard: _bodyMode == DockBodyMode.inset && _liftBody ? keyboard : 0,
+      keyboard: _bodyMode == DuoBodyMode.inset && _liftBody ? keyboard : 0,
     );
     final body = _body;
     if (body != null) {
@@ -436,7 +436,7 @@ class RenderDockFrame extends RenderBox
       final rect = strip
           .copyWith(bottom: math.max(strip.bottom, geometry.keyboard))
           .deflateRect(Offset.zero & size);
-      body.layout(DockFrameConstraints.tight(rect.size, geometry: geometry));
+      body.layout(DuoFrameConstraints.tight(rect.size, geometry: geometry));
       _offset(body, rect.topLeft);
     }
   }
@@ -514,8 +514,8 @@ class RenderDockFrame extends RenderBox
   void debugFillProperties(DiagnosticPropertiesBuilder properties) {
     super.debugFillProperties(properties);
     properties
-      ..add(EnumProperty<DockLayoutMode>('mode', _mode))
-      ..add(EnumProperty<DockBodyMode>('bodyMode', _bodyMode))
+      ..add(EnumProperty<DuoLayoutMode>('mode', _mode))
+      ..add(EnumProperty<DuoBodyMode>('bodyMode', _bodyMode))
       ..add(
         FlagProperty(
           'columnOnRight',
@@ -524,7 +524,7 @@ class RenderDockFrame extends RenderBox
         ),
       )
       ..add(DoubleProperty('columnWidth', _columnWidth))
-      ..add(EnumProperty<DockColumnInset>('columnInset', _columnInset))
+      ..add(EnumProperty<DuoColumnInset>('columnInset', _columnInset))
       ..add(DiagnosticsProperty<EdgeInsets>('systemPadding', _systemPadding))
       ..add(DoubleProperty('visibility', _shown))
       ..add(DoubleProperty('keyboard', _keyboard))

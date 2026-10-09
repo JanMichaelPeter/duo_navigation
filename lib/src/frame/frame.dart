@@ -26,8 +26,8 @@ import 'render_frame.dart';
 import 'side_column.dart';
 
 /// Exposes the current layout mode and action host to pages.
-class DockScope extends InheritedWidget {
-  const DockScope._({
+class DuoScope extends InheritedWidget {
+  const DuoScope._({
     required this.mode,
     required this.host,
     required this.isModal,
@@ -40,21 +40,21 @@ class DockScope extends InheritedWidget {
   });
 
   /// Compact or wide, decided by the layout policy.
-  final DockLayoutMode mode;
+  final DuoLayoutMode mode;
 
   /// Edge the side column is on (after window-edge resolution), relative to
   /// [Directionality]. Only meaningful in wide mode.
-  final DockSide side;
+  final DuoSide side;
 
   /// Collects the actions of the pages in this frame.
-  final DockActionHost host;
+  final DuoActionHost host;
 
-  /// True for an [DockModalScope] (no tabs), false inside an DockShell.
+  /// True for an [DuoModalScope] (no tabs), false inside an DuoShell.
   final bool isModal;
 
   /// Whether icon actions move into the column, for pages that don't decide
   /// themselves.
-  final DockHoisting hoisting;
+  final DuoHoisting hoisting;
 
   /// The route the modal frame is on; null in a shell. Its first page
   /// dismisses the modal by popping this route.
@@ -62,21 +62,21 @@ class DockScope extends InheritedWidget {
 
   /// The leading action the modal's first page implies; null: from [route]
   /// (close for a full-screen dialog, else back).
-  final DockImpliedLeading? impliedLeading;
+  final DuoImpliedLeading? impliedLeading;
 
   /// Whether the modal's first page has its leading action at the end.
   final bool leadingAtEnd;
 
   /// The nearest scope, or null outside any shell or modal frame.
-  static DockScope? maybeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<DockScope>();
+  static DuoScope? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<DuoScope>();
 
-  /// Current mode; outside any scope it is [DockNavigation.modeOf].
-  static DockLayoutMode modeOf(BuildContext context) =>
-      maybeOf(context)?.mode ?? DockNavigation.modeOf(context);
+  /// Current mode; outside any scope it is [DuoNavigation.modeOf].
+  static DuoLayoutMode modeOf(BuildContext context) =>
+      maybeOf(context)?.mode ?? DuoNavigation.modeOf(context);
 
   @override
-  bool updateShouldNotify(DockScope oldWidget) =>
+  bool updateShouldNotify(DuoScope oldWidget) =>
       mode != oldWidget.mode ||
       host != oldWidget.host ||
       isModal != oldWidget.isModal ||
@@ -87,12 +87,12 @@ class DockScope extends InheritedWidget {
       leadingAtEnd != oldWidget.leadingAtEnd;
 }
 
-/// Decides whether a tab may be selected; see `DockShell.canSelectTab`.
-typedef DockTabVeto = FutureOr<bool> Function(int index);
+/// Decides whether a tab may be selected; see `DuoShell.canSelectTab`.
+typedef DuoTabVeto = FutureOr<bool> Function(int index);
 
 /// Shared implementation of the shell and modal frames. Not exported.
-class DockFrame<T, A, B> extends StatefulWidget {
-  const DockFrame({
+class DuoFrame<T, A, B> extends StatefulWidget {
+  const DuoFrame({
     super.key,
     required this.isModal,
     this.implicitModal = false,
@@ -119,20 +119,20 @@ class DockFrame<T, A, B> extends StatefulWidget {
   /// route presents as one (see [_isModalStart]).
   final bool implicitModal;
   final Widget child;
-  final List<DockTab<T>>? tabs;
+  final List<DuoTab<T>>? tabs;
   final int currentIndex;
   final ValueChanged<int>? onTabSelected;
   final ValueChanged<int>? onTabReselected;
-  final DockTabVeto? canSelectTab;
+  final DuoTabVeto? canSelectTab;
 
-  /// Null: [DockNavigationData.bodyMode].
-  final DockBodyMode? bodyMode;
+  /// Null: [DuoNavigationData.bodyMode].
+  final DuoBodyMode? bodyMode;
 
-  /// Null: [DockNavigationData.hoisting].
-  final DockHoisting? hoisting;
+  /// Null: [DuoNavigationData.hoisting].
+  final DuoHoisting? hoisting;
 
   /// Overrides on top of the builders above; null fields fall back to them.
-  final DockBuilders<T, A, B>? builders;
+  final DuoBuilders<T, A, B>? builders;
 
   /// Whether the bar and column show; pages can hide them too.
   final bool navigationVisible;
@@ -140,17 +140,17 @@ class DockFrame<T, A, B> extends StatefulWidget {
   /// Painted across the whole frame under everything, unless the active page
   /// has its own.
   final Widget? backdrop;
-  final DockImpliedLeading? impliedLeading;
+  final DuoImpliedLeading? impliedLeading;
   final bool? leadingAtEnd;
-  final DockKeyboard? keyboard;
+  final DuoKeyboard? keyboard;
 
   @override
-  State<DockFrame<T, A, B>> createState() => _DockFrameState<T, A, B>();
+  State<DuoFrame<T, A, B>> createState() => _DuoFrameState<T, A, B>();
 }
 
-class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
+class _DuoFrameState<T, A, B> extends State<DuoFrame<T, A, B>>
     with TickerProviderStateMixin {
-  final DockActionHost _host = DockActionHost();
+  final DuoActionHost _host = DuoActionHost();
 
   /// How far the bar and column are shown. Only ticks while they animate.
   /// Created in [initState], not lazily: [dispose] must not be the first to
@@ -159,15 +159,15 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
   late final CurvedAnimation _curved;
 
   /// Hides the chrome while the keyboard is open, for
-  /// [DockKeyboardBehavior.hide]. Combined with [_visibility] by product.
+  /// [DuoKeyboardBehavior.hide]. Combined with [_visibility] by product.
   late final AnimationController _keyboardShown;
   late final CurvedAnimation _keyboardCurved;
   late final Animation<double> _shown;
   bool _keyboardHides = false;
 
   /// Moves focus to the same tab or action when the layout mode changes.
-  final DockFocusRegistry _focus = DockFocusRegistry();
-  DockLayoutMode? _lastMode;
+  final DuoFocusRegistry _focus = DuoFocusRegistry();
+  DuoLayoutMode? _lastMode;
   Duration _visibilityDuration = Duration.zero;
 
   /// The shell's and the active page's wish together.
@@ -192,7 +192,7 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
   }
 
   @override
-  void didUpdateWidget(DockFrame<T, A, B> oldWidget) {
+  void didUpdateWidget(DuoFrame<T, A, B> oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.navigationVisible != oldWidget.navigationVisible) {
       _syncVisibility();
@@ -201,14 +201,14 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
 
   /// The active page's backdrop, else the frame's, else the builders'
   /// default; a change of owner cross-fades.
-  Widget _backdrop(BuildContext context, DockNavigationData config) {
+  Widget _backdrop(BuildContext context, DuoNavigationData config) {
     final page = _host.active;
     final pageBackdrop = page?.backdrop;
     final Object owner = pageBackdrop != null ? page! : 'frame';
     final child =
         pageBackdrop ??
         widget.backdrop ??
-        DockBuilders.of<T, A, B>(context).backdrop?.call(context);
+        DuoBuilders.of<T, A, B>(context).backdrop?.call(context);
     return AnimatedSwitcher(
       duration: _visibilityDuration == Duration.zero
           ? Duration.zero
@@ -280,9 +280,9 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
   Widget build(BuildContext context) {
     // The scope sits above everything the frame builds, so the bar, the
     // column and the pages all see the shell's builders.
-    return DockBuildersScope(
+    return DuoBuildersScope(
       builders: widget.builders,
-      child: DockFocusRegistryScope(
+      child: DuoFocusRegistryScope(
         registry: _focus,
         child: Builder(builder: _build),
       ),
@@ -290,8 +290,8 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
   }
 
   /// Whether this frame starts a modal, so the app-wide
-  /// `DockNavigationData.modalLeading` applies to its first page: an explicit
-  /// `DockModalScope`, or an implicit frame on a full-screen dialog or a modal
+  /// `DuoNavigationData.modalLeading` applies to its first page: an explicit
+  /// `DuoModalScope`, or an implicit frame on a full-screen dialog or a modal
   /// route that isn't a page (a sheet, a dialog). A plain page pushed on the
   /// root navigator is not one.
   bool _isModalStart(ModalRoute<Object?>? route) {
@@ -306,15 +306,15 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
 
   List<Widget> _items(
     BuildContext context,
-    DockBuilders<T, A, B> builders,
-    DockTabsData<T> data,
+    DuoBuilders<T, A, B> builders,
+    DuoTabsData<T> data,
   ) {
     return [
       for (var i = 0; i < data.tabs.length; i++)
         Builder(
           builder: (context) {
             final item = data.itemData(i);
-            return DockTabItem<T>(
+            return DuoTabItem<T>(
               data: item,
               child: builders.buildTabItem(context, item),
             );
@@ -326,39 +326,35 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
   /// Hands a chip's action to the typed action builder.
   Widget _chip(
     BuildContext context,
-    DockBuilders<T, A, B> builders,
-    DockAction<Object?> action,
+    DuoBuilders<T, A, B> builders,
+    DuoAction<Object?> action,
   ) {
-    if (action is! DockAction<A>) {
+    if (action is! DuoAction<A>) {
       throw FlutterError.fromParts([
         ErrorSummary('A page action does not match this frame.'),
         ErrorDescription(
           'The action ${action.id} is a ${action.runtimeType}, and this '
-          'frame draws DockAction<$A>.',
+          'frame draws DuoAction<$A>.',
         ),
         ErrorHint(
           'Give the shell or modal scope the action payload type its pages '
-          'use, for example DockShell<MyTab, MyAction>.',
+          'use, for example DuoShell<MyTab, MyAction>.',
         ),
       ]);
     }
-    return builders.buildAction(
-      context,
-      action,
-      DockActionPlacement.sideColumn,
-    );
+    return builders.buildAction(context, action, DuoActionPlacement.sideColumn);
   }
 
   Widget _build(BuildContext context) {
-    final config = DockNavigation.of(context);
+    final config = DuoNavigation.of(context);
     _host.tapGuard = config.tapGuard;
     final padding = MediaQuery.paddingOf(context);
     final window = MediaQuery.sizeOf(context);
     final textScale = MediaQuery.textScalerOf(context).scale(1);
     final ltr = Directionality.of(context) == TextDirection.ltr;
-    final columnOnRight = DockNavigation.sideOnRight(context);
-    final side = columnOnRight == ltr ? DockSide.end : DockSide.start;
-    final builders = DockBuilders.of<T, A, B>(context);
+    final columnOnRight = DuoNavigation.sideOnRight(context);
+    final side = columnOnRight == ltr ? DuoSide.end : DuoSide.start;
+    final builders = DuoBuilders.of<T, A, B>(context);
     _visibilityDuration = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
         : config.visibilityDuration;
@@ -380,14 +376,14 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
           if (focused != null) _focus.restoreAfterFrame(focused);
         }
         _lastMode = mode;
-        final behavior = mode == DockLayoutMode.compact
+        final behavior = mode == DuoLayoutMode.compact
             ? keyboardConfig.bar
             : keyboardConfig.column;
-        _hideForKeyboard(keyboard > 0 && behavior == DockKeyboardBehavior.hide);
+        _hideForKeyboard(keyboard > 0 && behavior == DuoKeyboardBehavior.hide);
         final hidden = !_wantsNavigation || _keyboardHides;
         final tabs = widget.tabs == null
             ? null
-            : DockTabsData<T>(
+            : DuoTabsData<T>(
                 tabs: widget.tabs!,
                 currentIndex: widget.currentIndex,
                 onSelected: _select,
@@ -398,7 +394,7 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
         // routes change above it.
         final route = widget.isModal ? ModalRoute.of(context) : null;
         final modalStart = _isModalStart(route);
-        return DockScope._(
+        return DuoScope._(
           mode: mode,
           host: _host,
           isModal: widget.isModal,
@@ -415,7 +411,7 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
           // the tab bar).
           child: FocusTraversalGroup(
             policy: OrderedTraversalPolicy(),
-            child: DockFrameLayout(
+            child: DuoFrameLayout(
               mode: mode,
               side: side,
               columnOnRight: columnOnRight,
@@ -427,25 +423,25 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
               systemPadding: padding,
               visibility: _shown,
               keyboard: keyboard,
-              liftColumn: keyboardConfig.column == DockKeyboardBehavior.lift,
-              liftBar: keyboardConfig.bar == DockKeyboardBehavior.lift,
-              liftBody: keyboardConfig.body == DockBodyKeyboardBehavior.lift,
+              liftColumn: keyboardConfig.column == DuoKeyboardBehavior.lift,
+              liftBar: keyboardConfig.bar == DuoKeyboardBehavior.lift,
+              liftBody: keyboardConfig.body == DuoBodyKeyboardBehavior.lift,
               // The body keeps its slot in every mode, so switching modes
               // (rotation, split view) keeps its State.
               body: _Ordered(
                 order: 1,
-                child: DockBodyScope(child: widget.child),
+                child: DuoBodyScope(child: widget.child),
               ),
               backdrop: ListenableBuilder(
                 listenable: _host,
                 builder: (context, _) => _backdrop(context, config),
               ),
-              bar: tabs == null || mode != DockLayoutMode.compact
+              bar: tabs == null || mode != DuoLayoutMode.compact
                   ? null
                   : _Ordered(
                       order: 2,
                       child: KeyedSubtree(
-                        key: DockKeys.bar,
+                        key: DuoKeys.bar,
                         child: _Inert(
                           inert: hidden,
                           // The bar sits at the bottom, so the status bar is
@@ -470,12 +466,12 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
                 child: _Inert(
                   inert: hidden,
                   child: SideColumn(
-                    key: DockKeys.column,
+                    key: DuoKeys.column,
                     host: _host,
-                    rail: tabs == null || mode != DockLayoutMode.wide
+                    rail: tabs == null || mode != DuoLayoutMode.wide
                         ? null
                         : KeyedSubtree(
-                            key: DockKeys.rail,
+                            key: DuoKeys.rail,
                             // Scrolls when the tabs don't fit the column.
                             child: SingleChildScrollView(
                               child: builders.buildRail(

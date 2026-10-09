@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 /// What the bar or the column does while the software keyboard is open.
-enum DockKeyboardBehavior {
+enum DuoKeyboardBehavior {
   /// Moves above the keyboard: the column is laid out in the height above it,
   /// the bar sits on top of it.
   lift,
@@ -14,8 +14,8 @@ enum DockKeyboardBehavior {
 }
 
 /// What the body does while the software keyboard is open, in
-/// `DockBodyMode.inset`.
-enum DockBodyKeyboardBehavior {
+/// `DuoBodyMode.inset`.
+enum DuoBodyKeyboardBehavior {
   /// The body keeps its height and the page decides, as without duo_navigation:
   /// `MediaQuery.viewInsets.bottom` below the frame is the part of the
   /// keyboard that the bar doesn't already cover, so a `Scaffold` resizes for
@@ -34,31 +34,31 @@ enum DockBodyKeyboardBehavior {
 /// ancestor already made room (a `Scaffold` with `resizeToAvoidBottomInset`),
 /// it sees no keyboard, so nothing moves twice. The body follows [body].
 @immutable
-class DockKeyboard {
+class DuoKeyboard {
   /// The default: the column lifts, the bar is covered, the page decides
   /// about its body.
-  const DockKeyboard({
-    this.column = DockKeyboardBehavior.lift,
-    this.bar = DockKeyboardBehavior.ignore,
-    this.body = DockBodyKeyboardBehavior.passThrough,
+  const DuoKeyboard({
+    this.column = DuoKeyboardBehavior.lift,
+    this.bar = DuoKeyboardBehavior.ignore,
+    this.body = DuoBodyKeyboardBehavior.passThrough,
   });
 
-  /// The side column in wide mode. Default: [DockKeyboardBehavior.lift], so the
+  /// The side column in wide mode. Default: [DuoKeyboardBehavior.lift], so the
   /// page's actions stay reachable while typing.
-  final DockKeyboardBehavior column;
+  final DuoKeyboardBehavior column;
 
-  /// The tab bar in compact mode. Default: [DockKeyboardBehavior.ignore].
-  final DockKeyboardBehavior bar;
+  /// The tab bar in compact mode. Default: [DuoKeyboardBehavior.ignore].
+  final DuoKeyboardBehavior bar;
 
-  /// The body, in `DockBodyMode.inset`. Default:
-  /// [DockBodyKeyboardBehavior.passThrough], so a page's `Scaffold` and its
-  /// `resizeToAvoidBottomInset` decide. In `DockBodyMode.overlay` the page
+  /// The body, in `DuoBodyMode.inset`. Default:
+  /// [DuoBodyKeyboardBehavior.passThrough], so a page's `Scaffold` and its
+  /// `resizeToAvoidBottomInset` decide. In `DuoBodyMode.overlay` the page
   /// always handles the keyboard itself.
-  final DockBodyKeyboardBehavior body;
+  final DuoBodyKeyboardBehavior body;
 
   @override
   bool operator ==(Object other) =>
-      other is DockKeyboard &&
+      other is DuoKeyboard &&
       other.column == column &&
       other.bar == bar &&
       other.body == body;

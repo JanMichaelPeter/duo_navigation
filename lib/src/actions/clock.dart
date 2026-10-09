@@ -4,7 +4,7 @@ import 'package:flutter/scheduler.dart';
 ///
 /// Only differences between two readings matter, so any monotonic time base
 /// works.
-abstract interface class DockClock {
+abstract interface class DuoClock {
   /// Real time, or frame time where that moved further: each reading
   /// advances by the larger of the two since the last reading. The default.
   ///
@@ -12,23 +12,23 @@ abstract interface class DockClock {
   /// real time barely passes while `tester.pump(duration)` and
   /// `tester.pumpAndSettle()` advance the frame time, so the tap guard's
   /// cooldown passes as it does in the test, also without
-  /// `DockTestHarness`.
-  factory DockClock.system() = _SystemClock;
+  /// `DuoTestHarness`.
+  factory DuoClock.system() = _SystemClock;
 
   /// A monotonic stopwatch that starts when it is created: real time only.
-  factory DockClock.stopwatch() = _StopwatchClock;
+  factory DuoClock.stopwatch() = _StopwatchClock;
 
   /// The timestamp of the last frame
   /// ([SchedulerBinding.currentSystemFrameTimeStamp]). In widget tests,
   /// `tester.pump(duration)` advances it, so a test never waits on real time.
-  /// `DockTestHarness` uses this clock.
-  static const DockClock frameTime = _FrameTimeClock();
+  /// `DuoTestHarness` uses this clock.
+  static const DuoClock frameTime = _FrameTimeClock();
 
   /// The current time.
   Duration now();
 }
 
-class _SystemClock implements DockClock {
+class _SystemClock implements DuoClock {
   _SystemClock() : _stopwatch = Stopwatch()..start();
 
   final Stopwatch _stopwatch;
@@ -52,7 +52,7 @@ class _SystemClock implements DockClock {
   }
 }
 
-class _StopwatchClock implements DockClock {
+class _StopwatchClock implements DuoClock {
   _StopwatchClock() : _stopwatch = Stopwatch()..start();
 
   final Stopwatch _stopwatch;
@@ -61,7 +61,7 @@ class _StopwatchClock implements DockClock {
   Duration now() => _stopwatch.elapsed;
 }
 
-class _FrameTimeClock implements DockClock {
+class _FrameTimeClock implements DuoClock {
   const _FrameTimeClock();
 
   @override

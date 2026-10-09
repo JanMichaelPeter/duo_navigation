@@ -3,37 +3,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _tabs = [
-  DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+  DuoTab<Object?>(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab<Object?>(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
 ];
 
 Widget _app({
   EdgeInsets padding = EdgeInsets.zero,
-  DockNavigationData data = const DockNavigationData(),
+  DuoNavigationData data = const DuoNavigationData(),
 }) {
   return MaterialApp(
     builder: (context, child) => MediaQuery(
       data: MediaQuery.of(
         context,
       ).copyWith(padding: padding, viewPadding: padding),
-      child: DockNavigation(
-        builders: const DockMaterialBuilders(),
+      child: DuoNavigation(
+        builders: const DuoMaterialBuilders(),
         data: data,
         child: child!,
       ),
     ),
-    home: DockShell<Object?, Object?, Object?>(
+    home: DuoShell<Object?, Object?, Object?>(
       tabs: _tabs,
       currentIndex: 0,
       onTabSelected: (_) {},
       child: Navigator(
         onGenerateRoute: (_) => MaterialPageRoute(
-          builder: (_) => DockPage<Object?, Object?>(
+          builder: (_) => DuoPage<Object?, Object?>(
             title: const Text('Home'),
             trailing: [
-              DockAction<Object?>(
+              DuoAction<Object?>(
                 id: 'share',
-                icon: const DockIcon(Icons.share),
+                icon: const DuoIcon(Icons.share),
                 onPressed: () {},
               ),
             ],
@@ -49,7 +49,7 @@ void main() {
   Future<void> pumpWide(
     WidgetTester tester, {
     EdgeInsets? padding,
-    DockNavigationData data = const DockNavigationData(),
+    DuoNavigationData data = const DuoNavigationData(),
   }) async {
     tester.view.physicalSize = const Size(1000, 700);
     tester.view.devicePixelRatio = 1;
@@ -101,7 +101,7 @@ void main() {
     await pumpWide(
       tester,
       padding: const EdgeInsets.only(right: 90),
-      data: const DockNavigationData(columnInset: DockColumnInset.safeArea),
+      data: const DuoNavigationData(columnInset: DuoColumnInset.safeArea),
     );
     final rail = railRect(tester);
     // The 72 wide column starts after the 90 inset: 838 .. 910.
@@ -110,7 +110,7 @@ void main() {
   });
 
   testWidgets('sideItemExtent sizes both rail and chips', (tester) async {
-    await pumpWide(tester, data: const DockNavigationData(sideItemExtent: 64));
+    await pumpWide(tester, data: const DuoNavigationData(sideItemExtent: 64));
     expect(chipRect(tester).width, moreOrLessEquals(64));
     expect(railRect(tester).width, moreOrLessEquals(64));
   });
@@ -127,7 +127,7 @@ void main() {
     ]) {
       test('touches left=$l right=$r, prefer right=$prefer', () {
         expect(
-          DockWindowEdges(left: l, right: r).resolveRight(preferRight: prefer),
+          DuoWindowEdges(left: l, right: r).resolveRight(preferRight: prefer),
           expected,
         );
       });
@@ -138,10 +138,10 @@ void main() {
     ) async {
       await pumpWide(
         tester,
-        data: const DockNavigationData(
-          side: DockSide.end,
-          windowEdgesSource: DockWindowEdgesSource.fixed(
-            DockWindowEdges(left: true, right: false),
+        data: const DuoNavigationData(
+          side: DuoSide.end,
+          windowEdgesSource: DuoWindowEdgesSource.fixed(
+            DuoWindowEdges(left: true, right: false),
           ),
         ),
       );

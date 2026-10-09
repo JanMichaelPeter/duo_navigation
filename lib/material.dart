@@ -1,5 +1,5 @@
-/// Material 3 visuals for duo_navigation: [DockMaterialBuilders] sets every builder,
-/// [DockMaterial] has the functions behind them, and [DockAppBar] is the title
+/// Material 3 visuals for duo_navigation: [DuoMaterialBuilders] sets every builder,
+/// [DuoMaterial] has the functions behind them, and [DuoAppBar] is the title
 /// bar for pages with their own `Scaffold`.
 ///
 /// It exports `package:duo_navigation/duo_navigation.dart` too, so a Material app needs
@@ -8,7 +8,7 @@
 /// ```dart
 /// import 'package:duo_navigation/material.dart';
 ///
-/// DockNavigation(builders: const DockMaterialBuilders(), child: ...)
+/// DuoNavigation(builders: const DuoMaterialBuilders(), child: ...)
 /// ```
 library;
 

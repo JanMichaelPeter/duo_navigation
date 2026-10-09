@@ -9,9 +9,9 @@ import 'package:flutter/widgets.dart';
 /// space is short (a phone in landscape, large text, the keyboard), the tabs
 /// stay reachable and the action stack scrolls. Use it in custom
 /// `sideColumn` builders; the Material default does.
-class DockSideColumnLayout extends StatelessWidget {
+class DuoSideColumnLayout extends StatelessWidget {
   /// Places [actions] above [rail], [gap] apart.
-  const DockSideColumnLayout({
+  const DuoSideColumnLayout({
     super.key,
     required this.actions,
     this.rail,

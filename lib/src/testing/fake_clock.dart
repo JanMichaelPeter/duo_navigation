@@ -1,13 +1,13 @@
 import '../actions/clock.dart';
 
-/// A [DockClock] that only moves when a test [advance]s it.
+/// A [DuoClock] that only moves when a test [advance]s it.
 ///
-/// Most tests don't need it: `DockTestHarness` uses [DockClock.frameTime],
+/// Most tests don't need it: `DuoTestHarness` uses [DuoClock.frameTime],
 /// which `tester.pump(duration)` advances. Use this one to control the tap
 /// guard's time independently of frames.
-class FakeDockClock implements DockClock {
+class FakeDuoClock implements DuoClock {
   /// Starts at [elapsed].
-  FakeDockClock([this.elapsed = Duration.zero]);
+  FakeDuoClock([this.elapsed = Duration.zero]);
 
   /// The current time.
   Duration elapsed;

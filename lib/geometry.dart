@@ -3,9 +3,9 @@
 /// widgets, without the page, action or builder types.
 library;
 
-export 'src/bleed/bleed.dart' show DockBleed, DockBleedItem, DockInset;
+export 'src/bleed/bleed.dart' show DuoBleed, DuoBleedItem, DuoInset;
 export 'src/geometry/body_mode.dart';
-export 'src/geometry/dock_geometry.dart' show DockGeometry, DockGeometryAspect;
+export 'src/geometry/dock_geometry.dart' show DuoGeometry, DuoGeometryAspect;
 export 'src/geometry/layout_mode.dart';
 export 'src/geometry/layout_policy.dart';
 export 'src/geometry/side.dart';
