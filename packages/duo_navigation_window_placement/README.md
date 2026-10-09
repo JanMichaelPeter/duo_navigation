@@ -8,8 +8,8 @@ follows the window to the screen edge in split screen and windowing.
 ```dart
 final windowEdges = WindowPlacementEdgesSource(); // create once, dispose with the app
 
-DockNavigation(
-  data: DockNavigationData(windowEdgesSource: windowEdges),
+DuoNavigation(
+  data: DuoNavigationData(windowEdgesSource: windowEdges),
   child: ...,
 )
 ```

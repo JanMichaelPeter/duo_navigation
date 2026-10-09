@@ -7,20 +7,20 @@ import 'package:flutter/widgets.dart';
 ///
 /// * Normally: leading at the start, then the title, the actions at the end.
 /// * With [actionsAtStart] (the side column is at the start edge, see
-///   `DockBarData.trailingAtStart`): leading, then the actions, then the
+///   `DuoBarData.trailingAtStart`): leading, then the actions, then the
 ///   title, so everything the thumb needs sits on the column's side.
-/// * With [leadingAtEnd] (`DockBarData.leadingAtEnd`): the leading action
+/// * With [leadingAtEnd] (`DuoBarData.leadingAtEnd`): the leading action
 ///   sits at the end edge, after the actions (a close action at the top
 ///   right).
 /// * With [centerTitle]: the title is centered on the whole bar, as far as
 ///   the actions on either side allow.
 ///
 /// It works with or without a leading action in every mode and mirrors in
-/// right-to-left layouts. The default `DockAppBar` uses it; use it in custom
+/// right-to-left layouts. The default `DuoAppBar` uses it; use it in custom
 /// bars so they don't re-implement the mirroring.
-class DockBarLayout extends StatelessWidget {
+class DuoBarLayout extends StatelessWidget {
   /// Lays out the given parts; all are optional.
-  const DockBarLayout({
+  const DuoBarLayout({
     super.key,
     this.leading,
     this.title,

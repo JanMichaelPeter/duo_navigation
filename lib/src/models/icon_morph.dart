@@ -2,31 +2,31 @@ import 'package:flutter/widgets.dart';
 
 import 'dock_icon.dart';
 
-/// Builds a widget for a [DockIcon], in a design system's own way.
-typedef DockIconWidgetBuilder =
-    Widget Function(BuildContext context, DockIcon icon);
+/// Builds a widget for a [DuoIcon], in a design system's own way.
+typedef DuoIconWidgetBuilder =
+    Widget Function(BuildContext context, DuoIcon icon);
 
 /// Shows [icon] with [builder] and cross-fades when it changes, such as back
 /// turning into close or a star into a filled star.
 ///
-/// Icons are told apart by [DockIcon.identity], so rebuilding the same icon
+/// Icons are told apart by [DuoIcon.identity], so rebuilding the same icon
 /// doesn't restart the animation; give custom widget icons an identity
-/// (`DockIcon.widget(w, identity: ...)`). With reduced motion
+/// (`DuoIcon.widget(w, identity: ...)`). With reduced motion
 /// (`MediaQuery.disableAnimations`) it swaps without animating.
 ///
 /// Action builders use it with their own icon rendering:
 ///
 /// ```dart
 /// action: (context, action, placement) => MyIconButton(
-///   icon: DockIconMorph(icon: action.icon!, builder: (context, icon) => MyIcon.of(icon)),
+///   icon: DuoIconMorph(icon: action.icon!, builder: (context, icon) => MyIcon.of(icon)),
 ///   onPressed: action.onPressed,
 /// ),
 /// ```
 ///
-/// `DockMaterial.morphingIcon` is this with Material icons.
-class DockIconMorph extends StatelessWidget {
+/// `DuoMaterial.morphingIcon` is this with Material icons.
+class DuoIconMorph extends StatelessWidget {
   /// Shows [icon] with [builder], cross-fading when it changes.
-  const DockIconMorph({
+  const DuoIconMorph({
     super.key,
     required this.icon,
     required this.builder,
@@ -34,10 +34,10 @@ class DockIconMorph extends StatelessWidget {
   });
 
   /// The icon to show.
-  final DockIcon icon;
+  final DuoIcon icon;
 
   /// Builds the widget for an icon.
-  final DockIconWidgetBuilder builder;
+  final DuoIconWidgetBuilder builder;
 
   /// How long the cross-fade takes.
   final Duration duration;

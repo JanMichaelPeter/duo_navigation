@@ -1,5 +1,5 @@
 /// How a frame lays out its body relative to the tab bar and the side column.
-enum DockBodyMode {
+enum DuoBodyMode {
   /// The body is laid out in the free area beside the column or above the
   /// bar. Below the frame, `MediaQuery.padding` is zero on the edges the
   /// chrome covers, so `SafeArea` and `Scaffold` work unchanged.

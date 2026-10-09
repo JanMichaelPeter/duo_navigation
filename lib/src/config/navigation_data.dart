@@ -17,23 +17,23 @@ const Object _unset = Object();
 /// the column prefers, where window edges come from, and the column's sizes and
 /// timings.
 ///
-/// It has value equality, so rebuilding `DockNavigation` with equal data
+/// It has value equality, so rebuilding `DuoNavigation` with equal data
 /// notifies no dependents.
 ///
-/// The visuals are not part of it: see `DockBuilders`.
+/// The visuals are not part of it: see `DuoBuilders`.
 @immutable
-class DockNavigationData {
+class DuoNavigationData {
   /// Every argument is optional; the defaults are Material 3.
-  const DockNavigationData({
-    this.layoutPolicy = const DockLayoutPolicy.shortestSide(600),
-    this.side = DockSide.end,
+  const DuoNavigationData({
+    this.layoutPolicy = const DuoLayoutPolicy.shortestSide(600),
+    this.side = DuoSide.end,
     this.windowEdgesSource,
-    this.bodyMode = DockBodyMode.inset,
-    this.hoisting = DockHoisting.iconActions,
-    this.modalLeading = const DockModalLeading(),
-    this.keyboard = const DockKeyboard(),
+    this.bodyMode = DuoBodyMode.inset,
+    this.hoisting = DuoHoisting.iconActions,
+    this.modalLeading = const DuoModalLeading(),
+    this.keyboard = const DuoKeyboard(),
     this.sideColumnWidth = 72,
-    this.columnInset = DockColumnInset.overlap,
+    this.columnInset = DuoColumnInset.overlap,
     this.columnTextScaleLimit = 1.5,
     this.sideItemExtent = 56,
     this.actionSpacing = 8,
@@ -41,17 +41,17 @@ class DockNavigationData {
     this.actionAnimationCurve = Curves.easeOutCubic,
     this.visibilityDuration = const Duration(milliseconds: 250),
     this.visibilityCurve = Curves.easeInOutCubic,
-    this.tapGuard = const DockTapGuard(),
+    this.tapGuard = const DuoTapGuard(),
   });
 
   /// Decides between the compact and the wide layout. Default:
-  /// `DockLayoutPolicy.shortestSide(600)`, wide when the window's shorter
+  /// `DuoLayoutPolicy.shortestSide(600)`, wide when the window's shorter
   /// side is at least 600, so phones stay compact in landscape.
-  final DockLayoutPolicy layoutPolicy;
+  final DuoLayoutPolicy layoutPolicy;
 
   /// Preferred edge for the side column. Used unless [windowEdgesSource]
   /// reports that the window touches only the other edge of the display.
-  final DockSide side;
+  final DuoSide side;
 
   /// Where the window's display edges come from (split screen, windowing).
   ///
@@ -60,36 +60,36 @@ class DockNavigationData {
   /// it sits at the screen border instead of in the middle of the display. In
   /// every other case (fullscreen, floating, unknown) [side] is used. Null: no
   /// detection, always [side].
-  final DockWindowEdgesSource? windowEdgesSource;
+  final DuoWindowEdgesSource? windowEdgesSource;
 
   /// How frames lay out their body: beside the bar and column
-  /// ([DockBodyMode.inset], the default) or under them
-  /// ([DockBodyMode.overlay]). `DockShell` and `DockModalScope` can override
+  /// ([DuoBodyMode.inset], the default) or under them
+  /// ([DuoBodyMode.overlay]). `DuoShell` and `DuoModalScope` can override
   /// it.
-  final DockBodyMode bodyMode;
+  final DuoBodyMode bodyMode;
 
-  /// Whether icon actions move into the side column in wide mode. `DockShell`,
-  /// `DockModalScope` and `DockPageScope` can override it.
-  final DockHoisting hoisting;
+  /// Whether icon actions move into the side column in wide mode. `DuoShell`,
+  /// `DuoModalScope` and `DuoPageScope` can override it.
+  final DuoHoisting hoisting;
 
   /// The leading action of every modal's first page, for example
-  /// `DockModalLeading(implied: DockImpliedLeading.close, atEnd: true)` for
+  /// `DuoModalLeading(implied: DuoImpliedLeading.close, atEnd: true)` for
   /// an "X" at the top right of every modal. It applies to modal starts only
-  /// (see [DockModalLeading]); `DockModalScope` and the page override it.
-  final DockModalLeading modalLeading;
+  /// (see [DuoModalLeading]); `DuoModalScope` and the page override it.
+  final DuoModalLeading modalLeading;
 
   /// What the column and the bar do while the software keyboard is open.
   /// Default: the column lifts above it, the bar is covered.
-  final DockKeyboard keyboard;
+  final DuoKeyboard keyboard;
 
-  /// Width of the side column. With [DockColumnInset.safeArea] it also
+  /// Width of the side column. With [DuoColumnInset.safeArea] it also
   /// covers the system inset on its edge.
   final double sideColumnWidth;
 
   /// Whether the column sits over the system inset on its edge
-  /// ([DockColumnInset.overlap], the default: at the window edge) or after it
-  /// ([DockColumnInset.safeArea]: clear of cutouts and system buttons).
-  final DockColumnInset columnInset;
+  /// ([DuoColumnInset.overlap], the default: at the window edge) or after it
+  /// ([DuoColumnInset.safeArea]: clear of cutouts and system buttons).
+  final DuoColumnInset columnInset;
 
   /// How far the column grows with the text scale: its width is
   /// [sideColumnWidth] times the text scale, at most this factor.
@@ -117,21 +117,21 @@ class DockNavigationData {
   final Curve visibilityCurve;
 
   /// Guards action taps against double taps and taps during route
-  /// transitions. [DockTapGuard.disabled] lets every tap through.
-  final DockTapGuard tapGuard;
+  /// transitions. [DuoTapGuard.disabled] lets every tap through.
+  final DuoTapGuard tapGuard;
 
   /// A copy with the given fields replaced. Pass null for [windowEdgesSource]
   /// to remove it.
-  DockNavigationData copyWith({
-    DockLayoutPolicy? layoutPolicy,
-    DockSide? side,
+  DuoNavigationData copyWith({
+    DuoLayoutPolicy? layoutPolicy,
+    DuoSide? side,
     Object? windowEdgesSource = _unset,
-    DockBodyMode? bodyMode,
-    DockHoisting? hoisting,
-    DockModalLeading? modalLeading,
-    DockKeyboard? keyboard,
+    DuoBodyMode? bodyMode,
+    DuoHoisting? hoisting,
+    DuoModalLeading? modalLeading,
+    DuoKeyboard? keyboard,
     double? sideColumnWidth,
-    DockColumnInset? columnInset,
+    DuoColumnInset? columnInset,
     double? columnTextScaleLimit,
     double? sideItemExtent,
     double? actionSpacing,
@@ -139,14 +139,14 @@ class DockNavigationData {
     Curve? actionAnimationCurve,
     Duration? visibilityDuration,
     Curve? visibilityCurve,
-    DockTapGuard? tapGuard,
+    DuoTapGuard? tapGuard,
   }) {
-    return DockNavigationData(
+    return DuoNavigationData(
       layoutPolicy: layoutPolicy ?? this.layoutPolicy,
       side: side ?? this.side,
       windowEdgesSource: identical(windowEdgesSource, _unset)
           ? this.windowEdgesSource
-          : windowEdgesSource as DockWindowEdgesSource?,
+          : windowEdgesSource as DuoWindowEdgesSource?,
       bodyMode: bodyMode ?? this.bodyMode,
       hoisting: hoisting ?? this.hoisting,
       modalLeading: modalLeading ?? this.modalLeading,
@@ -167,7 +167,7 @@ class DockNavigationData {
 
   @override
   bool operator ==(Object other) =>
-      other is DockNavigationData &&
+      other is DuoNavigationData &&
       other.layoutPolicy == layoutPolicy &&
       other.side == side &&
       other.windowEdgesSource == windowEdgesSource &&

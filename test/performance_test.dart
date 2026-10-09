@@ -23,13 +23,13 @@ class _BodyProbe extends StatelessWidget {
   }
 }
 
-List<DockTab<Object?>> _tabs({int badge = 1}) => [
+List<DuoTab<Object?>> _tabs({int badge = 1}) => [
   for (var i = 0; i < 5; i++)
-    DockTab(
+    DuoTab(
       id: i,
-      icon: const DockIcon(Icons.star),
+      icon: const DuoIcon(Icons.star),
       label: 'Tab $i',
-      badge: i == 0 ? DockBadge.count(badge) : null,
+      badge: i == 0 ? DuoBadge.count(badge) : null,
     ),
 ];
 
@@ -57,7 +57,7 @@ class _SceneState extends State<_Scene> {
   Widget build(BuildContext context) {
     return ListenableBuilder(
       listenable: Listenable.merge([widget.visible, widget.badge]),
-      builder: (context, _) => DockShell<Object?, Object?, Object?>(
+      builder: (context, _) => DuoShell<Object?, Object?, Object?>(
         tabs: _tabs(badge: widget.badge.value),
         currentIndex: _index,
         onTabSelected: (i) => setState(() => _index = i),
@@ -80,13 +80,13 @@ void main() {
     badge = ValueNotifier(1);
     body = Navigator(
       onGenerateRoute: (_) => MaterialPageRoute<void>(
-        builder: (_) => DockPage<Object?, Object?>(
+        builder: (_) => DuoPage<Object?, Object?>(
           title: const Text('Page'),
           trailing: [
             for (var i = 0; i < 4; i++)
-              DockAction<Object?>(
+              DuoAction<Object?>(
                 id: 'a$i',
-                icon: const DockIcon(Icons.share),
+                icon: const DuoIcon(Icons.share),
                 tooltip: 'Action $i',
                 onPressed: () {},
               ),
@@ -101,14 +101,14 @@ void main() {
     badge.dispose();
   });
 
-  Future<void> pump(WidgetTester tester, DockLayoutMode mode) async {
+  Future<void> pump(WidgetTester tester, DuoLayoutMode mode) async {
     tester.view.physicalSize = const Size(1000, 700);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MaterialApp(
-        builder: (context, child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
+        builder: (context, child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
           mode: mode,
           child: child!,
         ),
@@ -130,7 +130,7 @@ void main() {
     return count;
   }
 
-  for (final mode in DockLayoutMode.values) {
+  for (final mode in DuoLayoutMode.values) {
     group(mode.name, () {
       testWidgets('chrome changes do not rebuild the body', (tester) async {
         await pump(tester, mode);
@@ -160,10 +160,10 @@ void main() {
       testWidgets('rebuild budgets', (tester) async {
         await pump(tester, mode);
         final tabSwitch = await rebuilds(() async {
-          await tester.tap(find.byKey(DockKeys.tab(1)));
+          await tester.tap(find.byKey(DuoKeys.tab(1)));
           await tester.pumpAndSettle();
         });
-        await tester.tap(find.byKey(DockKeys.tab(0)));
+        await tester.tap(find.byKey(DuoKeys.tab(0)));
         await tester.pumpAndSettle();
 
         visible.value = false;
@@ -177,7 +177,7 @@ void main() {
         // switch with its selection animation rebuilt 295-300 widgets in
         // compact mode and 545-554 in wide mode; one tick of the hide
         // animation 14 and 22.
-        final budget = mode == DockLayoutMode.compact
+        final budget = mode == DuoLayoutMode.compact
             ? (tabSwitch: 400, tick: 20)
             : (tabSwitch: 750, tick: 30);
         expect(tabSwitch, lessThanOrEqualTo(budget.tabSwitch));

@@ -5,20 +5,20 @@ import 'package:flutter/foundation.dart';
 /// It is a description; the builders draw it. The package adds [count] and
 /// [text] to the item's semantics.
 @immutable
-class DockBadge {
+class DuoBadge {
   /// A number, such as unread messages.
-  const DockBadge.count(int this.count) : text = null;
+  const DuoBadge.count(int this.count) : text = null;
 
   /// A short text, such as "new".
-  const DockBadge.text(String this.text) : count = null;
+  const DuoBadge.text(String this.text) : count = null;
 
   /// A dot without content.
-  const DockBadge.dot() : count = null, text = null;
+  const DuoBadge.dot() : count = null, text = null;
 
-  /// The number, for [DockBadge.count].
+  /// The number, for [DuoBadge.count].
   final int? count;
 
-  /// The text, for [DockBadge.text].
+  /// The text, for [DuoBadge.text].
   final String? text;
 
   /// Whether this is a dot without content.
@@ -29,11 +29,11 @@ class DockBadge {
 
   @override
   bool operator ==(Object other) =>
-      other is DockBadge && other.count == count && other.text == text;
+      other is DuoBadge && other.count == count && other.text == text;
 
   @override
   int get hashCode => Object.hash(count, text);
 
   @override
-  String toString() => isDot ? 'DockBadge.dot()' : 'DockBadge($label)';
+  String toString() => isDot ? 'DuoBadge.dot()' : 'DuoBadge($label)';
 }

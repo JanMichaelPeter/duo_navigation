@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:duo_navigation/material.dart';
 import 'package:duo_navigation/testing.dart';
 
-const _tabs = <DockTab<Object?>>[
-  DockTab(id: 'a', icon: DockIcon(Icons.home), label: 'A'),
-  DockTab(id: 'b', icon: DockIcon(Icons.person), label: 'B'),
+const _tabs = <DuoTab<Object?>>[
+  DuoTab(id: 'a', icon: DuoIcon(Icons.home), label: 'A'),
+  DuoTab(id: 'b', icon: DuoIcon(Icons.person), label: 'B'),
 ];
 
 void main() {
@@ -37,9 +37,9 @@ void main() {
     var index = 0;
     await tester.pumpWidget(
       MaterialApp(
-        builder: (context, child) => DockTestHarness(
-          builders: const DockMaterialBuilders(),
-          mode: DockLayoutMode.compact,
+        builder: (context, child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders(),
+          mode: DuoLayoutMode.compact,
           child: child!,
         ),
         home: NotificationListener<NavigationNotification>(
@@ -48,25 +48,24 @@ void main() {
             return false;
           },
           child: StatefulBuilder(
-            builder: (context, setState) =>
-                DockShell<Object?, Object?, Object?>(
-                  tabs: _tabs,
-                  currentIndex: index,
-                  onTabSelected: (i) => setState(() => index = i),
-                  child: DockTabStack(
-                    index: index,
-                    lazy: false,
-                    children: [
-                      for (var i = 0; i < 2; i++)
-                        DockTabNavigator(
-                          navigatorKey: navigators[i],
-                          onGenerateRoute: (_) => MaterialPageRoute<void>(
-                            builder: (_) => Text('root $i'),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+            builder: (context, setState) => DuoShell<Object?, Object?, Object?>(
+              tabs: _tabs,
+              currentIndex: index,
+              onTabSelected: (i) => setState(() => index = i),
+              child: DuoTabStack(
+                index: index,
+                lazy: false,
+                children: [
+                  for (var i = 0; i < 2; i++)
+                    DuoTabNavigator(
+                      navigatorKey: navigators[i],
+                      onGenerateRoute: (_) => MaterialPageRoute<void>(
+                        builder: (_) => Text('root $i'),
+                      ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -107,10 +106,10 @@ void main() {
     tester,
   ) async {
     await pump(tester);
-    await tester.tap(find.byKey(DockKeys.tab('b')));
+    await tester.tap(find.byKey(DuoKeys.tab('b')));
     await tester.pumpAndSettle();
     await push(tester, 1);
-    await tester.tap(find.byKey(DockKeys.tab('a')));
+    await tester.tap(find.byKey(DuoKeys.tab('a')));
     await tester.pumpAndSettle();
 
     await systemBack(tester);
@@ -122,13 +121,13 @@ void main() {
     tester,
   ) async {
     await pump(tester);
-    await tester.tap(find.byKey(DockKeys.tab('b')));
+    await tester.tap(find.byKey(DuoKeys.tab('b')));
     await tester.pumpAndSettle();
     await push(tester, 1);
     expect(canHandlePop.last, isTrue);
 
     // Back on tab a, which has nothing to pop.
-    await tester.tap(find.byKey(DockKeys.tab('a')));
+    await tester.tap(find.byKey(DuoKeys.tab('a')));
     await tester.pumpAndSettle();
     expect(canHandlePop.last, isFalse);
 
@@ -138,14 +137,14 @@ void main() {
     expect(canHandlePop, isEmpty);
 
     // Showing it again announces its pages.
-    await tester.tap(find.byKey(DockKeys.tab('b')));
+    await tester.tap(find.byKey(DuoKeys.tab('b')));
     await tester.pumpAndSettle();
     expect(canHandlePop.last, isTrue);
   });
 
   test('a navigator key passed as key is reported', () {
     expect(
-      () => DockTabNavigator(key: GlobalKey<NavigatorState>()),
+      () => DuoTabNavigator(key: GlobalKey<NavigatorState>()),
       throwsA(
         isA<AssertionError>().having(
           (e) => e.message,
@@ -155,15 +154,15 @@ void main() {
       ),
     );
     // Other keys are fine.
-    expect(() => DockTabNavigator(key: GlobalKey()), returnsNormally);
-    expect(() => const DockTabNavigator(key: ValueKey('tab')), returnsNormally);
+    expect(() => DuoTabNavigator(key: GlobalKey()), returnsNormally);
+    expect(() => const DuoTabNavigator(key: ValueKey('tab')), returnsNormally);
   });
 
   testWidgets('does not clip', (tester) async {
     await pump(tester);
     final navigator = tester.widget<Navigator>(
       find.descendant(
-        of: find.byType(DockTabNavigator).first,
+        of: find.byType(DuoTabNavigator).first,
         matching: find.byType(Navigator),
       ),
     );

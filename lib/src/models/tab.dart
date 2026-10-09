@@ -11,9 +11,9 @@ const Object _unset = Object();
 /// [T] is the type of [payload]: app data for custom builders, such as a
 /// design system's tab item. Builders get it typed, without a cast.
 @immutable
-class DockTab<T> {
+class DuoTab<T> {
   /// A destination identified by [id], with an [icon] and usually a [label].
-  const DockTab({
+  const DuoTab({
     required this.id,
     required this.icon,
     this.selectedIcon,
@@ -25,21 +25,21 @@ class DockTab<T> {
     this.payload,
   });
 
-  /// Identifies the tab: `DockKeys.tab(id)` finds it, and focus follows it
+  /// Identifies the tab: `DuoKeys.tab(id)` finds it, and focus follows it
   /// across layout changes.
   final Object id;
 
   /// The icon when not selected, and when selected without [selectedIcon].
-  final DockIcon icon;
+  final DuoIcon icon;
 
   /// The icon when selected.
-  final DockIcon? selectedIcon;
+  final DuoIcon? selectedIcon;
 
   /// The label: under the icon in the tab bar, the tooltip in the rail.
   final String? label;
 
   /// A badge, drawn by the builders and read by assistive technology.
-  final DockBadge? badge;
+  final DuoBadge? badge;
 
   /// The tooltip; defaults to [label].
   final String? tooltip;
@@ -49,21 +49,21 @@ class DockTab<T> {
   final String? semanticLabel;
 
   /// A key of the app's own (for example for UI tests), placed around the
-  /// tab's item in the bar and in the rail, inside `DockKeys.tab(id)`.
+  /// tab's item in the bar and in the rail, inside `DuoKeys.tab(id)`.
   final Key? key;
 
   /// App data for custom builders.
   final T? payload;
 
   /// The icon for the [selected] state.
-  DockIcon iconFor({required bool selected}) =>
+  DuoIcon iconFor({required bool selected}) =>
       selected ? (selectedIcon ?? icon) : icon;
 
   /// A copy with the given fields replaced. Pass null for a nullable field to
   /// clear it.
-  DockTab<T> copyWith({
+  DuoTab<T> copyWith({
     Object? id,
-    DockIcon? icon,
+    DuoIcon? icon,
     Object? selectedIcon = _unset,
     Object? label = _unset,
     Object? badge = _unset,
@@ -72,14 +72,14 @@ class DockTab<T> {
     Object? key = _unset,
     Object? payload = _unset,
   }) {
-    return DockTab<T>(
+    return DuoTab<T>(
       id: id ?? this.id,
       icon: icon ?? this.icon,
       selectedIcon: identical(selectedIcon, _unset)
           ? this.selectedIcon
-          : selectedIcon as DockIcon?,
+          : selectedIcon as DuoIcon?,
       label: identical(label, _unset) ? this.label : label as String?,
-      badge: identical(badge, _unset) ? this.badge : badge as DockBadge?,
+      badge: identical(badge, _unset) ? this.badge : badge as DuoBadge?,
       tooltip: identical(tooltip, _unset) ? this.tooltip : tooltip as String?,
       semanticLabel: identical(semanticLabel, _unset)
           ? this.semanticLabel
@@ -91,7 +91,7 @@ class DockTab<T> {
 
   @override
   bool operator ==(Object other) =>
-      other is DockTab<T> &&
+      other is DuoTab<T> &&
       other.id == id &&
       other.icon == icon &&
       other.selectedIcon == selectedIcon &&

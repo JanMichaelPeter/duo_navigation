@@ -2,7 +2,7 @@
 /// fakes for window edges and time, and keys to find the chrome.
 ///
 /// This library does not depend on `flutter_test`, so importing it adds no
-/// dependency. Find widgets with `find.byKey(DockKeys.action('share'))`.
+/// dependency. Find widgets with `find.byKey(DuoKeys.action('share'))`.
 library;
 
 export 'src/keys.dart';

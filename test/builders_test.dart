@@ -4,14 +4,14 @@ import 'package:duo_navigation/material.dart';
 import 'package:duo_navigation/testing.dart';
 
 const _tabs = [
-  DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+  DuoTab<Object?>(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab<Object?>(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
 ];
 
 Widget _shell({
-  DockBuilders<Object?, Object?, Object?>? builders,
+  DuoBuilders<Object?, Object?, Object?>? builders,
   Widget child = const SizedBox(),
-}) => DockShell<Object?, Object?, Object?>(
+}) => DuoShell<Object?, Object?, Object?>(
   tabs: _tabs,
   currentIndex: 0,
   onTabSelected: (_) {},
@@ -22,12 +22,12 @@ Widget _shell({
 /// A page with one 'share' icon action.
 Widget _page() => Navigator(
   onGenerateRoute: (_) => MaterialPageRoute<void>(
-    builder: (_) => DockPage<Object?, Object?>(
+    builder: (_) => DuoPage<Object?, Object?>(
       title: const Text('Page'),
       trailing: [
-        DockAction<Object?>(
+        DuoAction<Object?>(
           id: 'share',
-          icon: const DockIcon(Icons.share),
+          icon: const DuoIcon(Icons.share),
           onPressed: () {},
         ),
       ],
@@ -50,14 +50,14 @@ void main() {
   Future<void> pump(
     WidgetTester tester,
     Widget home, {
-    DockBuilders<Object?, Object?, Object?>? builders =
-        const DockMaterialBuilders(),
-    DockLayoutMode mode = DockLayoutMode.compact,
+    DuoBuilders<Object?, Object?, Object?>? builders =
+        const DuoMaterialBuilders(),
+    DuoLayoutMode mode = DuoLayoutMode.compact,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
         builder: (context, child) =>
-            DockTestHarness(builders: builders, mode: mode, child: child!),
+            DuoTestHarness(builders: builders, mode: mode, child: child!),
         home: home,
       ),
     );
@@ -72,26 +72,26 @@ void main() {
         (e) => e.toStringDeep(),
         'message',
         allOf(
-          contains('No DockBuilders.tabBar found.'),
-          contains('DockMaterialBuilders'),
+          contains('No DuoBuilders.tabBar found.'),
+          contains('DuoMaterialBuilders'),
         ),
       ),
     );
   });
 
   testWidgets('reading the layout needs no builders', (tester) async {
-    late DockLayoutMode mode;
+    late DuoLayoutMode mode;
     await pump(
       tester,
       Builder(
         builder: (context) {
-          mode = DockNavigation.modeOf(context);
+          mode = DuoNavigation.modeOf(context);
           return const SizedBox();
         },
       ),
       builders: null,
     );
-    expect(mode, DockLayoutMode.compact);
+    expect(mode, DuoLayoutMode.compact);
     expect(tester.takeException(), isNull);
   });
 
@@ -104,7 +104,7 @@ void main() {
         children: [
           Expanded(
             child: _shell(
-              builders: DockBuilders<Object?, Object?, Object?>(
+              builders: DuoBuilders<Object?, Object?, Object?>(
                 tabBar: (context, tabs, items) => const Text('custom bar'),
               ),
             ),
@@ -123,18 +123,18 @@ void main() {
     await pump(
       tester,
       _shell(
-        builders: DockBuilders<Object?, Object?, Object?>(
+        builders: DuoBuilders<Object?, Object?, Object?>(
           action: (context, action, placement) => Text('chip ${action.id}'),
         ),
         child: _page(),
       ),
-      mode: DockLayoutMode.wide,
+      mode: DuoLayoutMode.wide,
     );
     expect(find.text('chip share'), findsOneWidget);
     // The rail still comes from the app's Material builders.
     expect(
       find.descendant(
-        of: find.byKey(DockKeys.rail),
+        of: find.byKey(DuoKeys.rail),
         matching: find.byType(IconButton),
       ),
       findsNWidgets(2),
@@ -147,7 +147,7 @@ void main() {
       _Marker(
         label: 'from around the shell',
         child: _shell(
-          builders: DockBuilders<Object?, Object?, Object?>(
+          builders: DuoBuilders<Object?, Object?, Object?>(
             tabBar: (context, tabs, items) => Text(
               context.dependOnInheritedWidgetOfExactType<_Marker>()!.label,
             ),
@@ -158,12 +158,12 @@ void main() {
     expect(find.text('from around the shell'), findsOneWidget);
   });
 
-  testWidgets('a DockBuildersScope overrides a subtree', (tester) async {
+  testWidgets('a DuoBuildersScope overrides a subtree', (tester) async {
     await pump(
       tester,
       _shell(
-        child: DockBuildersScope(
-          builders: DockBuilders<Object?, Object?, Object?>(
+        child: DuoBuildersScope(
+          builders: DuoBuilders<Object?, Object?, Object?>(
             page: (context, bar, body) => const Text('custom page'),
           ),
           child: _page(),
@@ -174,50 +174,50 @@ void main() {
     expect(find.byType(NavigationBar), findsOneWidget);
   });
 
-  group('DockBuilders', () {
+  group('DuoBuilders', () {
     Widget bar(
       BuildContext context,
-      DockTabsData<Object?> data,
+      DuoTabsData<Object?> data,
       List<Widget> items,
     ) => const SizedBox();
 
     test('merge: the other side wins where it is set', () {
-      const material = DockMaterialBuilders<Object?, Object?, Object?>();
+      const material = DuoMaterialBuilders<Object?, Object?, Object?>();
       final merged = material.merge(
-        DockBuilders<Object?, Object?, Object?>(tabBar: bar),
+        DuoBuilders<Object?, Object?, Object?>(tabBar: bar),
       );
       expect(merged.tabBar, bar);
       expect(merged.rail, material.rail);
       expect(merged.page, material.page);
       expect(material.merge(null), same(material));
       expect(
-        material.merge(const DockBuilders<Object?, Object?, Object?>()),
+        material.merge(const DuoBuilders<Object?, Object?, Object?>()),
         material,
       );
     });
 
     test('has value equality', () {
       expect(
-        DockBuilders<Object?, Object?, Object?>(tabBar: bar),
-        DockBuilders<Object?, Object?, Object?>(tabBar: bar),
+        DuoBuilders<Object?, Object?, Object?>(tabBar: bar),
+        DuoBuilders<Object?, Object?, Object?>(tabBar: bar),
       );
       expect(
-        DockBuilders<Object?, Object?, Object?>(tabBar: bar),
-        isNot(const DockBuilders<Object?, Object?, Object?>()),
+        DuoBuilders<Object?, Object?, Object?>(tabBar: bar),
+        isNot(const DuoBuilders<Object?, Object?, Object?>()),
       );
       expect(
-        const DockMaterialBuilders<Object?, Object?, Object?>(),
-        const DockBuilders<Object?, Object?, Object?>(
-          tabItem: DockMaterial.tabItem,
-          tabBar: DockMaterial.tabBar,
-          rail: DockMaterial.rail,
-          action: DockMaterial.action,
-          page: DockMaterial.page,
-          sideColumn: DockMaterial.sideColumn,
-          actionTransition: DockMaterial.actionTransition,
-          backdrop: DockMaterial.backdrop,
-          tabPosition: DockMaterial.tabPosition,
-          actionLabel: DockMaterial.actionLabel,
+        const DuoMaterialBuilders<Object?, Object?, Object?>(),
+        const DuoBuilders<Object?, Object?, Object?>(
+          tabItem: DuoMaterial.tabItem,
+          tabBar: DuoMaterial.tabBar,
+          rail: DuoMaterial.rail,
+          action: DuoMaterial.action,
+          page: DuoMaterial.page,
+          sideColumn: DuoMaterial.sideColumn,
+          actionTransition: DuoMaterial.actionTransition,
+          backdrop: DuoMaterial.backdrop,
+          tabPosition: DuoMaterial.tabPosition,
+          actionLabel: DuoMaterial.actionLabel,
         ),
       );
     });

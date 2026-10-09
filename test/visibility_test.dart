@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:duo_navigation/material.dart';
 import 'package:duo_navigation/testing.dart';
 
-const _tabs = <DockTab<Object?>>[
-  DockTab(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+const _tabs = <DuoTab<Object?>>[
+  DuoTab(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
 ];
 
 const _body = Key('body');
@@ -17,7 +17,7 @@ void main() {
 
   Future<void> pump(
     WidgetTester tester, {
-    DockLayoutMode mode = DockLayoutMode.wide,
+    DuoLayoutMode mode = DuoLayoutMode.wide,
     Widget? page,
     bool disableAnimations = false,
   }) async {
@@ -30,15 +30,15 @@ void main() {
           data: MediaQuery.of(
             context,
           ).copyWith(disableAnimations: disableAnimations),
-          child: DockTestHarness(
-            builders: const DockMaterialBuilders(),
+          child: DuoTestHarness(
+            builders: const DuoMaterialBuilders(),
             mode: mode,
             child: child!,
           ),
         ),
         home: ValueListenableBuilder(
           valueListenable: visible,
-          builder: (context, shown, _) => DockShell<Object?, Object?, Object?>(
+          builder: (context, shown, _) => DuoShell<Object?, Object?, Object?>(
             tabs: _tabs,
             currentIndex: 0,
             onTabSelected: (_) {},
@@ -52,10 +52,10 @@ void main() {
   }
 
   Rect body(WidgetTester tester) => tester.getRect(find.byKey(_body));
-  DockGeometry geometry(WidgetTester tester) =>
-      DockGeometry.of(tester.element(find.byKey(_body)));
+  DuoGeometry geometry(WidgetTester tester) =>
+      DuoGeometry.of(tester.element(find.byKey(_body)));
 
-  for (final mode in DockLayoutMode.values) {
+  for (final mode in DuoLayoutMode.values) {
     testWidgets('${mode.name}: hidden gives the body the whole frame', (
       tester,
     ) async {
@@ -84,7 +84,7 @@ void main() {
           child: const SizedBox.expand(),
         ),
       );
-      final home = tester.getCenter(find.byKey(DockKeys.tab('home')));
+      final home = tester.getCenter(find.byKey(DuoKeys.tab('home')));
       expect(find.semantics.byLabel('Home'), findsOneWidget);
 
       visible.value = false;
@@ -95,7 +95,7 @@ void main() {
       final focusable = tester
           .widgetList<ExcludeFocus>(
             find.ancestor(
-              of: find.byKey(DockKeys.tab('home')),
+              of: find.byKey(DuoKeys.tab('home')),
               matching: find.byType(ExcludeFocus),
             ),
           )
@@ -145,7 +145,7 @@ void main() {
         onGenerateRoute: (_) => MaterialPageRoute<void>(
           builder: (context) {
             root = context;
-            return const DockPage<Object?, Object?>(
+            return const DuoPage<Object?, Object?>(
               body: SizedBox.expand(key: _body),
             );
           },
@@ -156,7 +156,7 @@ void main() {
 
     Navigator.of(root).push(
       MaterialPageRoute<void>(
-        builder: (_) => const DockPage<Object?, Object?>(
+        builder: (_) => const DuoPage<Object?, Object?>(
           visible: false,
           body: SizedBox.expand(key: Key('camera')),
         ),
@@ -164,7 +164,7 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(
-      DockGeometry.of(tester.element(find.byKey(const Key('camera')))).isHidden,
+      DuoGeometry.of(tester.element(find.byKey(const Key('camera')))).isHidden,
       isTrue,
     );
 

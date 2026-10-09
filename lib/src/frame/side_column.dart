@@ -19,26 +19,26 @@ class SideColumn extends StatelessWidget {
     required this.buildChip,
   });
 
-  final DockActionHost host;
+  final DuoActionHost host;
 
   /// The built rail, or null in a modal frame.
   final Widget? rail;
   final bool columnOnRight;
-  final DockColumnInset columnInset;
+  final DuoColumnInset columnInset;
 
   /// Builds one action chip with the frame's typed action builder.
-  final Widget Function(BuildContext context, DockAction<Object?> action)
+  final Widget Function(BuildContext context, DuoAction<Object?> action)
   buildChip;
 
   @override
   Widget build(BuildContext context) {
-    final builders = DockBuilders.of<Object?, Object?, Object?>(context);
+    final builders = DuoBuilders.of<Object?, Object?, Object?>(context);
     // With safeArea, the column's slot includes the system inset on its own
     // edge (cutout, button bar) and the content stays clear of it. With
     // overlap, the column is over the inset, so its builder sees none there.
     // The status bar and home indicator stay padded either way; the opposite
     // edge is not the column's concern.
-    final overlap = columnInset == DockColumnInset.overlap;
+    final overlap = columnInset == DuoColumnInset.overlap;
     return MediaQuery.removePadding(
       context: context,
       removeLeft: overlap && !columnOnRight,
@@ -50,7 +50,7 @@ class SideColumn extends StatelessWidget {
           listenable: host,
           builder: (context, _) => builders.buildSideColumn(
             context,
-            DockActionColumn(host: host, buildChip: buildChip),
+            DuoActionColumn(host: host, buildChip: buildChip),
             rail,
             host.active?.actions.any((a) => a.canHoist) ?? false,
           ),

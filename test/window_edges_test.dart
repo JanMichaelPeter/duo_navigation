@@ -3,20 +3,20 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:duo_navigation/material.dart';
 import 'package:duo_navigation/testing.dart';
 
-const _leftOnly = DockWindowEdges(left: true, right: false);
-const _fullscreen = DockWindowEdges(left: true, right: true);
+const _leftOnly = DuoWindowEdges(left: true, right: false);
+const _fullscreen = DuoWindowEdges(left: true, right: true);
 
-Widget _app(DockNavigationData data) {
+Widget _app(DuoNavigationData data) {
   return MaterialApp(
-    builder: (context, child) => DockNavigation(
-      builders: const DockMaterialBuilders(),
+    builder: (context, child) => DuoNavigation(
+      builders: const DuoMaterialBuilders(),
       data: data,
       child: child!,
     ),
-    home: DockShell<Object?, Object?, Object?>(
+    home: DuoShell<Object?, Object?, Object?>(
       tabs: const [
-        DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-        DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+        DuoTab<Object?>(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+        DuoTab<Object?>(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
       ],
       currentIndex: 0,
       onTabSelected: (_) {},
@@ -26,7 +26,7 @@ Widget _app(DockNavigationData data) {
 }
 
 void main() {
-  Future<void> pumpWide(WidgetTester tester, DockNavigationData data) async {
+  Future<void> pumpWide(WidgetTester tester, DuoNavigationData data) async {
     tester.view.physicalSize = const Size(1000, 700);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -38,7 +38,7 @@ void main() {
       tester.getCenter(find.byIcon(Icons.home)).dx;
 
   testWidgets('no source: always the preferred side', (tester) async {
-    await pumpWide(tester, const DockNavigationData());
+    await pumpWide(tester, const DuoNavigationData());
     expect(railX(tester), greaterThan(900));
   });
 
@@ -47,8 +47,8 @@ void main() {
   ) async {
     await pumpWide(
       tester,
-      const DockNavigationData(
-        windowEdgesSource: DockWindowEdgesSource.fixed(_leftOnly),
+      const DuoNavigationData(
+        windowEdgesSource: DuoWindowEdgesSource.fixed(_leftOnly),
       ),
     );
     expect(railX(tester), lessThan(100));
@@ -56,7 +56,7 @@ void main() {
 
   testWidgets('the column follows the source over time', (tester) async {
     final source = FakeWindowEdgesSource();
-    await pumpWide(tester, DockNavigationData(windowEdgesSource: source));
+    await pumpWide(tester, DuoNavigationData(windowEdgesSource: source));
     expect(railX(tester), greaterThan(900));
 
     source.push(_leftOnly); // split screen, left half
@@ -74,13 +74,11 @@ void main() {
 
   testWidgets('replacing the source starts from its value', (tester) async {
     final first = FakeWindowEdgesSource(_leftOnly);
-    await pumpWide(tester, DockNavigationData(windowEdgesSource: first));
+    await pumpWide(tester, DuoNavigationData(windowEdgesSource: first));
     expect(railX(tester), lessThan(100));
 
     final second = FakeWindowEdgesSource(_fullscreen);
-    await tester.pumpWidget(
-      _app(DockNavigationData(windowEdgesSource: second)),
-    );
+    await tester.pumpWidget(_app(DuoNavigationData(windowEdgesSource: second)));
     await tester.pumpAndSettle();
     expect(railX(tester), greaterThan(900));
 
@@ -95,11 +93,11 @@ void main() {
   ) async {
     await pumpWide(
       tester,
-      const DockNavigationData(
-        windowEdgesSource: DockWindowEdgesSource.fixed(_leftOnly),
+      const DuoNavigationData(
+        windowEdgesSource: DuoWindowEdgesSource.fixed(_leftOnly),
       ),
     );
-    await tester.pumpWidget(_app(const DockNavigationData()));
+    await tester.pumpWidget(_app(const DuoNavigationData()));
     await tester.pumpAndSettle();
     expect(railX(tester), greaterThan(900));
   });

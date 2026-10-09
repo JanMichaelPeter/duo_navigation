@@ -3,21 +3,21 @@ import 'package:flutter/material.dart';
 
 import '../navigation.dart';
 
-/// Fully custom page (DockPage.custom). The "map" bleeds under the tab bar
-/// and the side column (DockBleed); the floating title bar stays beside them
-/// and lays itself out with DockBarLayout, so its actions follow the column
+/// Fully custom page (DuoPage.custom). The "map" bleeds under the tab bar
+/// and the side column (DuoBleed); the floating title bar stays beside them
+/// and lays itself out with DuoBarLayout, so its actions follow the column
 /// to the start edge.
 class MapPage extends StatelessWidget {
   const MapPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return DockPage.custom(
+    return DuoPage.custom(
       title: const Text('Map'),
       trailing: [
-        DockAction(
+        DuoAction(
           id: 'locate',
-          icon: const DockIcon(Icons.my_location),
+          icon: const DuoIcon(Icons.my_location),
           tooltip: 'Locate me',
           onPressed: () => showToast(context, 'Locating…'),
         ),
@@ -26,7 +26,7 @@ class MapPage extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            const DockBleed(child: _FakeMap()),
+            const DuoBleed(child: _FakeMap()),
             SafeArea(
               child: Align(
                 alignment: Alignment.topCenter,
@@ -40,12 +40,12 @@ class MapPage extends StatelessWidget {
                       height: 48,
                       child: DefaultTextStyle.merge(
                         style: Theme.of(context).textTheme.titleMedium,
-                        child: DockBarLayout(
+                        child: DuoBarLayout(
                           title: bar.title,
                           trailing: [
                             for (final a in bar.trailing)
                               bar.buildAction(
-                                  a, DockActionPlacement.barTrailing),
+                                  a, DuoActionPlacement.barTrailing),
                           ],
                           centerTitle: true,
                           actionsAtStart: bar.trailingAtStart,

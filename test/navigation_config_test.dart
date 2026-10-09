@@ -4,8 +4,8 @@ import 'package:duo_navigation/material.dart';
 import 'package:duo_navigation/testing.dart';
 
 const _tabs = [
-  DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+  DuoTab<Object?>(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab<Object?>(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
 ];
 
 /// Counts builds of a widget that depends on [read].
@@ -24,8 +24,8 @@ class _Probe extends StatelessWidget {
 }
 
 void main() {
-  group('DockNavigation.of', () {
-    testWidgets('fails loudly without a DockNavigation', (tester) async {
+  group('DuoNavigation.of', () {
+    testWidgets('fails loudly without a DuoNavigation', (tester) async {
       late BuildContext context;
       await tester.pumpWidget(
         Builder(
@@ -35,15 +35,15 @@ void main() {
           },
         ),
       );
-      expect(DockNavigation.maybeOf(context), isNull);
+      expect(DuoNavigation.maybeOf(context), isNull);
       expect(
-        () => DockNavigation.of(context),
+        () => DuoNavigation.of(context),
         throwsA(
           isA<FlutterError>().having(
             (e) => e.toStringDeep(),
             'message',
             allOf(
-              contains('No DockNavigation found.'),
+              contains('No DuoNavigation found.'),
               contains('MaterialApp('),
             ),
           ),
@@ -51,17 +51,17 @@ void main() {
       );
     });
 
-    testWidgets('a DockPage without DockNavigation fails instead of '
+    testWidgets('a DuoPage without DuoNavigation fails instead of '
         'guessing a layout', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(home: DockPage<Object?, Object?>(body: SizedBox())),
+        const MaterialApp(home: DuoPage<Object?, Object?>(body: SizedBox())),
       );
       expect(
         tester.takeException(),
         isA<FlutterError>().having(
           (e) => e.message,
           'message',
-          contains('No DockNavigation found.'),
+          contains('No DuoNavigation found.'),
         ),
       );
     });
@@ -69,19 +69,19 @@ void main() {
     testWidgets('equal data does not notify dependents', (tester) async {
       final builds = <int>[];
       // The same instance every time, so only a notification rebuilds it.
-      final probe = _Probe(DockNavigation.of, builds);
-      Widget app(DockNavigationData data) => DockNavigation(
-        builders: const DockMaterialBuilders(),
+      final probe = _Probe(DuoNavigation.of, builds);
+      Widget app(DuoNavigationData data) => DuoNavigation(
+        builders: const DuoMaterialBuilders(),
         data: data,
         child: probe,
       );
 
-      await tester.pumpWidget(app(const DockNavigationData()));
+      await tester.pumpWidget(app(const DuoNavigationData()));
       // Equal but not identical (not const).
-      await tester.pumpWidget(app(DockNavigationData(sideColumnWidth: 72)));
+      await tester.pumpWidget(app(DuoNavigationData(sideColumnWidth: 72)));
       expect(builds, hasLength(1));
 
-      await tester.pumpWidget(app(DockNavigationData(sideColumnWidth: 80)));
+      await tester.pumpWidget(app(DuoNavigationData(sideColumnWidth: 80)));
       expect(builds, hasLength(2));
     });
   });
@@ -94,113 +94,113 @@ void main() {
       await tester.pumpWidget(
         Directionality(
           textDirection: TextDirection.ltr,
-          child: DockNavigation(
-            builders: const DockMaterialBuilders(),
-            data: DockNavigationData(windowEdgesSource: source),
+          child: DuoNavigation(
+            builders: const DuoMaterialBuilders(),
+            data: DuoNavigationData(windowEdgesSource: source),
             child: Column(
               children: [
-                _Probe(DockNavigation.of, configBuilds),
-                _Probe(DockNavigation.sideOf, sideBuilds),
+                _Probe(DuoNavigation.of, configBuilds),
+                _Probe(DuoNavigation.sideOf, sideBuilds),
               ],
             ),
           ),
         ),
       );
 
-      source.push(const DockWindowEdges(left: true, right: false));
+      source.push(const DuoWindowEdges(left: true, right: false));
       await tester.pumpAndSettle();
       expect(configBuilds, hasLength(1));
       expect(sideBuilds, hasLength(2));
     });
   });
 
-  group('DockNavigationData', () {
+  group('DuoNavigationData', () {
     test('has value equality', () {
       expect(
-        const DockNavigationData(),
-        DockNavigationData(layoutPolicy: DockLayoutPolicy.shortestSide(600)),
+        const DuoNavigationData(),
+        DuoNavigationData(layoutPolicy: DuoLayoutPolicy.shortestSide(600)),
       );
       expect(
-        const DockNavigationData().hashCode,
-        DockNavigationData(sideColumnWidth: 72).hashCode,
+        const DuoNavigationData().hashCode,
+        DuoNavigationData(sideColumnWidth: 72).hashCode,
       );
       expect(
-        const DockNavigationData(),
-        isNot(const DockNavigationData(side: DockSide.start)),
+        const DuoNavigationData(),
+        isNot(const DuoNavigationData(side: DuoSide.start)),
       );
       expect(
-        const DockNavigationData(),
-        isNot(const DockNavigationData(actionAnimationCurve: Curves.linear)),
+        const DuoNavigationData(),
+        isNot(const DuoNavigationData(actionAnimationCurve: Curves.linear)),
       );
     });
 
     test('copyWith can remove the window-edge source', () {
-      const source = DockWindowEdgesSource.fixed(
-        DockWindowEdges(left: true, right: false),
+      const source = DuoWindowEdgesSource.fixed(
+        DuoWindowEdges(left: true, right: false),
       );
-      const data = DockNavigationData(windowEdgesSource: source);
+      const data = DuoNavigationData(windowEdgesSource: source);
       expect(data.copyWith().windowEdgesSource, source);
-      expect(data.copyWith(side: DockSide.start).windowEdgesSource, source);
+      expect(data.copyWith(side: DuoSide.start).windowEdgesSource, source);
       expect(data.copyWith(windowEdgesSource: null).windowEdgesSource, isNull);
     });
   });
 
   group('layout policy', () {
     test('shortestSide (the default) keeps phones compact in landscape', () {
-      const policy = DockLayoutPolicy.shortestSide(600);
-      expect(const DockNavigationData().layoutPolicy, policy);
-      DockLayoutMode at(double width, double height) => policy.resolve(
+      const policy = DuoLayoutPolicy.shortestSide(600);
+      expect(const DuoNavigationData().layoutPolicy, policy);
+      DuoLayoutMode at(double width, double height) => policy.resolve(
         window: Size(width, height),
         frame: Size(width, height),
       );
-      expect(at(390, 844), DockLayoutMode.compact); // phone, portrait
-      expect(at(844, 390), DockLayoutMode.compact); // phone, landscape
-      expect(at(1024, 768), DockLayoutMode.wide); // tablet
-      expect(at(673, 841), DockLayoutMode.wide); // foldable, unfolded
-      expect(at(600, 960), DockLayoutMode.wide); // the boundary
-      expect(at(400, 1000), DockLayoutMode.compact); // narrow split window
+      expect(at(390, 844), DuoLayoutMode.compact); // phone, portrait
+      expect(at(844, 390), DuoLayoutMode.compact); // phone, landscape
+      expect(at(1024, 768), DuoLayoutMode.wide); // tablet
+      expect(at(673, 841), DuoLayoutMode.wide); // foldable, unfolded
+      expect(at(600, 960), DuoLayoutMode.wide); // the boundary
+      expect(at(400, 1000), DuoLayoutMode.compact); // narrow split window
     });
 
     test('breakpoint uses the window width', () {
-      const policy = DockLayoutPolicy.breakpoint(600);
+      const policy = DuoLayoutPolicy.breakpoint(600);
       expect(
         policy.resolve(window: const Size(600, 400), frame: const Size(10, 10)),
-        DockLayoutMode.wide,
+        DuoLayoutMode.wide,
       );
       expect(
         policy.resolve(
           window: const Size(599, 900),
           frame: const Size(900, 900),
         ),
-        DockLayoutMode.compact,
+        DuoLayoutMode.compact,
       );
     });
 
     test('fixed ignores the size', () {
-      const policy = DockLayoutPolicy.fixed(DockLayoutMode.compact);
+      const policy = DuoLayoutPolicy.fixed(DuoLayoutMode.compact);
       expect(
         policy.resolve(
           window: const Size(2000, 1000),
           frame: const Size(2000, 1000),
         ),
-        DockLayoutMode.compact,
+        DuoLayoutMode.compact,
       );
     });
 
     test('has value equality', () {
       expect(
-        const DockLayoutPolicy.breakpoint(466),
+        const DuoLayoutPolicy.breakpoint(466),
         // ignore: prefer_const_constructors
-        DockLayoutPolicy.breakpoint(466),
+        DuoLayoutPolicy.breakpoint(466),
       );
       expect(
-        const DockLayoutPolicy.breakpoint(466),
-        isNot(const DockLayoutPolicy.breakpoint(600)),
+        const DuoLayoutPolicy.breakpoint(466),
+        isNot(const DuoLayoutPolicy.breakpoint(600)),
       );
       expect(
-        const DockLayoutPolicy.fixed(DockLayoutMode.wide),
+        const DuoLayoutPolicy.fixed(DuoLayoutMode.wide),
         // ignore: prefer_const_constructors
-        DockLayoutPolicy.fixed(DockLayoutMode.wide),
+        DuoLayoutPolicy.fixed(DuoLayoutMode.wide),
       );
     });
 
@@ -211,14 +211,14 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
         MaterialApp(
-          builder: (context, child) => DockNavigation(
-            builders: const DockMaterialBuilders(),
-            data: const DockNavigationData(
-              layoutPolicy: DockLayoutPolicy.fixed(DockLayoutMode.compact),
+          builder: (context, child) => DuoNavigation(
+            builders: const DuoMaterialBuilders(),
+            data: const DuoNavigationData(
+              layoutPolicy: DuoLayoutPolicy.fixed(DuoLayoutMode.compact),
             ),
             child: child!,
           ),
-          home: DockShell<Object?, Object?, Object?>(
+          home: DuoShell<Object?, Object?, Object?>(
             tabs: _tabs,
             currentIndex: 0,
             onTabSelected: (_) {},
@@ -233,7 +233,7 @@ void main() {
   group('without a frame', () {
     Future<BuildContext> pump(
       WidgetTester tester,
-      DockNavigationData data, {
+      DuoNavigationData data, {
       TextDirection direction = TextDirection.ltr,
       Size size = const Size(1000, 700),
     }) async {
@@ -246,8 +246,8 @@ void main() {
           data: MediaQueryData(size: size),
           child: Directionality(
             textDirection: direction,
-            child: DockNavigation(
-              builders: const DockMaterialBuilders(),
+            child: DuoNavigation(
+              builders: const DuoMaterialBuilders(),
               data: data,
               child: Builder(
                 builder: (c) {
@@ -263,78 +263,78 @@ void main() {
     }
 
     testWidgets('modeOf follows the policy and the window', (tester) async {
-      var context = await pump(tester, const DockNavigationData());
-      expect(DockNavigation.modeOf(context), DockLayoutMode.wide);
+      var context = await pump(tester, const DuoNavigationData());
+      expect(DuoNavigation.modeOf(context), DuoLayoutMode.wide);
       context = await pump(
         tester,
-        const DockNavigationData(),
+        const DuoNavigationData(),
         size: const Size(400, 800),
       );
-      expect(DockNavigation.modeOf(context), DockLayoutMode.compact);
+      expect(DuoNavigation.modeOf(context), DuoLayoutMode.compact);
     });
 
     testWidgets('sideOf resolves window edges and direction', (tester) async {
-      const leftOnly = DockWindowEdgesSource.fixed(
-        DockWindowEdges(left: true, right: false),
+      const leftOnly = DuoWindowEdgesSource.fixed(
+        DuoWindowEdges(left: true, right: false),
       );
-      var context = await pump(tester, const DockNavigationData());
-      expect(DockNavigation.sideOf(context), DockSide.end);
-      expect(DockNavigation.sideOnRight(context), isTrue);
+      var context = await pump(tester, const DuoNavigationData());
+      expect(DuoNavigation.sideOf(context), DuoSide.end);
+      expect(DuoNavigation.sideOnRight(context), isTrue);
 
       context = await pump(
         tester,
-        const DockNavigationData(windowEdgesSource: leftOnly),
+        const DuoNavigationData(windowEdgesSource: leftOnly),
       );
-      expect(DockNavigation.sideOf(context), DockSide.start);
-      expect(DockNavigation.sideOnRight(context), isFalse);
+      expect(DuoNavigation.sideOf(context), DuoSide.start);
+      expect(DuoNavigation.sideOnRight(context), isFalse);
 
       // RTL: end is the left edge, which the window touches.
       context = await pump(
         tester,
-        const DockNavigationData(windowEdgesSource: leftOnly),
+        const DuoNavigationData(windowEdgesSource: leftOnly),
         direction: TextDirection.rtl,
       );
-      expect(DockNavigation.sideOf(context), DockSide.end);
-      expect(DockNavigation.sideOnRight(context), isFalse);
+      expect(DuoNavigation.sideOf(context), DuoSide.end);
+      expect(DuoNavigation.sideOnRight(context), isFalse);
     });
   });
 
-  group('DockWindowEdgesSource.fixed', () {
+  group('DuoWindowEdgesSource.fixed', () {
     test('reports its value and never changes', () async {
-      const edges = DockWindowEdges(left: false, right: true);
-      const source = DockWindowEdgesSource.fixed(edges);
+      const edges = DuoWindowEdges(left: false, right: true);
+      const source = DuoWindowEdgesSource.fixed(edges);
       expect(source.value, edges);
       expect(await source.changes.isEmpty, isTrue);
       // ignore: prefer_const_constructors
-      expect(source, DockWindowEdgesSource.fixed(edges));
+      expect(source, DuoWindowEdgesSource.fixed(edges));
     });
   });
 
-  group('DockAction.copyWith', () {
+  group('DuoAction.copyWith', () {
     void handler() {}
 
     test('keeps fields that are not passed', () {
-      final action = DockAction<Object?>(
+      final action = DuoAction<Object?>(
         id: 'a',
-        icon: const DockIcon(Icons.share),
+        icon: const DuoIcon(Icons.share),
         label: 'Share',
         tooltip: 'Share it',
         onPressed: handler,
         payload: 1,
       );
-      final copy = action.copyWith(hoist: DockHoist.never);
+      final copy = action.copyWith(hoist: DuoHoist.never);
       expect(copy.icon, action.icon);
       expect(copy.label, 'Share');
       expect(copy.tooltip, 'Share it');
       expect(copy.onPressed, handler);
       expect(copy.payload, 1);
-      expect(copy.hoist, DockHoist.never);
+      expect(copy.hoist, DuoHoist.never);
     });
 
     test('clears nullable fields passed as null', () {
-      final action = DockAction<Object?>(
+      final action = DuoAction<Object?>(
         id: 'a',
-        icon: const DockIcon(Icons.share),
+        icon: const DuoIcon(Icons.share),
         label: 'Share',
         tooltip: 'Share it',
         onPressed: handler,

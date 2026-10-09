@@ -11,20 +11,20 @@ import '../models/bar_data.dart';
 import '../tabs/tab_stack.dart';
 
 /// Declares a page's title bar and actions, and provides them to the page as
-/// [DockBarData] (`DockBarData.of(context)`).
+/// [DuoBarData] (`DuoBarData.of(context)`).
 ///
 /// It is the page layer as a piece: put it around any page, including one
 /// with its own `Scaffold`, keys, bottom bar or floating action button, and
-/// read the bar with `DockAppBar` (`package:duo_navigation/material.dart`) or your
+/// read the bar with `DuoAppBar` (`package:duo_navigation/material.dart`) or your
 /// own bar:
 ///
 /// ```dart
-/// DockPageScope(
+/// DuoPageScope(
 ///   title: const Text('Items'),
-///   trailing: [DockAction(id: 'add', icon: const DockIcon(Icons.add), onPressed: add)],
+///   trailing: [DuoAction(id: 'add', icon: const DuoIcon(Icons.add), onPressed: add)],
 ///   child: Scaffold(
 ///     key: const Key('items'),
-///     appBar: const DockAppBar(),
+///     appBar: const DuoAppBar(),
 ///     bottomNavigationBar: const ItemsToolbar(),
 ///     body: const ItemsList(),
 ///   ),
@@ -32,13 +32,13 @@ import '../tabs/tab_stack.dart';
 /// ```
 ///
 /// In wide mode, icon actions move into the side column (see [hoisting]);
-/// the rest stay in the bar. `DockPage` is this scope plus the `page`
+/// the rest stay in the bar. `DuoPage` is this scope plus the `page`
 /// builder.
 ///
 /// [A] is the actions' payload type and [B] the type of [barPayload].
-class DockPageScope<A, B> extends StatefulWidget {
+class DuoPageScope<A, B> extends StatefulWidget {
   /// A page with the given bar and actions around [child].
-  const DockPageScope({
+  const DuoPageScope({
     super.key,
     this.title,
     this.barPayload,
@@ -57,37 +57,37 @@ class DockPageScope<A, B> extends StatefulWidget {
   final Widget? title;
 
   /// Data for the bar builder, for example a design system's title spec or bar
-  /// style: `DockBarData.payload`, typed.
+  /// style: `DuoBarData.payload`, typed.
   final B? barPayload;
 
-  /// The leading action. Defaults to [DockAction.back] for pages that can pop,
-  /// or [DockAction.close] for full-screen dialogs (see [impliedLeading]). In
+  /// The leading action. Defaults to [DuoAction.back] for pages that can pop,
+  /// or [DuoAction.close] for full-screen dialogs (see [impliedLeading]). In
   /// wide mode it moves into the column when it has an icon; a text-only one
   /// ("Cancel") stays in the bar.
   ///
-  /// A [DockAction.back] or [DockAction.close] without `onPressed` pops the
+  /// A [DuoAction.back] or [DuoAction.close] without `onPressed` pops the
   /// page's route, or dismisses the modal on a modal's first page.
-  final DockAction<A>? leading;
+  final DuoAction<A>? leading;
 
   /// The page's other actions. In wide mode icon actions move to the side
-  /// column (ordered by [DockAction.order], above the leading action);
-  /// label-only actions and those with `hoist: DockHoist.never` stay in the
+  /// column (ordered by [DuoAction.order], above the leading action);
+  /// label-only actions and those with `hoist: DuoHoist.never` stay in the
   /// bar.
-  final List<DockAction<A>> trailing;
+  final List<DuoAction<A>> trailing;
 
   /// Add a back or close action when the route can pop and [leading] is
   /// null.
   final bool automaticallyImplyLeading;
 
   /// The leading action implied when [leading] is null. Null: the modal's
-  /// choice on its first page (`DockModalScope.impliedLeading`), otherwise
-  /// [DockImpliedLeading.close] for a full-screen dialog and
-  /// [DockImpliedLeading.back] for anything else.
+  /// choice on its first page (`DuoModalScope.impliedLeading`), otherwise
+  /// [DuoImpliedLeading.close] for a full-screen dialog and
+  /// [DuoImpliedLeading.back] for anything else.
   ///
   /// The first page of a modal (the page on the modal's route, or the first
-  /// page of a Navigator inside a `DockModalScope`) gets one too, and it
+  /// page of a Navigator inside a `DuoModalScope`) gets one too, and it
   /// dismisses the modal.
-  final DockImpliedLeading? impliedLeading;
+  final DuoImpliedLeading? impliedLeading;
 
   /// Whether the leading action sits at the end of the title bar, after the
   /// other actions, instead of at the start: a close action at the top right,
@@ -96,14 +96,14 @@ class DockPageScope<A, B> extends StatefulWidget {
   /// nothing.
   ///
   /// Null: on a modal's first page the modal's choice
-  /// (`DockModalScope.leadingAtEnd`, `DockNavigationData.modalLeading`),
+  /// (`DuoModalScope.leadingAtEnd`, `DuoNavigationData.modalLeading`),
   /// elsewhere false.
   final bool? leadingAtEnd;
 
   /// Whether this page's icon actions move into the column in wide mode.
-  /// Null: the frame's (`DockShell.hoisting`, `DockModalScope.hoisting`,
-  /// `DockNavigationData.hoisting`).
-  final DockHoisting? hoisting;
+  /// Null: the frame's (`DuoShell.hoisting`, `DuoModalScope.hoisting`,
+  /// `DuoNavigationData.hoisting`).
+  final DuoHoisting? hoisting;
 
   /// Whether the navigation (tab bar or side column) shows while this page is
   /// on top. False hides it with an animation, for example for a camera, a
@@ -120,11 +120,11 @@ class DockPageScope<A, B> extends StatefulWidget {
   final Widget child;
 
   @override
-  State<DockPageScope<A, B>> createState() => _DockPageScopeState<A, B>();
+  State<DuoPageScope<A, B>> createState() => _DuoPageScopeState<A, B>();
 }
 
-class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
-  DockActionRegistration? _registration;
+class _DuoPageScopeState<A, B> extends State<DuoPageScope<A, B>> {
+  DuoActionRegistration? _registration;
 
   @override
   void dispose() {
@@ -134,7 +134,7 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
 
   /// Whether this is the modal's first page: on the modal's own route, or the
   /// first page of a Navigator inside the modal.
-  static bool _isModalFirst(DockScope scope, ModalRoute<Object?>? route) {
+  static bool _isModalFirst(DuoScope scope, ModalRoute<Object?>? route) {
     final modal = scope.route;
     return modal != null &&
         route != null &&
@@ -142,7 +142,7 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
             (route.isFirst && route.navigator != modal.navigator));
   }
 
-  DockAction<A>? _resolveLeading(DockScope scope, ModalRoute<Object?>? route) {
+  DuoAction<A>? _resolveLeading(DuoScope scope, ModalRoute<Object?>? route) {
     final page = widget;
     // The modal's first page dismisses the modal when it can't pop its own
     // route.
@@ -174,12 +174,12 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
         page.impliedLeading ??
         (first ? scope.impliedLeading : null) ??
         (popped is PageRoute && popped.fullscreenDialog
-            ? DockImpliedLeading.close
-            : DockImpliedLeading.back);
+            ? DuoImpliedLeading.close
+            : DuoImpliedLeading.back);
     // Back and close share one identity, so they morph instead of flickering.
     return switch (kind) {
-      DockImpliedLeading.close => DockAction<A>.close(onPressed: pop),
-      DockImpliedLeading.back => DockAction<A>.back(onPressed: pop),
+      DuoImpliedLeading.close => DuoAction<A>.close(onPressed: pop),
+      DuoImpliedLeading.back => DuoAction<A>.back(onPressed: pop),
     };
   }
 
@@ -193,8 +193,8 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
   }
 
   /// The trailing actions that move into the column, top to bottom: higher
-  /// [DockAction.order] first, equal orders in declaration order.
-  static List<DockAction<A>> _hoisted<A>(List<DockAction<A>> trailing) {
+  /// [DuoAction.order] first, equal orders in declaration order.
+  static List<DuoAction<A>> _hoisted<A>(List<DuoAction<A>> trailing) {
     final indexed = [
       for (var i = 0; i < trailing.length; i++)
         if (trailing[i].canHoist) (i, trailing[i]),
@@ -208,15 +208,15 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
 
   @override
   Widget build(BuildContext context) {
-    final scope = DockScope.maybeOf(context);
+    final scope = DuoScope.maybeOf(context);
     // No shell or modal scope above: this page was presented modally on the
     // root navigator, so it brings its own frame.
     if (scope == null) {
       // A copy without the key, so a GlobalKey is not used twice.
-      return DockFrame<Object?, A, B>(
+      return DuoFrame<Object?, A, B>(
         isModal: true,
         implicitModal: true,
-        child: DockPageScope<A, B>(
+        child: DuoPageScope<A, B>(
           title: widget.title,
           barPayload: widget.barPayload,
           leading: widget.leading,
@@ -231,7 +231,7 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
         ),
       );
     }
-    final builders = DockBuilders.of<Object?, A, B>(context);
+    final builders = DuoBuilders.of<Object?, A, B>(context);
     final page = widget;
 
     if (_registration?.host != scope.host) {
@@ -250,30 +250,30 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
     final route = ModalRoute.of(context);
     final leading = _resolveLeading(scope, route);
     final hoisting = page.hoisting ?? scope.hoisting;
-    final hoists = hoisting == DockHoisting.iconActions;
+    final hoists = hoisting == DuoHoisting.iconActions;
     final leadingInColumn = hoists && leading != null && leading.canHoist;
 
-    final hoisted = <DockAction<A>>[
+    final hoisted = <DuoAction<A>>[
       if (hoists) ..._hoisted(page.trailing),
       if (leadingInColumn) leading,
     ];
     registration.update(
       actions: hoisted,
       // TickerMode.valuesOf needs Flutter 3.41; keep .of while supporting 3.35.
-      // DockTabStack.isActiveOf covers tabs that keep ticking.
+      // DuoTabStack.isActiveOf covers tabs that keep ticking.
       active:
           _shows(route) &&
           // ignore: deprecated_member_use
           TickerMode.of(context) &&
-          DockTabStack.isActiveOf(context),
+          DuoTabStack.isActiveOf(context),
       route: route,
       navigationVisible: page.visible,
       backdrop: page.backdrop,
     );
 
-    final wide = scope.mode == DockLayoutMode.wide;
+    final wide = scope.mode == DuoLayoutMode.wide;
     final moves = wide && hoists;
-    final bar = DockBarData<A, B>(
+    final bar = DuoBarData<A, B>(
       mode: scope.mode,
       title: page.title,
       payload: page.barPayload,
@@ -290,13 +290,13 @@ class _DockPageScopeState<A, B> extends State<DockPageScope<A, B>> {
           page.leadingAtEnd ??
           (_isModalFirst(scope, route) && scope.leadingAtEnd),
       buildAction: (a, placement) => KeyedSubtree(
-        key: DockKeys.action(a.id),
-        child: DockActionItem(
+        key: DuoKeys.action(a.id),
+        child: DuoActionItem(
           action: a,
           child: builders.buildAction(context, a, placement),
         ),
       ),
     );
-    return DockBarDataScope(data: bar, child: page.child);
+    return DuoBarDataScope(data: bar, child: page.child);
   }
 }

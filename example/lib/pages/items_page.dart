@@ -20,28 +20,28 @@ class _ItemsPageState extends State<ItemsPage> {
   @override
   Widget build(BuildContext context) {
     final depth = widget.depth;
-    return DockPage(
+    return DuoPage(
       title: Text(depth == 0 ? 'Items' : 'Level $depth'),
       trailing: [
         if (depth == 0)
-          DockAction(
+          DuoAction(
             id: 'add',
-            icon: const DockIcon(Icons.add),
+            icon: const DuoIcon(Icons.add),
             tooltip: 'Add',
-            role: DockActionRole.primary, // highlighted by the custom style
+            role: DuoActionRole.primary, // highlighted by the custom style
             onPressed: () => showToast(context, 'Add'),
           ),
         if (depth > 0)
-          DockAction(
+          DuoAction(
             id: 'share',
-            icon: const DockIcon(Icons.ios_share),
+            icon: const DuoIcon(Icons.ios_share),
             tooltip: 'Share',
             onPressed: () => showToast(context, 'Share level $depth'),
           ),
         if (depth.isOdd)
-          DockAction(
+          DuoAction(
             id: 'favorite',
-            icon: DockIcon(_favorite ? Icons.star : Icons.star_border),
+            icon: DuoIcon(_favorite ? Icons.star : Icons.star_border),
             tooltip: 'Favorite',
             onPressed: () => setState(() => _favorite = !_favorite),
           ),

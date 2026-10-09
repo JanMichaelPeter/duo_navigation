@@ -6,7 +6,7 @@ import 'package:flutter/widgets.dart';
 import '../geometry/dock_geometry.dart';
 
 /// Lets [child] run under the side column and the tab bar while the body is
-/// laid out beside them (`DockBodyMode.inset`): a hero image, a carousel, a
+/// laid out beside them (`DuoBodyMode.inset`): a hero image, a carousel, a
 /// map, a gradient behind one section.
 ///
 /// The child is laid out widened by the strip toward the chrome, while this
@@ -18,25 +18,25 @@ import '../geometry/dock_geometry.dart';
 /// strip (plus any system inset the body still had there, such as the part
 /// of a cutout wider than the column), so `SafeArea` and list padding keep
 /// content clear of the chrome;
-/// [DockInset] does the same for single children.
+/// [DuoInset] does the same for single children.
 ///
 /// It is a no-op where there is no strip: outside a frame, in
-/// `DockBodyMode.overlay`, while the navigation is hidden, and inside another
-/// [DockBleed]. The widget tree is the same in every case, so the child keeps
+/// `DuoBodyMode.overlay`, while the navigation is hidden, and inside another
+/// [DuoBleed]. The widget tree is the same in every case, so the child keeps
 /// its state across mode changes.
 ///
 /// Taps in the strip go to the chrome, not to the child: put interactive
-/// content in a [DockInset].
+/// content in a [DuoInset].
 ///
 /// Ancestors that clip cut a bleed at the body's edge: `ClipRect` and other
 /// clips, scroll views (wrap the scroll view, not an item in it), and a
 /// `Navigator` (give it `clipBehavior: Clip.none`). `Stack`, `IndexedStack` and
-/// `DockTabStack` don't. A debug message names the first clipping ancestor it
-/// finds. For a background behind a whole page, `DockShell.backdrop` and
-/// `DockPageScope.backdrop` are not affected by clips.
-class DockBleed extends StatelessWidget {
+/// `DuoTabStack` don't. A debug message names the first clipping ancestor it
+/// finds. For a background behind a whole page, `DuoShell.backdrop` and
+/// `DuoPageScope.backdrop` are not affected by clips.
+class DuoBleed extends StatelessWidget {
   /// Widens [child] under the chrome.
-  const DockBleed({
+  const DuoBleed({
     super.key,
     this.column = true,
     this.bar = true,
@@ -52,14 +52,14 @@ class DockBleed extends StatelessWidget {
   /// The content that bleeds.
   final Widget child;
 
-  /// The strip beside the body at [context]: how far a [DockBleed] there
+  /// The strip beside the body at [context]: how far a [DuoBleed] there
   /// would widen, per edge. Zero outside a frame, in overlay mode, while the
   /// navigation is hidden, and inside a bleed.
   static EdgeInsets insetOf(BuildContext context) {
     if (_BleedScope.maybeOf(context) != null) return EdgeInsets.zero;
-    return DockGeometry.maybeOf(
+    return DuoGeometry.maybeOf(
           context,
-          aspect: DockGeometryAspect.chrome,
+          aspect: DuoGeometryAspect.chrome,
         )?.strip ??
         EdgeInsets.zero;
   }
@@ -91,34 +91,34 @@ class DockBleed extends StatelessWidget {
   }
 }
 
-/// Keeps [child] beside the chrome inside a [DockBleed]: pads it by the strip
+/// Keeps [child] beside the chrome inside a [DuoBleed]: pads it by the strip
 /// the bleed widened into, and takes that padding out of `MediaQuery` again,
 /// so the child sees what the body sees.
 /// A no-op outside a bleed.
 ///
 /// ```dart
-/// DockBleed(
+/// DuoBleed(
 ///   child: ListView(
-///     children: DockInset.wrapAll([
-///       DockBleedItem(child: Image.asset('hero.webp', fit: BoxFit.cover)),
+///     children: DuoInset.wrapAll([
+///       DuoBleedItem(child: Image.asset('hero.webp', fit: BoxFit.cover)),
 ///       const Text('Details'), // inset
 ///     ]),
 ///   ),
 /// )
 /// ```
-class DockInset extends StatelessWidget {
+class DuoInset extends StatelessWidget {
   /// Insets [child] inside a bleed.
-  const DockInset({super.key, required this.child});
+  const DuoInset({super.key, required this.child});
 
   /// The content that stays beside the chrome.
   final Widget child;
 
-  /// [children] with each wrapped in a [DockInset], except those wrapped in a
-  /// [DockBleedItem], which keep bleeding. For the children of a scroll view
-  /// inside a [DockBleed].
+  /// [children] with each wrapped in a [DuoInset], except those wrapped in a
+  /// [DuoBleedItem], which keep bleeding. For the children of a scroll view
+  /// inside a [DuoBleed].
   static List<Widget> wrapAll(List<Widget> children) => [
     for (final child in children)
-      child is DockBleedItem ? child : DockInset(child: child),
+      child is DuoBleedItem ? child : DuoInset(child: child),
   ];
 
   @override
@@ -145,10 +145,10 @@ class DockInset extends StatelessWidget {
   }
 }
 
-/// Marks a child of [DockInset.wrapAll] that keeps bleeding.
-class DockBleedItem extends StatelessWidget {
-  /// Lets [child] bleed in a [DockInset.wrapAll] list.
-  const DockBleedItem({super.key, required this.child});
+/// Marks a child of [DuoInset.wrapAll] that keeps bleeding.
+class DuoBleedItem extends StatelessWidget {
+  /// Lets [child] bleed in a [DuoInset.wrapAll] list.
+  const DuoBleedItem({super.key, required this.child});
 
   /// The content that bleeds.
   final Widget child;
@@ -157,7 +157,7 @@ class DockBleedItem extends StatelessWidget {
   Widget build(BuildContext context) => child;
 }
 
-/// The extension of the nearest [DockBleed], for [DockInset] and nested
+/// The extension of the nearest [DuoBleed], for [DuoInset] and nested
 /// bleeds.
 class _BleedScope extends InheritedWidget {
   const _BleedScope({required this.extension, required super.child});
@@ -178,20 +178,20 @@ class _RenderBleedWidget extends SingleChildRenderObjectWidget {
   final EdgeInsets extension;
 
   @override
-  RenderDockBleed createRenderObject(BuildContext context) =>
-      RenderDockBleed(extension: extension);
+  RenderDuoBleed createRenderObject(BuildContext context) =>
+      RenderDuoBleed(extension: extension);
 
   @override
-  void updateRenderObject(BuildContext context, RenderDockBleed renderObject) {
+  void updateRenderObject(BuildContext context, RenderDuoBleed renderObject) {
     renderObject.extension = extension;
   }
 }
 
 /// Lays its child out widened by [extension] and keeps its own size, so the
 /// child overflows toward the chrome. Adds no layer.
-class RenderDockBleed extends RenderShiftedBox {
+class RenderDuoBleed extends RenderShiftedBox {
   /// Widens the child by [extension].
-  RenderDockBleed({required EdgeInsets extension, RenderBox? child})
+  RenderDuoBleed({required EdgeInsets extension, RenderBox? child})
     : _extension = extension,
       super(child);
 
@@ -288,14 +288,14 @@ class RenderDockBleed extends RenderShiftedBox {
     if (_reportedClip || _extension == EdgeInsets.zero) return;
     var node = parent;
     while (node != null) {
-      if (node.runtimeType.toString() == 'RenderDockFrame') return;
+      if (node.runtimeType.toString() == 'RenderDuoFrame') return;
       final cause = _clipCause(node);
       if (cause != null) {
         _reportedClip = true;
         debugPrint(
-          'duo_navigation: a DockBleed is clipped by $cause, so it stops at the '
-          'body\'s edge. For backgrounds, a backdrop (DockShell.backdrop, '
-          'DockPageScope.backdrop) is never clipped.',
+          'duo_navigation: a DuoBleed is clipped by $cause, so it stops at the '
+          'body\'s edge. For backgrounds, a backdrop (DuoShell.backdrop, '
+          'DuoPageScope.backdrop) is never clipped.',
         );
         return;
       }
@@ -309,7 +309,7 @@ class RenderDockBleed extends RenderShiftedBox {
     if (node is RenderViewportBase) {
       return node.clipBehavior == Clip.none
           ? null
-          : 'a scroll view (put the DockBleed around the scroll view, not '
+          : 'a scroll view (put the DuoBleed around the scroll view, not '
                 'around an item in it)';
     }
     final (clip, widget) = switch (node) {
@@ -322,7 +322,7 @@ class RenderDockBleed extends RenderShiftedBox {
     if (clip != null) {
       return clip == Clip.none
           ? null
-          : 'a $widget (pass clipBehavior: Clip.none, or move the DockBleed '
+          : 'a $widget (pass clipBehavior: Clip.none, or move the DuoBleed '
                 'above it)';
     }
     // A Navigator's Overlay; its render object is private.
@@ -332,7 +332,7 @@ class RenderDockBleed extends RenderShiftedBox {
       return theaterClip == Clip.none
           ? null
           : 'the Overlay of a Navigator (pass clipBehavior: Clip.none to the '
-                'Navigator, or use DockTabNavigator)';
+                'Navigator, or use DuoTabNavigator)';
     }
     return null;
   }

@@ -1,5 +1,5 @@
 /// Which navigation layout is in use.
-enum DockLayoutMode {
+enum DuoLayoutMode {
   /// Bottom tab bar, actions in the page's title bar.
   compact,
 

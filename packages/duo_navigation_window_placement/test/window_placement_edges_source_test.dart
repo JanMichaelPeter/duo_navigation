@@ -67,15 +67,15 @@ void main() {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     final platform = _FakePlacement(_leftHalf);
     final source = await start(platform);
-    expect(source.value, const DockWindowEdges(left: true, right: false));
+    expect(source.value, const DuoWindowEdges(left: true, right: false));
 
-    final reported = <DockWindowEdges?>[];
+    final reported = <DuoWindowEdges?>[];
     source.changes.listen(reported.add);
     platform.changes.add(_fullscreen);
     platform.changes.add(_fullscreen); // unchanged: not reported again
     await pumpEventQueue();
-    expect(reported, [const DockWindowEdges(left: true, right: true)]);
-    expect(source.value, const DockWindowEdges(left: true, right: true));
+    expect(reported, [const DuoWindowEdges(left: true, right: true)]);
+    expect(source.value, const DuoWindowEdges(left: true, right: true));
   });
 
   test('unknown placement reports null', () async {
@@ -117,23 +117,19 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        builder: (context, child) => DockNavigation(
-          builders: const DockMaterialBuilders(),
-          data: DockNavigationData(windowEdgesSource: source),
+        builder: (context, child) => DuoNavigation(
+          builders: const DuoMaterialBuilders(),
+          data: DuoNavigationData(windowEdgesSource: source),
           child: child!,
         ),
-        home: DockShell<Object?, Object?, Object?>(
+        home: DuoShell<Object?, Object?, Object?>(
           tabs: const [
-            DockTab<Object?>(
+            DuoTab<Object?>(
               id: 'home',
-              icon: DockIcon(Icons.home),
+              icon: DuoIcon(Icons.home),
               label: 'Home',
             ),
-            DockTab<Object?>(
-              id: 'me',
-              icon: DockIcon(Icons.person),
-              label: 'Me',
-            ),
+            DuoTab<Object?>(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
           ],
           currentIndex: 0,
           onTabSelected: (_) {},

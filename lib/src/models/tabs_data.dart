@@ -4,7 +4,7 @@ import '../geometry/layout_mode.dart';
 import 'tab.dart';
 
 /// Where a tab item is drawn.
-enum DockTabPlacement {
+enum DuoTabPlacement {
   /// In the compact tab bar.
   bar,
 
@@ -14,15 +14,15 @@ enum DockTabPlacement {
 
 /// What a tab bar or rail builder gets: all tabs and the selection.
 ///
-/// The items themselves come built (see [DockTabItemData]); the container
+/// The items themselves come built (see [DuoTabItemData]); the container
 /// arranges them. A bar that builds its children itself from [tabs] (from a
 /// list of item descriptions, say) uses [itemData] for each tab's state and
 /// tap, and `wrap` (from `package:duo_navigation/duo_navigation.dart`) to give each
 /// child the package's keys and semantics.
 @immutable
-class DockTabsData<T> {
+class DuoTabsData<T> {
   /// Built by the frame.
-  const DockTabsData({
+  const DuoTabsData({
     required this.tabs,
     required this.currentIndex,
     required this.onSelected,
@@ -30,7 +30,7 @@ class DockTabsData<T> {
   });
 
   /// All tabs, in display order.
-  final List<DockTab<T>> tabs;
+  final List<DuoTab<T>> tabs;
 
   /// Index of the selected tab.
   final int currentIndex;
@@ -38,23 +38,23 @@ class DockTabsData<T> {
   /// Selects the tab at an index: the shell's selection, re-selection and
   /// veto rules apply. Containers that report taps themselves (such as
   /// Material's `NavigationBar`) call it; items have their own
-  /// [DockTabItemData.onTap].
+  /// [DuoTabItemData.onTap].
   final ValueChanged<int> onSelected;
 
   /// Compact (tab bar) or wide (rail).
-  final DockLayoutMode mode;
+  final DuoLayoutMode mode;
 
   /// Where the items are drawn.
-  DockTabPlacement get placement => mode == DockLayoutMode.compact
-      ? DockTabPlacement.bar
-      : DockTabPlacement.rail;
+  DuoTabPlacement get placement => mode == DuoLayoutMode.compact
+      ? DuoTabPlacement.bar
+      : DuoTabPlacement.rail;
 
   /// The item data of the tab at [index], as the package's own items get it:
   /// its selection, position and a tap that applies the shell's selection,
   /// re-selection and veto rules.
-  DockTabItemData<T> itemData(int index) {
+  DuoTabItemData<T> itemData(int index) {
     RangeError.checkValidIndex(index, tabs, 'index');
-    return DockTabItemData<T>(
+    return DuoTabItemData<T>(
       tab: tabs[index],
       index: index,
       count: tabs.length,
@@ -68,11 +68,11 @@ class DockTabsData<T> {
 /// What a tab item builder gets: one tab, its position and selection.
 ///
 /// The package wraps the built item with the tab's semantics (selected, label,
-/// badge, tap action) and keys (`DockKeys.tab(id)`, then [DockTab.key]).
+/// badge, tap action) and keys (`DuoKeys.tab(id)`, then [DuoTab.key]).
 @immutable
-class DockTabItemData<T> {
+class DuoTabItemData<T> {
   /// Built by the frame for each tab.
-  const DockTabItemData({
+  const DuoTabItemData({
     required this.tab,
     required this.index,
     required this.count,
@@ -82,7 +82,7 @@ class DockTabItemData<T> {
   });
 
   /// The tab.
-  final DockTab<T> tab;
+  final DuoTab<T> tab;
 
   /// The tab's position, from 0.
   final int index;
@@ -94,14 +94,14 @@ class DockTabItemData<T> {
   final bool selected;
 
   /// In the tab bar or in the rail.
-  final DockTabPlacement placement;
+  final DuoTabPlacement placement;
 
   /// Selects this tab (or re-selects it), with the shell's rules.
   final VoidCallback onTap;
 
   @override
   bool operator ==(Object other) =>
-      other is DockTabItemData<T> &&
+      other is DuoTabItemData<T> &&
       other.tab == tab &&
       other.index == index &&
       other.count == count &&

@@ -5,24 +5,24 @@ import 'models/action.dart';
 import 'models/bar_data.dart';
 import 'page/page_scope.dart';
 
-/// Builds a whole page from [DockBarData] (see [DockPage.custom]).
-typedef DockPageBuilder<A, B> =
-    Widget Function(BuildContext context, DockBarData<A, B> bar);
+/// Builds a whole page from [DuoBarData] (see [DuoPage.custom]).
+typedef DuoPageBuilder<A, B> =
+    Widget Function(BuildContext context, DuoBarData<A, B> bar);
 
-/// A tab root, subpage or modal page: a [DockPageScope] plus the `page`
+/// A tab root, subpage or modal page: a [DuoPageScope] plus the `page`
 /// builder. Declare actions once; the page puts them in the app bar (compact)
 /// or hands icon actions to the side column (wide).
 ///
 /// [A] is the actions' payload type and [B] the bar payload's; the action
 /// and page builders get them typed.
 ///
-/// For a page with its own `Scaffold`, use [DockPageScope] with `DockAppBar`
-/// instead. Use [DockPage.custom] to build the whole page yourself (slivers,
-/// large titles, floating bars...) from [DockBarData].
-class DockPage<A, B> extends StatelessWidget {
+/// For a page with its own `Scaffold`, use [DuoPageScope] with `DuoAppBar`
+/// instead. Use [DuoPage.custom] to build the whole page yourself (slivers,
+/// large titles, floating bars...) from [DuoBarData].
+class DuoPage<A, B> extends StatelessWidget {
   /// A page whose title bar and body are built by the `page` builder
-  /// (`DockBuilders.page`).
-  const DockPage({
+  /// (`DuoBuilders.page`).
+  const DuoPage({
     super.key,
     this.title,
     this.barPayload,
@@ -37,8 +37,8 @@ class DockPage<A, B> extends StatelessWidget {
     required Widget this.body,
   }) : builder = null;
 
-  /// A page you build yourself from [DockBarData] in [builder].
-  const DockPage.custom({
+  /// A page you build yourself from [DuoBarData] in [builder].
+  const DuoPage.custom({
     super.key,
     this.title,
     this.barPayload,
@@ -50,48 +50,48 @@ class DockPage<A, B> extends StatelessWidget {
     this.hoisting,
     this.visible = true,
     this.backdrop,
-    required DockPageBuilder<A, B> this.builder,
+    required DuoPageBuilder<A, B> this.builder,
   }) : body = null;
 
-  /// See [DockPageScope.title].
+  /// See [DuoPageScope.title].
   final Widget? title;
 
-  /// See [DockPageScope.barPayload].
+  /// See [DuoPageScope.barPayload].
   final B? barPayload;
 
-  /// See [DockPageScope.leading].
-  final DockAction<A>? leading;
+  /// See [DuoPageScope.leading].
+  final DuoAction<A>? leading;
 
-  /// See [DockPageScope.trailing].
-  final List<DockAction<A>> trailing;
+  /// See [DuoPageScope.trailing].
+  final List<DuoAction<A>> trailing;
 
-  /// See [DockPageScope.automaticallyImplyLeading].
+  /// See [DuoPageScope.automaticallyImplyLeading].
   final bool automaticallyImplyLeading;
 
-  /// See [DockPageScope.impliedLeading].
-  final DockImpliedLeading? impliedLeading;
+  /// See [DuoPageScope.impliedLeading].
+  final DuoImpliedLeading? impliedLeading;
 
-  /// See [DockPageScope.leadingAtEnd].
+  /// See [DuoPageScope.leadingAtEnd].
   final bool? leadingAtEnd;
 
-  /// See [DockPageScope.hoisting].
-  final DockHoisting? hoisting;
+  /// See [DuoPageScope.hoisting].
+  final DuoHoisting? hoisting;
 
-  /// See [DockPageScope.visible].
+  /// See [DuoPageScope.visible].
   final bool visible;
 
-  /// See [DockPageScope.backdrop].
+  /// See [DuoPageScope.backdrop].
   final Widget? backdrop;
 
   /// Page content below the title bar (default constructor).
   final Widget? body;
 
-  /// Builds the whole page ([DockPage.custom]).
-  final DockPageBuilder<A, B>? builder;
+  /// Builds the whole page ([DuoPage.custom]).
+  final DuoPageBuilder<A, B>? builder;
 
   @override
   Widget build(BuildContext context) {
-    return DockPageScope<A, B>(
+    return DuoPageScope<A, B>(
       title: title,
       barPayload: barPayload,
       leading: leading,
@@ -104,10 +104,10 @@ class DockPage<A, B> extends StatelessWidget {
       backdrop: backdrop,
       child: Builder(
         builder: (context) {
-          final bar = DockBarData.of<A, B>(context);
+          final bar = DuoBarData.of<A, B>(context);
           final builder = this.builder;
           if (builder != null) return builder(context, bar);
-          return DockBuilders.of<Object?, A, B>(
+          return DuoBuilders.of<Object?, A, B>(
             context,
           ).buildPage(context, bar, body!);
         },
