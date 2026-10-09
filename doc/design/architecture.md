@@ -222,8 +222,14 @@ the visibility animation, so a page transition never makes the body jump.
 ```dart
 enum DockKeyboardBehavior { lift, hide, ignore }
 
+enum DockBodyKeyboardBehavior { passThrough, lift }
+
 class DockKeyboard {
-  const DockKeyboard({this.column = DockKeyboardBehavior.lift, this.bar = DockKeyboardBehavior.ignore});
+  const DockKeyboard({
+    this.column = DockKeyboardBehavior.lift,
+    this.bar = DockKeyboardBehavior.ignore,
+    this.body = DockBodyKeyboardBehavior.passThrough,
+  });
 }
 ```
 
@@ -235,11 +241,16 @@ The frame reads `viewInsets.bottom` (`k`) from the `MediaQuery` above it. If an 
 | column | laid out in `height − k`; rail and chips ride above the keyboard | hidden while `k > 0` | full height, covered |
 | bar | placed on top of the keyboard | hidden while `k > 0` | stays at the bottom, covered |
 
-In **inset mode** the frame consumes the keyboard for the body:
+In **inset mode** the body follows `DockKeyboard.body`:
 
-- `bottomReserve = max(k, bar bottom edge above the frame bottom)`, so `max(k, barHeight)` for `ignore`, `k` for
-  `hide`, and `k + barHeight` for `lift`.
-- Below the frame, `viewInsets.bottom = 0`, so a page's own `Scaffold` does not resize a second time.
+- `passThrough` (default): the body ends at the bar's top edge as without a keyboard, and below the frame
+  `viewInsets.bottom = max(0, k − bottom strip)`, the part of the keyboard the bar doesn't already cover. The page's
+  `Scaffold` decides, including `resizeToAvoidBottomInset: false`. A frame can't see the page's choice, so it leaves it
+  to the page.
+- `lift`: the frame consumes the keyboard: `bottomReserve = max(k, bar bottom edge above the frame bottom)`, so
+  `max(k, barHeight)` for `ignore`, `k` for `hide`, and `k + barHeight` for `lift`; below the frame
+  `viewInsets.bottom = 0`, so a page's own `Scaffold` does not resize a second time.
+- `DockShell.keyboard` and `DockModalScope.keyboard` override the app's setting per frame.
 
 In **overlay mode** the frame does not consume the keyboard. `viewInsets` pass through, and the page's `Scaffold`
 handles them as in 0.0.1.

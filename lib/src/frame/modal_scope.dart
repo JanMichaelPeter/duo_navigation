@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../config/keyboard.dart';
+
 import '../builders/builders.dart';
 import '../geometry/body_mode.dart';
 import '../models/action.dart';
@@ -18,6 +20,7 @@ class DockModalScope<A, B> extends StatelessWidget {
     super.key,
     this.bodyMode,
     this.hoisting,
+    this.keyboard,
     this.builders,
     this.navigationVisible = true,
     this.backdrop,
@@ -32,6 +35,12 @@ class DockModalScope<A, B> extends StatelessWidget {
   /// Whether icon actions of its pages move into the column in wide mode.
   /// Null: `DockNavigationData.hoisting`.
   final DockHoisting? hoisting;
+
+  /// How the bar, the column and the body handle the software keyboard in
+  /// this frame, for example `DockKeyboard(body: DockBodyKeyboardBehavior.lift)`
+  /// for screens whose bodies don't handle it. Null:
+  /// `DockNavigationData.keyboard`.
+  final DockKeyboard? keyboard;
 
   /// Builders for this modal frame only, on top of the app's; null fields
   /// fall back to them.
@@ -60,6 +69,7 @@ class DockModalScope<A, B> extends StatelessWidget {
     isModal: true,
     bodyMode: bodyMode,
     hoisting: hoisting,
+    keyboard: keyboard,
     builders: builders,
     navigationVisible: navigationVisible,
     backdrop: backdrop,
