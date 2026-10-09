@@ -7,9 +7,9 @@ import 'package:duo_navigation/testing.dart';
 /// whole: plain Scaffold pages across every layout, state across a mode
 /// switch, and the focused field above the keyboard.
 
-const _tabs = <DockTab<Object?>>[
-  DockTab(id: 'a', icon: DockIcon(Icons.home), label: 'A'),
-  DockTab(id: 'b', icon: DockIcon(Icons.person), label: 'B'),
+const _tabs = <DuoTab<Object?>>[
+  DuoTab(id: 'a', icon: DuoIcon(Icons.home), label: 'A'),
+  DuoTab(id: 'b', icon: DuoIcon(Icons.person), label: 'B'),
 ];
 
 const _phone = Size(400, 800);
@@ -47,9 +47,9 @@ class _PlainPage extends StatelessWidget {
 /// A shell with a navigator per tab, sized by the test's window; the layout
 /// follows the window (no pinned mode), as on a device.
 class _App extends StatefulWidget {
-  const _App({this.side = DockSide.end, this.direction = TextDirection.ltr});
+  const _App({this.side = DuoSide.end, this.direction = TextDirection.ltr});
 
-  final DockSide side;
+  final DuoSide side;
   final TextDirection direction;
 
   @override
@@ -62,21 +62,21 @@ class _AppState extends State<_App> {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    builder: (context, child) => DockTestHarness(
-      builders: const DockMaterialBuilders<Object?, Object?, Object?>(),
+    builder: (context, child) => DuoTestHarness(
+      builders: const DuoMaterialBuilders<Object?, Object?, Object?>(),
       side: widget.side,
       textDirection: widget.direction,
       child: child!,
     ),
-    home: DockShell<Object?, Object?, Object?>(
+    home: DuoShell<Object?, Object?, Object?>(
       tabs: _tabs,
       currentIndex: index,
       onTabSelected: (i) => setState(() => index = i),
-      child: DockTabStack(
+      child: DuoTabStack(
         index: index,
         children: [
           for (var i = 0; i < 2; i++)
-            DockTabNavigator(
+            DuoTabNavigator(
               navigatorKey: navigators[i],
               onGenerateRoute: (_) =>
                   MaterialPageRoute<void>(builder: (_) => _PlainPage('tab $i')),
@@ -96,7 +96,7 @@ void main() {
 
   group('a plain Scaffold page lays out clear of the chrome', () {
     for (final size in [_phone, _tablet]) {
-      for (final side in DockSide.values) {
+      for (final side in DuoSide.values) {
         for (final direction in TextDirection.values) {
           final name =
               '${size == _phone ? 'compact' : 'wide'}, ${side.name}, '
@@ -113,8 +113,8 @@ void main() {
             );
             final appBar = tester.getRect(find.byType(AppBar));
             final Rect chrome = size == _phone
-                ? tester.getRect(find.byKey(DockKeys.bar))
-                : tester.getRect(find.byKey(DockKeys.column));
+                ? tester.getRect(find.byKey(DuoKeys.bar))
+                : tester.getRect(find.byKey(DuoKeys.column));
             expect(button.overlaps(chrome), isFalse);
             expect(appBar.overlaps(chrome), isFalse);
             // The button sits right at the free area's bottom edge.
@@ -133,7 +133,7 @@ void main() {
     await tester.pumpWidget(const _App());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(DockKeys.tab('b')));
+    await tester.tap(find.byKey(DuoKeys.tab('b')));
     await tester.pumpAndSettle();
     final app = tester.state<_AppState>(find.byType(_App));
     app.navigators[1].currentState!.push(
@@ -180,7 +180,7 @@ void main() {
     expect(focus.hasFocus, isTrue);
 
     await setWindow(tester, _tablet); // unfold
-    expect(find.byKey(DockKeys.column), findsOneWidget);
+    expect(find.byKey(DuoKeys.column), findsOneWidget);
     expect(app.index, 1);
     expect(find.text('details'), findsOneWidget);
     expect(scrollable.mounted, isTrue);
@@ -189,7 +189,7 @@ void main() {
     expect(focus.hasFocus, isTrue);
 
     await setWindow(tester, _phone); // fold again
-    expect(find.byKey(DockKeys.bar), findsOneWidget);
+    expect(find.byKey(DuoKeys.bar), findsOneWidget);
     expect(find.text('details'), findsOneWidget);
     expect(scrollable.position.pixels, offset);
     expect(focus.hasFocus, isTrue);
