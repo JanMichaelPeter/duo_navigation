@@ -141,7 +141,7 @@ GoRoute(
 
 ## Pages and actions
 
-**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. `impliedLeading: DockImpliedLeading.close` on a `DockModalScope` or a page asks for close on any other route (a custom modal route, a sheet-like page). Pass `leading` to change it, for example a text-only `DockAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the title bar, after the other actions: the close button at the top right of an iOS-style sheet. In wide mode it is still the lowest chip in the column.
+**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. `impliedLeading: DockImpliedLeading.close` on a `DockModalScope` or a page asks for close on any other route (a custom modal route, a sheet-like page). Pass `leading` to change it, for example a text-only `DockAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the title bar, after the other actions: the close button at the top right of an iOS-style sheet. In wide mode it is still the lowest chip in the column. For every modal at once, `DockNavigationData(modalLeading: DockModalLeading(implied: DockImpliedLeading.close, atEnd: true))` applies both to each modal's first page; a `DockModalScope` or a page overrides it.
 
 **An action** has an `id` (`find.byKey(DockKeys.action(id))` finds it), an icon as `DockIcon` (`DockIcon.back` and `DockIcon.close` follow the platform) and/or a `label`, and optionally:
 

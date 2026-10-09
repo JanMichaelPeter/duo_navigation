@@ -35,6 +35,7 @@ class DockScope extends InheritedWidget {
     required this.hoisting,
     required this.route,
     required this.impliedLeading,
+    required this.leadingAtEnd,
     required super.child,
   });
 
@@ -63,6 +64,9 @@ class DockScope extends InheritedWidget {
   /// (close for a full-screen dialog, else back).
   final DockImpliedLeading? impliedLeading;
 
+  /// Whether the modal's first page has its leading action at the end.
+  final bool leadingAtEnd;
+
   /// The nearest scope, or null outside any shell or modal frame.
   static DockScope? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<DockScope>();
@@ -79,7 +83,8 @@ class DockScope extends InheritedWidget {
       side != oldWidget.side ||
       hoisting != oldWidget.hoisting ||
       route != oldWidget.route ||
-      impliedLeading != oldWidget.impliedLeading;
+      impliedLeading != oldWidget.impliedLeading ||
+      leadingAtEnd != oldWidget.leadingAtEnd;
 }
 
 /// Decides whether a tab may be selected; see `DockShell.canSelectTab`.
@@ -102,6 +107,7 @@ class DockFrame<T, A, B> extends StatefulWidget {
     this.navigationVisible = true,
     this.backdrop,
     this.impliedLeading,
+    this.leadingAtEnd,
     this.keyboard,
   });
 
@@ -129,6 +135,7 @@ class DockFrame<T, A, B> extends StatefulWidget {
   /// has its own.
   final Widget? backdrop;
   final DockImpliedLeading? impliedLeading;
+  final bool? leadingAtEnd;
   final DockKeyboard? keyboard;
 
   @override
@@ -375,7 +382,12 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
           // Only modal frames need their route; a shell doesn't rebuild when
           // routes change above it.
           route: widget.isModal ? ModalRoute.of(context) : null,
-          impliedLeading: widget.impliedLeading,
+          impliedLeading:
+              widget.impliedLeading ??
+              (widget.isModal ? config.modalLeading.implied : null),
+          leadingAtEnd:
+              widget.leadingAtEnd ??
+              (widget.isModal && config.modalLeading.atEnd),
           // Focus and semantics order, the same in both modes: the page
           // first, then the chrome (the column's actions above its rail, or
           // the tab bar).
