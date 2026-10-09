@@ -67,6 +67,7 @@ class DockFrameLayout
     this.keyboard = 0,
     this.liftColumn = false,
     this.liftBar = false,
+    this.liftBody = false,
     required this.body,
     this.backdrop,
     this.bar,
@@ -108,6 +109,9 @@ class DockFrameLayout
   /// Whether the bar sits on top of the keyboard.
   final bool liftBar;
 
+  /// Whether the body (in inset mode) is laid out above the keyboard.
+  final bool liftBody;
+
   /// The page subtree.
   final Widget body;
 
@@ -144,6 +148,7 @@ class DockFrameLayout
     keyboard: keyboard,
     liftColumn: liftColumn,
     liftBar: liftBar,
+    liftBody: liftBody,
   );
 
   @override
@@ -159,7 +164,8 @@ class DockFrameLayout
       ..visibility = visibility
       ..keyboard = keyboard
       ..liftColumn = liftColumn
-      ..liftBar = liftBar;
+      ..liftBar = liftBar
+      ..liftBody = liftBody;
   }
 }
 
@@ -179,10 +185,12 @@ class RenderDockFrame extends RenderBox
     double keyboard = 0,
     bool liftColumn = false,
     bool liftBar = false,
+    bool liftBody = false,
   }) : _visibility = visibility,
        _keyboard = keyboard,
        _liftColumn = liftColumn,
        _liftBar = liftBar,
+       _liftBody = liftBody,
        _mode = mode,
        _side = side,
        _columnOnRight = columnOnRight,
@@ -269,6 +277,15 @@ class RenderDockFrame extends RenderBox
   set liftColumn(bool value) {
     if (value == _liftColumn) return;
     _liftColumn = value;
+    markNeedsLayout();
+  }
+
+  /// See [DockFrameLayout.liftBody].
+  bool get liftBody => _liftBody;
+  bool _liftBody;
+  set liftBody(bool value) {
+    if (value == _liftBody) return;
+    _liftBody = value;
     markNeedsLayout();
   }
 
@@ -393,7 +410,7 @@ class RenderDockFrame extends RenderBox
                   'example with SafeArea(top: false, child: ...).',
                 ),
               ]),
-              library: 'nav_dock',
+              library: 'duo_navigation',
             ),
           );
         }
@@ -409,11 +426,12 @@ class RenderDockFrame extends RenderBox
       systemPadding: _systemPadding,
       chrome: chrome,
       visibility: shown,
-      keyboard: _bodyMode == DockBodyMode.inset ? keyboard : 0,
+      keyboard: _bodyMode == DockBodyMode.inset && _liftBody ? keyboard : 0,
     );
     final body = _body;
     if (body != null) {
-      // In inset mode the body ends above the chrome and above the keyboard.
+      // In inset mode the body ends above the chrome, and above the keyboard
+      // when the frame lifts it.
       final strip = geometry.strip;
       final rect = strip
           .copyWith(bottom: math.max(strip.bottom, geometry.keyboard))
@@ -509,6 +527,7 @@ class RenderDockFrame extends RenderBox
       ..add(EnumProperty<DockColumnInset>('columnInset', _columnInset))
       ..add(DiagnosticsProperty<EdgeInsets>('systemPadding', _systemPadding))
       ..add(DoubleProperty('visibility', _shown))
-      ..add(DoubleProperty('keyboard', _keyboard));
+      ..add(DoubleProperty('keyboard', _keyboard))
+      ..add(FlagProperty('liftBody', value: _liftBody, ifTrue: 'lifts body'));
   }
 }

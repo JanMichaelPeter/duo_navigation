@@ -13,19 +13,34 @@ enum DockKeyboardBehavior {
   ignore,
 }
 
-/// How the bar and the column handle the software keyboard.
+/// What the body does while the software keyboard is open, in
+/// `DockBodyMode.inset`.
+enum DockBodyKeyboardBehavior {
+  /// The body keeps its height and the page decides, as without duo_navigation:
+  /// `MediaQuery.viewInsets.bottom` below the frame is the part of the
+  /// keyboard that the bar doesn't already cover, so a `Scaffold` resizes for
+  /// it (or not, with `resizeToAvoidBottomInset: false`). The default.
+  passThrough,
+
+  /// The frame lays the body out above the keyboard and reports no keyboard
+  /// below it, also to a page that opted out of resizing. For bodies that
+  /// don't handle the keyboard themselves.
+  lift,
+}
+
+/// How the bar, the column and the body handle the software keyboard.
 ///
 /// The frame reads the keyboard from `MediaQuery.viewInsets` above it. If an
 /// ancestor already made room (a `Scaffold` with `resizeToAvoidBottomInset`),
-/// it sees no keyboard, so nothing moves twice. In `DockBodyMode.inset` the
-/// frame also lays the body out above the keyboard and reports no keyboard
-/// below it, so a page's own `Scaffold` does not shrink a second time.
+/// it sees no keyboard, so nothing moves twice. The body follows [body].
 @immutable
 class DockKeyboard {
-  /// The default: the column lifts, the bar is covered.
+  /// The default: the column lifts, the bar is covered, the page decides
+  /// about its body.
   const DockKeyboard({
     this.column = DockKeyboardBehavior.lift,
     this.bar = DockKeyboardBehavior.ignore,
+    this.body = DockBodyKeyboardBehavior.passThrough,
   });
 
   /// The side column in wide mode. Default: [DockKeyboardBehavior.lift], so the
@@ -35,10 +50,19 @@ class DockKeyboard {
   /// The tab bar in compact mode. Default: [DockKeyboardBehavior.ignore].
   final DockKeyboardBehavior bar;
 
-  @override
-  bool operator ==(Object other) =>
-      other is DockKeyboard && other.column == column && other.bar == bar;
+  /// The body, in `DockBodyMode.inset`. Default:
+  /// [DockBodyKeyboardBehavior.passThrough], so a page's `Scaffold` and its
+  /// `resizeToAvoidBottomInset` decide. In `DockBodyMode.overlay` the page
+  /// always handles the keyboard itself.
+  final DockBodyKeyboardBehavior body;
 
   @override
-  int get hashCode => Object.hash(column, bar);
+  bool operator ==(Object other) =>
+      other is DockKeyboard &&
+      other.column == column &&
+      other.bar == bar &&
+      other.body == body;
+
+  @override
+  int get hashCode => Object.hash(column, bar, body);
 }

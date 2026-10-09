@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nav_dock/material.dart';
+import 'package:duo_navigation/material.dart';
 
 const _wideWindow = Size(1000, 700);
 
@@ -61,6 +61,72 @@ void main() {
     await tester.tap(find.byKey(DockKeys.action(DockAction.backId)));
     await tester.pumpAndSettle();
     expect(find.text('Details'), findsNothing);
+  });
+
+  group('without DockTestHarness, the default tap guard follows the test', () {
+    Future<List<int>> pumpPage(WidgetTester tester) async {
+      final shares = <int>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: DockStandalone(
+            builders: const DockMaterialBuilders(),
+            child: _page(onShare: () => shares.add(shares.length)),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return shares;
+    }
+
+    testWidgets('two taps with pumpAndSettle in between both fire', (
+      tester,
+    ) async {
+      final shares = await pumpPage(tester);
+      await tester.tap(find.byKey(DockKeys.action('share')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(DockKeys.action('share')));
+      await tester.pumpAndSettle();
+      expect(shares, hasLength(2));
+    });
+
+    testWidgets('a double tap within the cooldown is still dropped', (
+      tester,
+    ) async {
+      final shares = await pumpPage(tester);
+      await tester.tap(find.byKey(DockKeys.action('share')));
+      await tester.pump();
+      await tester.tap(find.byKey(DockKeys.action('share')));
+      await tester.pump();
+      expect(shares, hasLength(1));
+    });
+  });
+
+  group('DockClock.system', () {
+    testWidgets('advances with frame time', (tester) async {
+      await tester.pumpWidget(const SizedBox());
+      final clock = DockClock.system();
+      final start = clock.now();
+      // A frame that happens a second later (in the app, a tap's ripple or
+      // any animation schedules one).
+      tester.binding.scheduleFrame();
+      await tester.pump(const Duration(seconds: 1));
+      expect(
+        clock.now() - start,
+        greaterThanOrEqualTo(const Duration(seconds: 1)),
+      );
+    });
+
+    testWidgets('advances with real time when no frame comes', (tester) async {
+      final clock = DockClock.system();
+      final start = clock.now();
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 60)),
+      );
+      expect(
+        clock.now() - start,
+        greaterThanOrEqualTo(const Duration(milliseconds: 60)),
+      );
+    });
   });
 
   testWidgets('below a DockNavigation it changes nothing', (tester) async {

@@ -1,14 +1,14 @@
-# nav_dock
+# duo_navigation
 
 **Thumb-friendly navigation for apps that run on phones, foldables and tablets, often in one session.**
 
-![One app in one session: bottom tab bar on a phone, a side column at the screen edge on an unfolded foldable, a modal flow, and split screen with the column following the window to the screen edge.](screenshots/nav_dock_demo.gif)
+![One app in one session: bottom tab bar on a phone, a side column at the screen edge on an unfolded foldable, a modal flow, and split screen with the column following the window to the screen edge.](screenshots/duo_navigation_demo.gif)
 
 On a phone, navigation sits at the bottom, right under your thumb. Unfold the device, rotate it, or open the app in split screen, and most layouts push back buttons and actions to the top corners, out of reach while you hold a foldable or tablet in both hands.
 
-nav_dock keeps everything reachable. On wide screens tabs, back and page actions dock into one column along the screen edge your hand is already on, and in split screen that column follows your window to the physical screen edge. SwiftUI does this automatically on the iPhone Duo; nav_dock brings the same behavior to Flutter. The switch happens live whenever the window changes size, without losing navigation or page state.
+duo_navigation keeps everything reachable. On wide screens tabs, back and page actions dock into one column along the screen edge your hand is already on, and in split screen that column follows your window to the physical screen edge. SwiftUI does this automatically on the iPhone Duo; duo_navigation brings the same behavior to Flutter. The switch happens live whenever the window changes size, without losing navigation or page state.
 
-Adding nav_dock to an existing app (a `Scaffold` with a tab bar, an `IndexedStack`, a `Navigator` per tab)? See [adopting nav_dock in an existing app](doc/adopting.md). Upgrading from 0.0.1? See the [migration guide](doc/migration_0.1.md).
+Adding duo_navigation to an existing app (a `Scaffold` with a tab bar, an `IndexedStack`, a `Navigator` per tab)? See [adopting duo_navigation in an existing app](doc/adopting.md). Upgrading from nav_dock 0.0.1? duo_navigation is its new name; see the [migration guide](doc/migration_0.1.md).
 
 ## What goes where
 
@@ -27,17 +27,17 @@ The package owns **placement, insets, visibility, identity, semantics and animat
 
 ## Platforms and installation
 
-Every Flutter platform, Flutter 3.35 or later; `nav_dock` has no native code.
+Every Flutter platform, Flutter 3.35 or later; `duo_navigation` has no native code.
 
 ```sh
-flutter pub add nav_dock
-flutter pub add nav_dock_window_placement   # optional: follow the window to the screen edge in split screen (iOS, iPadOS, Android)
+flutter pub add duo_navigation
+flutter pub add duo_navigation_window_placement   # optional: follow the window to the screen edge in split screen (iOS, iPadOS, Android)
 ```
 
 ## Quick start
 
 ```dart
-import 'package:nav_dock/material.dart'; // nav_dock and its Material visuals
+import 'package:duo_navigation/material.dart'; // duo_navigation and its Material visuals
 
 MaterialApp(
   // Above the root Navigator, so root-level modals see it too.
@@ -75,11 +75,11 @@ DockPage(
 
 ## Adoption levels
 
-Each level works without the ones above it, so an app can adopt nav_dock step by step ([the guide](doc/adopting.md) walks through it):
+Each level works without the ones above it, so an app can adopt duo_navigation step by step ([the guide](doc/adopting.md) walks through it):
 
 | Level | Use | Works with |
 |---|---|---|
-| 0 | `DockNavigation.modeOf` / `sideOf`, `DockGeometry` (`package:nav_dock/geometry.dart`) | your own frame and pages |
+| 0 | `DockNavigation.modeOf` / `sideOf`, `DockGeometry` (`package:duo_navigation/geometry.dart`) | your own frame and pages |
 | 1 | `DockShell` and tabs (`DockTabStack`) | plain `Scaffold` pages with their own `AppBar`; the column holds only the rail |
 | 2 | `DockPage` / `DockPageScope` and actions | actions moving into the column, or not (`DockHoisting.none`) |
 | 3 | custom builders, typed payloads, backdrops, bleed | your design system |
@@ -141,7 +141,7 @@ GoRoute(
 
 ## Pages and actions
 
-**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. `impliedLeading: DockImpliedLeading.close` on a `DockModalScope` or a page asks for close on any other route (a custom modal route, a sheet-like page). Pass `leading` to change it, for example a text-only `DockAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the title bar, after the other actions: the close button at the top right of an iOS-style sheet. In wide mode it is still the lowest chip in the column.
+**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. `impliedLeading: DockImpliedLeading.close` on a `DockModalScope` or a page asks for close on any other route (a custom modal route, a sheet-like page). Pass `leading` to change it, for example a text-only `DockAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the title bar, after the other actions: the close button at the top right of an iOS-style sheet. In wide mode it is still the lowest chip in the column. For every modal at once, `DockNavigationData(modalLeading: DockModalLeading(implied: DockImpliedLeading.close, atEnd: true))` applies both to each modal's first page; a `DockModalScope` or a page overrides it.
 
 **An action** has an `id` (`find.byKey(DockKeys.action(id))` finds it), an icon as `DockIcon` (`DockIcon.back` and `DockIcon.close` follow the platform) and/or a `label`, and optionally:
 
@@ -186,7 +186,16 @@ DockPageScope(
 By default (`DockBodyMode.inset`) the frame lays the body out in the free area: beside the column in wide mode, above the tab bar in compact mode. A plain `Scaffold` page works unchanged, and a button at the bottom of a `Column` never ends up under the tab bar.
 
 * Below the frame, `MediaQuery.padding` is zero on the edges the chrome covers and unchanged on the others.
-* On its edge, the column sits at the window edge, over the system inset (`DockColumnInset.overlap`). With `DockNavigationData(columnInset: DockColumnInset.safeArea)` it sits after a cutout or Android's button bar instead, and its builder can paint a background under it. Overlap keeps the column at the edge (iOS reports a landscape inset on both sides, not only the camera side); safeArea keeps chips clear of cutouts and system buttons.
+* On its edge, the column sits at the window edge, over the system inset (`DockColumnInset.overlap`, the default). With `DockNavigationData(columnInset: DockColumnInset.safeArea)` it sits after the inset instead, and its builder can paint a background under it. The trade-off shows on phones in landscape:
+
+  | | `overlap` (default) | `safeArea` |
+  |---|---|---|
+  | Column | at the window edge | moved inward by the system inset |
+  | Next to a camera cutout | chips can sit under it | clear |
+  | Next to Android's button bar (3-button navigation in landscape) | chips can sit under the buttons | clear |
+  | iPhone in landscape | at the edge on both sides | about 59 pt inward on **both** sides, because iOS reports the inset on both sides, not only on the camera's |
+
+  On tablets and foldables the side insets are usually zero, so both behave the same. If your app runs on phones in landscape, choose by what's on the column's edge, or keep phones compact in landscape with a layout policy (see [the guide](doc/adopting.md#1-docknavigation)).
 * The tab bar builder owns the bottom safe area (home indicator): include `MediaQuery.paddingOf(context).bottom` in its height. A debug error reports a bar that is shorter. The bar sees no top padding, so a bar that wraps itself in `SafeArea` doesn't grow by the status bar.
 * `MediaQuery.size` stays the window size, as with Flutter's own sub-screens; use `LayoutBuilder` for the available size.
 
@@ -220,11 +229,14 @@ DockNavigationData(
   keyboard: DockKeyboard(
     column: DockKeyboardBehavior.lift,  // default: the column fits above the keyboard
     bar: DockKeyboardBehavior.ignore,   // default: the tab bar is covered
+    body: DockBodyKeyboardBehavior.passThrough, // default: the page's Scaffold decides
   ),
 )
 ```
 
-`lift` keeps the rail and the page's actions (save, done, back) reachable while typing; `hide` hides the column or bar while the keyboard is open; `ignore` leaves it covered. In inset mode the frame lays the body out above the keyboard and reports no keyboard below it, so a page's own `Scaffold` doesn't shrink twice; if an ancestor already made room, nothing moves twice. When space is short, the column keeps the rail and the bottom actions and scrolls the rest.
+`lift` keeps the rail and the page's actions (save, done, back) reachable while typing; `hide` hides the column or bar while the keyboard is open; `ignore` leaves it covered. When space is short, the column keeps the rail and the bottom actions and scrolls the rest. If an ancestor already made room for the keyboard, nothing moves twice.
+
+The body is the page's business by default (`passThrough`): it keeps its height, and its `MediaQuery` reports the part of the keyboard that the bar doesn't already cover, so a `Scaffold` resizes for it, or doesn't with `resizeToAvoidBottomInset: false`, as without duo_navigation. `DockBodyKeyboardBehavior.lift` makes the frame lay every body out above the keyboard instead, for bodies that don't handle it themselves. `DockShell(keyboard: ...)` and `DockModalScope(keyboard: ...)` set it per frame.
 
 ### Hiding the navigation
 
@@ -244,7 +256,7 @@ Only matters when your app doesn't fill the whole display: iPad Split View / Sta
  └──────────────────────────────────────────┘
 ```
 
-Give `DockNavigation` a window-edge source; `nav_dock_window_placement` asks the [window_placement](https://github.com/JanMichaelPeter/window_placement) plugin and keeps listening:
+Give `DockNavigation` a window-edge source; `duo_navigation_window_placement` asks the [window_placement](https://github.com/JanMichaelPeter/window_placement) plugin and keeps listening:
 
 ```dart
 final windowEdges = WindowPlacementEdgesSource(); // create once, dispose with the app
@@ -275,7 +287,7 @@ Title-bar actions follow the column (`DockBarData.trailingAtStart`, handled by `
 
 ## Customizing
 
-Every visual is a builder in `DockBuilders`. `const DockMaterialBuilders()` (`package:nav_dock/material.dart`) sets all of them to Material 3 defaults that your theme styles; replace single ones with `merge`:
+Every visual is a builder in `DockBuilders`. `const DockMaterialBuilders()` (`package:duo_navigation/material.dart`) sets all of them to Material 3 defaults that your theme styles; replace single ones with `merge`:
 
 ```dart
 DockNavigation(
@@ -303,16 +315,16 @@ DockNavigation(
 * **Typed payloads.** `DockShell<MyTab, MyAction, MyBar>` with `DockBuilders<MyTab, MyAction, MyBar>` gives the builders `DockTab<MyTab>`, `DockAction<MyAction>` and `DockBarData<MyAction, MyBar>`, so they read `payload` without a cast. Builders written for `Object?`, such as `DockMaterialBuilders`, work for any payload types; builders for other types fail with an error naming the field.
 * `DockMaterial.*` are the plain functions behind the defaults; wrap them instead of rewriting.
 * **Icons.** `DockIconMorph(icon:, builder:)` cross-fades an action's icon when it changes (back → close) with your own icon rendering; `DockMaterial.morphingIcon` is it with Material icons.
-* **Bars built from data.** A bar that builds its own children from `tabs.tabs` wraps each with `tabs.wrap(i, child)` (the package's keys and semantics) and taps through `tabs.itemData(i).onTap`.
+* **Bars built from data.** A bar that builds its own children from `tabs.tabs` wraps each with `tabs.wrap(i, child)` (the package's keys and semantics) and taps through `tabs.itemData(i).onTap`. A bar that builds its item widgets itself passes `tabs.itemData(i).semanticsOf(context)` to its per-item semantics hook instead.
 
 `example/` uses a fully custom look (`example/lib/style/custom_style.dart`): a capsule tab bar, one tab item for bar and rail, square chips, its own column layout and chip transition.
 
 ## Testing
 
-`package:nav_dock/testing.dart` has what widget tests need, without adding a dependency:
+`package:duo_navigation/testing.dart` has what widget tests need, without adding a dependency:
 
 ```dart
-import 'package:nav_dock/testing.dart';
+import 'package:duo_navigation/testing.dart';
 
 final edges = FakeWindowEdgesSource();
 await tester.pumpWidget(MaterialApp(
@@ -331,17 +343,17 @@ edges.push(const DockWindowEdges(left: true, right: false)); // split screen
 await tester.tap(find.byKey(DockKeys.action('share')));
 ```
 
-`DockTestHarness` replaces `DockNavigation` in a test (also for pages that use `DockStandalone`: below the harness it does nothing). Its tap guard follows the frames, so `tester.pump(duration)` lets the cooldown pass and tests never wait on real time (`DockTapGuard.disabled` turns it off, `FakeDockClock` controls it directly). `DockKeys.bar`, `.column`, `.rail`, `.tab(id)` and `.action(id)` find the chrome whatever builder draws it.
+`DockTestHarness` replaces `DockNavigation` in a test (also for pages that use `DockStandalone`: below the harness it does nothing). Its tap guard follows the frames, so `tester.pump(duration)` lets the cooldown pass and tests never wait on real time (`DockTapGuard.disabled` turns it off, `FakeDockClock` controls it directly). Outside the harness the default clock (`DockClock.system()`) follows the test's time too, so pages under a plain `DockNavigation` or a `DockStandalone` can be tapped twice with `pumpAndSettle` in between. `DockKeys.bar`, `.column`, `.rail`, `.tab(id)` and `.action(id)` find the chrome whatever builder draws it.
 
 ## Libraries and API stability
 
 | Import | Contents |
 |---|---|
-| `package:nav_dock/nav_dock.dart` | everything an app needs: configuration, shell, tabs, pages, actions, builders, keys, semantics; includes `geometry.dart` |
-| `package:nav_dock/geometry.dart` | read-only layout: `DockGeometry`, layout mode, side, body mode, window edges and their source, layout policy, and `DockBleed` / `DockInset` / `DockBleedItem`; no page, action or builder types |
-| `package:nav_dock/material.dart` | the Material visuals (`DockMaterialBuilders`, `DockMaterial`, `DockAppBar`), and everything in `nav_dock.dart` |
-| `package:nav_dock/testing.dart` | `DockTestHarness`, `FakeWindowEdgesSource`, `FakeDockClock`, `DockKeys` |
-| `package:nav_dock_window_placement` | `WindowPlacementEdgesSource` (separate package with the native plugin) |
+| `package:duo_navigation/duo_navigation.dart` | everything an app needs: configuration, shell, tabs, pages, actions, builders, keys, semantics; includes `geometry.dart` |
+| `package:duo_navigation/geometry.dart` | read-only layout: `DockGeometry`, layout mode, side, body mode, window edges and their source, layout policy, and `DockBleed` / `DockInset` / `DockBleedItem`; no page, action or builder types |
+| `package:duo_navigation/material.dart` | the Material visuals (`DockMaterialBuilders`, `DockMaterial`, `DockAppBar`), and everything in `duo_navigation.dart` |
+| `package:duo_navigation/testing.dart` | `DockTestHarness`, `FakeWindowEdgesSource`, `FakeDockClock`, `DockKeys` |
+| `package:duo_navigation_window_placement` | `WindowPlacementEdgesSource` (separate package with the native plugin) |
 
 Everything these libraries export is public API and follows semantic versioning; nothing under `lib/src` is. Before 1.0, minor versions may break (and the changelog marks it); from 1.0 on, breaking changes come with a major version and deprecations last at least one minor release.
 

@@ -29,7 +29,8 @@ import 'tab_stack.dart';
 /// * **No clip** (`Clip.none`, a plain [Navigator] clips to its bounds), so a
 ///   `DockBleed` in a page reaches under the bar and the column.
 ///
-/// The arguments are the [Navigator]'s. Apps with a routing package (such as
+/// The arguments are the [Navigator]'s, except that the navigator's key is
+/// [navigatorKey]: `key` keys this widget. Apps with a routing package (such as
 /// go_router's `StatefulShellRoute`) get system back from it and use their
 /// own navigators.
 class DockTabNavigator extends StatefulWidget {
@@ -44,10 +45,16 @@ class DockTabNavigator extends StatefulWidget {
     this.observers = const [],
     this.restorationScopeId,
     this.handlesSystemBack = true,
-  });
+  }) : assert(
+         key is! GlobalKey<NavigatorState>,
+         'DockTabNavigator(key:) keys the DockTabNavigator, not its Navigator, '
+         'so a GlobalKey<NavigatorState> passed as key has no currentState. '
+         'Pass it as navigatorKey instead.',
+       );
 
-  /// The key of the [Navigator], to push from outside the tab. Null: an
-  /// internal one.
+  /// The key of the [Navigator], to push from outside the tab or pop it to
+  /// its root (`navigatorKey.currentState`). Null: an internal one. Not
+  /// `key`, which keys this widget.
   final GlobalKey<NavigatorState>? navigatorKey;
 
   /// See [Navigator.initialRoute].

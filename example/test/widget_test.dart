@@ -5,9 +5,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:window_placement/window_placement.dart';
 import 'package:window_placement/window_placement_platform_interface.dart';
 
-import 'package:nav_dock/nav_dock.dart';
-import 'package:nav_dock_example/main.dart';
-import 'package:nav_dock_example/main_go_router.dart';
+import 'package:duo_navigation/duo_navigation.dart';
+import 'package:duo_navigation_example/main.dart';
+import 'package:duo_navigation_example/main_go_router.dart';
 
 void main() {
   Future<void> pumpAt(WidgetTester tester, Size size) async {
@@ -65,10 +65,6 @@ void main() {
 
     await tester.tap(find.byType(BackButtonIcon));
     await tester.pumpAndSettle();
-    // Back and close are one action, and the app's tap guard runs on real
-    // time: wait out its cooldown as a user would.
-    await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 400)));
     await tester.tap(inAppBar(find.byIcon(Icons.close)));
     await tester.pumpAndSettle();
     expect(find.text('Step 1 of 3'), findsNothing);

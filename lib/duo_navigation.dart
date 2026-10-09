@@ -28,6 +28,7 @@ export 'src/models/tabs_data.dart';
 export 'src/page.dart';
 export 'src/page/bar_layout.dart';
 export 'src/page/page_scope.dart';
-export 'src/tabs/tab_item.dart' show DockTabBarSemantics, DockTabsDataWrap;
+export 'src/tabs/tab_item.dart'
+    show DockTabBarSemantics, DockTabItemSemantics, DockTabsDataWrap;
 export 'src/tabs/tab_navigator.dart';
 export 'src/tabs/tab_stack.dart';

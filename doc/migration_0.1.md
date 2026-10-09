@@ -1,9 +1,24 @@
-# Migrating from nav_dock 0.0.1 to 0.1.0
+# Migrating from nav_dock 0.0.1 to duo_navigation 0.1.0
 
-(Adding nav_dock to an app that didn't use it? See [adopting nav_dock in an existing app](adopting.md).)
+(Adding duo_navigation to an app that didn't use it? See [adopting duo_navigation in an existing app](adopting.md).)
 
-0.1.0 is a redesign. Most apps change their setup, their tab and action declarations, and their custom builders;
-pages built with `DockPage` mostly keep working. Work through the sections below in order.
+0.1.0 is a redesign, published under a new name: nav_dock is now duo_navigation. Most apps change their setup, their
+tab and action declarations, and their custom builders; pages built with `DockPage` mostly keep working. Work through
+the sections below in order.
+
+## 0. The new name
+
+Replace the dependency and the imports. The public types keep their names (`DockNavigation`, `DockShell`, ...).
+
+```yaml
+# pubspec.yaml
+dependencies:
+  duo_navigation: ^0.1.0 # was nav_dock: ^0.0.1
+```
+
+```dart
+import 'package:duo_navigation/duo_navigation.dart'; // was package:nav_dock/nav_dock.dart
+```
 
 ## 1. Setup: builders and the window-edge source
 
@@ -18,8 +33,8 @@ DockNavigation(
 )
 
 // 0.1.0
-import 'package:nav_dock/material.dart';
-import 'package:nav_dock_window_placement/nav_dock_window_placement.dart';
+import 'package:duo_navigation/material.dart';
+import 'package:duo_navigation_window_placement/duo_navigation_window_placement.dart';
 
 final windowEdges = WindowPlacementEdgesSource(); // create once (app state), dispose with the app
 
@@ -36,10 +51,10 @@ DockNavigation(
 | 0.0.1 | 0.1.0 |
 |---|---|
 | `breakpoint: 600` | `layoutPolicy: DockLayoutPolicy.breakpoint(600)`; the breakpoint now applies to the **window** width |
-| detection built in; `windowEdges:` / `detectWindowEdges:` | `windowEdgesSource:` with `WindowPlacementEdgesSource()` (`nav_dock_window_placement`), `DockWindowEdgesSource.fixed(...)`, or none (always `side`) |
+| detection built in; `windowEdges:` / `detectWindowEdges:` | `windowEdgesSource:` with `WindowPlacementEdgesSource()` (`duo_navigation_window_placement`), `DockWindowEdgesSource.fixed(...)`, or none (always `side`) |
 | `tapCooldown:` | `tapGuard: DockTapGuard(cooldown: ...)`; the cooldown now applies per action |
 | `tabBarBuilder:`, `railBuilder:`, `actionBuilder:`, `pageBuilder:`, `sideColumnBuilder:`, `actionTransitionBuilder:` | `DockNavigation(builders: DockBuilders(tabBar:, rail:, action:, page:, sideColumn:, actionTransition:, backdrop:))`, see section 5 |
-| `DockDefaults.*` | `DockMaterial.*` in `package:nav_dock/material.dart`; `DockMaterialBuilders()` sets all of them |
+| `DockDefaults.*` | `DockMaterial.*` in `package:duo_navigation/material.dart`; `DockMaterialBuilders()` sets all of them |
 | `DockNavigation.of` fell back to defaults | it throws without a `DockNavigation`; use `maybeOf` where none is expected, `DockStandalone` around pages that may have none, and `DockTestHarness` in tests |
 
 ## 2. Layout: the body is beside the chrome
@@ -58,8 +73,10 @@ lays the body out beside them (`DockBodyMode.inset`).
   `DockModalScope`.
 * On its edge, the column still sits at the window edge, over the system inset. To keep it clear of a cutout or
   Android's button bar in landscape, set `columnInset: DockColumnInset.safeArea` on `DockNavigationData`.
-* The frame now handles the software keyboard: the column lifts above it (`DockNavigationData.keyboard`), and in
-  inset mode the body ends above it, so a page's `Scaffold` no longer needs to resize for it.
+* The frame now handles the software keyboard for the chrome: the column lifts above it
+  (`DockNavigationData.keyboard`). The body stays the page's business, so a page's `Scaffold` resizes for the keyboard
+  (or doesn't, with `resizeToAvoidBottomInset: false`) as before; `DockKeyboard(body: DockBodyKeyboardBehavior.lift)`
+  makes the frame lift every body instead.
 
 ## 3. Tabs
 
@@ -154,5 +171,5 @@ DockTestHarness(
 await tester.tap(find.byKey(DockKeys.action('share')));
 ```
 
-Fakes of the window_placement platform are no longer needed in nav_dock tests: use `FakeWindowEdgesSource` or
+Fakes of the window_placement platform are no longer needed in duo_navigation tests: use `FakeWindowEdgesSource` or
 `windowEdges:` on the harness.

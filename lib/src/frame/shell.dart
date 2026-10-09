@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/widgets.dart';
 
+import '../config/keyboard.dart';
+
 import '../builders/builders.dart';
 import '../geometry/body_mode.dart';
 import '../models/action.dart';
@@ -32,6 +34,7 @@ class DockShell<T, A, B> extends StatelessWidget {
     this.canSelectTab,
     this.bodyMode,
     this.hoisting,
+    this.keyboard,
     this.builders,
     this.navigationVisible = true,
     this.backdrop,
@@ -66,6 +69,12 @@ class DockShell<T, A, B> extends StatelessWidget {
   /// Null: `DockNavigationData.hoisting`.
   final DockHoisting? hoisting;
 
+  /// How the bar, the column and the body handle the software keyboard in
+  /// this frame, for example `DockKeyboard(body: DockBodyKeyboardBehavior.lift)`
+  /// for screens whose bodies don't handle it. Null:
+  /// `DockNavigationData.keyboard`.
+  final DockKeyboard? keyboard;
+
   /// Builders for this shell only (its bar, rail, column and pages), on top
   /// of the app's; null fields fall back to them.
   final DockBuilders<T, A, B>? builders;
@@ -95,6 +104,7 @@ class DockShell<T, A, B> extends StatelessWidget {
       canSelectTab: canSelectTab,
       bodyMode: bodyMode,
       hoisting: hoisting,
+      keyboard: keyboard,
       builders: builders,
       navigationVisible: navigationVisible,
       backdrop: backdrop,

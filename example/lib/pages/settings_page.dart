@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nav_dock/geometry.dart';
+import 'package:duo_navigation/geometry.dart';
 
 /// No page layer at all: a plain Scaffold with its own AppBar and back
 /// button. The frame lays it out beside the chrome, and the column holds only

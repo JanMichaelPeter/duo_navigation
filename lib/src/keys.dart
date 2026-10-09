@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-/// Keys that nav_dock puts around the bar, the column, the rail and every
+/// Keys that duo_navigation puts around the bar, the column, the rail and every
 /// action, whatever builder draws them. Find them in tests with
 /// `find.byKey(DockKeys.action('share'))`.
 ///

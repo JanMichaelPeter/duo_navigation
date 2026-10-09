@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nav_dock/nav_dock.dart';
+import 'package:duo_navigation/duo_navigation.dart';
 
 import 'pages/items_page.dart';
 import 'pages/map_page.dart';

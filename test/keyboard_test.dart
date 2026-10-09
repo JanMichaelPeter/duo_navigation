@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nav_dock/material.dart';
-import 'package:nav_dock/testing.dart';
+import 'package:duo_navigation/material.dart';
+import 'package:duo_navigation/testing.dart';
 
 const _tabs = <DockTab<Object?>>[
   DockTab(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
@@ -228,6 +228,88 @@ void main() {
         isTrue,
       );
       expect(rect(tester, _field).bottom, 800 - 300);
+    });
+  });
+
+  group('the body', () {
+    const body = Key('body');
+
+    /// A shell whose page is a Scaffold with [resize] as its
+    /// resizeToAvoidBottomInset, and a 300 px keyboard.
+    Future<Rect> pageBody(
+      WidgetTester tester, {
+      required Size size,
+      required bool resize,
+      DockKeyboard? app,
+      DockKeyboard? shell,
+    }) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (context, child) => DockTestHarness(
+            builders: const DockMaterialBuilders<Object?, Object?, Object?>(),
+            data: DockNavigationData(keyboard: app ?? const DockKeyboard()),
+            child: child!,
+          ),
+          home: DockShell<Object?, Object?, Object?>(
+            tabs: _tabs,
+            currentIndex: 0,
+            onTabSelected: (_) {},
+            keyboard: shell,
+            child: Scaffold(
+              resizeToAvoidBottomInset: resize,
+              body: const SizedBox.expand(key: body),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return tester.getRect(find.byKey(body));
+    }
+
+    const lift = DockKeyboard(body: DockBodyKeyboardBehavior.lift);
+
+    for (final size in const [Size(400, 800), Size(800, 600)]) {
+      final compact = size.width < 600;
+      final name = compact ? 'compact' : 'wide';
+
+      testWidgets('$name, passThrough (default): a page that opts out keeps '
+          'its height', (tester) async {
+        final rect = await pageBody(tester, size: size, resize: false);
+        final bottom = compact
+            ? tester.getRect(find.byKey(DockKeys.bar)).top
+            : size.height;
+        expect(rect.bottom, bottom);
+      });
+
+      testWidgets('$name, passThrough (default): a resizing page ends at the '
+          'keyboard, without counting the bar twice', (tester) async {
+        final rect = await pageBody(tester, size: size, resize: true);
+        expect(rect.bottom, size.height - 300);
+      });
+
+      testWidgets('$name, lift: the frame lifts every page', (tester) async {
+        final rect = await pageBody(
+          tester,
+          size: size,
+          resize: false,
+          app: lift,
+        );
+        expect(rect.bottom, size.height - 300);
+      });
+    }
+
+    testWidgets('a shell can override the app\'s behavior', (tester) async {
+      final rect = await pageBody(
+        tester,
+        size: const Size(800, 600),
+        resize: false,
+        shell: lift,
+      );
+      expect(rect.bottom, 600 - 300);
     });
   });
 

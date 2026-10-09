@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nav_dock/material.dart';
+import 'package:duo_navigation/material.dart';
 
 const _tabs = [
   DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
@@ -279,12 +279,32 @@ void main() {
       expect(rectOf(tester, _safe).bottom, 800 - 120);
     });
 
-    testWidgets('the body ends above the keyboard and sees none', (
+    testWidgets('the body keeps its height and sees the uncovered keyboard', (
       tester,
     ) async {
       await pump(
         tester,
         _app(viewInsets: const EdgeInsets.only(bottom: 300)),
+        size: phone,
+      );
+      final bar = tester.getRect(find.byKey(DockKeys.bar));
+      expect(rectOf(tester, _safe).bottom, bar.top);
+      // The bar's strip is already off the body; the page sees the rest.
+      expect(bodyMediaQuery(tester).viewInsets.bottom, 300 - bar.height);
+      expect(geometry(tester).keyboard, 0);
+    });
+
+    testWidgets('lift: the body ends above the keyboard and sees none', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _app(
+          viewInsets: const EdgeInsets.only(bottom: 300),
+          data: const DockNavigationData(
+            keyboard: DockKeyboard(body: DockBodyKeyboardBehavior.lift),
+          ),
+        ),
         size: phone,
       );
       expect(rectOf(tester, _safe).bottom, 800 - 300);

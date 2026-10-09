@@ -23,7 +23,7 @@ class DockActionHost extends ChangeNotifier {
   DockTapGuard tapGuard = const DockTapGuard();
 
   final List<DockActionRegistration> _registrations = [];
-  final DockClock _stopwatch = DockClock.stopwatch();
+  final DockClock _clock = DockClock.system();
   final Map<Object, Duration> _lastInvoke = {};
   int _serial = 0;
   bool _notifyScheduled = false;
@@ -63,7 +63,7 @@ class DockActionHost extends ChangeNotifier {
     if (reason == null) return true;
     assert(() {
       debugPrint(
-        'nav_dock: tap on action ${action.id} dropped (${reason.name})',
+        'duo_navigation: tap on action ${action.id} dropped (${reason.name})',
       );
       return true;
     }());
@@ -80,7 +80,7 @@ class DockActionHost extends ChangeNotifier {
       return DockTapRejection.notActive;
     }
     if (!_isSettled(route)) return DockTapRejection.transition;
-    final now = (tapGuard.clock ?? _stopwatch).now();
+    final now = (tapGuard.clock ?? _clock).now();
     // Same identity as in the column: shared actions across pages, all
     // others per page.
     final Object key = action.shared ? action.id : (r, action.id);

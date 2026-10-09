@@ -1,7 +1,7 @@
-# Adopting nav_dock in an existing app
+# Adopting duo_navigation in an existing app
 
 Most apps don't start from scratch. They have a `Scaffold` with a `NavigationBar` (or their own bar), an `IndexedStack`
-of tabs, a `Navigator` per tab, and pages with their own `AppBar`. This guide moves such an app to nav_dock step by
+of tabs, a `Navigator` per tab, and pages with their own `AppBar`. This guide moves such an app to duo_navigation step by
 step. Each step ships on its own, and the app keeps working in between. (Coming from nav_dock 0.0.1, see the
 [migration guide](migration_0.1.md) instead.)
 
@@ -20,7 +20,7 @@ Put a `DockNavigation` above the root `Navigator`, so pages pushed on it (modals
 the Material visuals to begin with; your own come in step 4.
 
 ```dart
-import 'package:nav_dock/material.dart'; // nav_dock and its Material visuals
+import 'package:duo_navigation/material.dart'; // duo_navigation and its Material visuals
 
 MaterialApp(
   builder: (context, child) => DockNavigation(
@@ -32,8 +32,29 @@ MaterialApp(
 ```
 
 Nothing changes on screen yet. For the side column to follow the window to the screen edge in split screen, add
-`windowEdgesSource: WindowPlacementEdgesSource()` from `nav_dock_window_placement` to `DockNavigationData`. Create it
+`windowEdgesSource: WindowPlacementEdgesSource()` from `duo_navigation_window_placement` to `DockNavigationData`. Create it
 once, in app state, and dispose it with the app.
+
+**Phones in landscape.** With the default breakpoint of 600, a phone in landscape gets the wide layout, and the column
+sits on the screen edge where the camera cutout or Android's button bar may be. `columnInset` decides between the window
+edge, where chips can sit under the cutout, and the safe area, where the column moves inward by the system inset. On
+iPhones that inset is about 59 pt on both sides in landscape. The README has a table. To keep phones in the compact
+layout instead, decide by the window's shorter side:
+
+```dart
+class TabletsWide extends DockLayoutPolicy {
+  const TabletsWide();
+
+  @override
+  DockLayoutMode resolve({required Size window, required Size frame}) =>
+      window.shortestSide >= 600 ? DockLayoutMode.wide : DockLayoutMode.compact;
+}
+
+DockNavigationData(layoutPolicy: const TabletsWide())
+```
+
+Unfolded foldables and tablets still get the column. In split screen the window's shorter side decides, so a narrow
+window on a tablet is compact.
 
 ## 2. The tab scaffold
 
@@ -83,7 +104,9 @@ semantics for the hidden tabs. The differences:
 A tab with a long-running animation (a video, a map camera) that relied on `IndexedStack` keeping it running needs
 `maintainTickers: true`.
 
-**`Navigator` → `DockTabNavigator`.** It takes the same arguments and adds two things:
+**`Navigator` → `DockTabNavigator`.** It takes the `Navigator`'s arguments, except the key. Pass the
+`GlobalKey<NavigatorState>` you used as `Navigator(key: ...)` as `navigatorKey:`, because `key:` keys the
+`DockTabNavigator` itself (a debug assertion catches the mix-up). It adds two things:
 
 * Android's system back pops the shown tab's pages before it leaves the app. A hidden tab's pages don't keep the app
   from closing. With a plain `Navigator` per tab, you had to wire this yourself with `NavigatorPopHandler`.
@@ -128,6 +151,9 @@ thing in one widget, for pages that don't need their own `Scaffold`.
   page of a `Navigator` inside a `DockModalScope` gets an action that dismisses the whole modal.
 * **"Cancel" and a close button at the top right.** `DockAction.back(icon: null, label: 'Cancel')` is a text-only leading
   action that stays in the bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the bar.
+  Without a leading action it does nothing, so a page whose close action is conditional can set it unconditionally.
+  If all your modals close at the top right, set it once:
+  `DockNavigationData(modalLeading: DockModalLeading(implied: DockImpliedLeading.close, atEnd: true))`.
 * **Actions that should never move** get `hoist: DockHoist.never`. `DockHoisting.none` on `DockNavigationData`, a
   shell or a page keeps all of them in the bar.
 
@@ -143,7 +169,15 @@ DockStandalone(
 ```
 
 Where there is no `DockNavigation`, it provides a compact one: the page shows its title bar with all its actions.
-Below the app's `DockNavigation` it does nothing. Tests don't need it (see step 6).
+Below the app's `DockNavigation` it does nothing. Existing tests that pump such a page directly keep working: the tap
+guard's default clock follows the test's time (see step 6).
+
+**The keyboard.** Pages keep handling it as before. The body keeps its height, and its `MediaQuery` reports the part of
+the keyboard the tab bar doesn't already cover. A `Scaffold` resizes for it, and one with
+`resizeToAvoidBottomInset: false` (a form with a sticky action area, a full-height map) doesn't. The frame only moves
+its own chrome: the column lifts above the keyboard, and the bar stays covered (`DockNavigationData.keyboard`). For
+bodies that don't handle the keyboard themselves, `DockShell(keyboard: DockKeyboard(body: DockBodyKeyboardBehavior.lift))`
+lays them out above it instead, for that shell's pages only.
 
 ## 4. Your design system
 
@@ -204,6 +238,31 @@ tabBar: (context, tabs, items) => DockTabBarSemantics(
 
 Such a bar needs no `tabItem` builder (the rail still does, unless it is built the same way). Carry the design
 system's item description in `DockTab.payload`, typed with `DockShell<MyTabSpec, ...>` if you like.
+
+**A bar that builds its item widgets itself.** Some bars take only the item descriptions and build every item widget
+inside, so nothing can be wrapped around an item. If the item description has a semantics hook, pass it the tab's
+semantics as a value, `tabs.itemData(i).semanticsOf(context)`. It carries the tab role, the selected state, the label,
+the badge, the position and the tap action:
+
+```dart
+tabBar: (context, tabs, items) => DockTabBarSemantics(
+  child: MyTabBar(
+    items: [
+      for (var i = 0; i < tabs.tabs.length; i++)
+        MyTabBarItem(
+          spec: tabs.tabs[i].payload! as MyTabSpec,
+          onTap: tabs.itemData(i).onTap,
+          additionalSemantics: tabs.itemData(i).semanticsOf(context),
+        ),
+    ],
+  ),
+),
+```
+
+`DockTabBarSemantics` requires every semantics node directly below it to be a tab. Flutter reports
+"Children of TabBar must have the tab role" when one isn't, for example around a bar whose items carry no tab semantics.
+A bar without any per-item hook keeps its own semantics and goes without `DockTabBarSemantics`. Its items then read as
+buttons rather than tabs.
 
 **The bottom safe area.** The bar owns it: its height includes `MediaQuery.paddingOf(context).bottom`, and a debug error
 reports a bar that is shorter. Its `MediaQuery` has no top padding, so a bar that wraps itself in `SafeArea` grows only
@@ -308,7 +367,7 @@ mode and the strip the chrome covers.
 ## 6. Tests
 
 Widget tests that pump a migrated page need a `DockNavigation`. Use `DockTestHarness` from
-`package:nav_dock/testing.dart`. It pins the layout mode, the window edges and the text direction, and its tap guard
+`package:duo_navigation/testing.dart`. It pins the layout mode, the window edges and the text direction, and its tap guard
 follows `tester.pump`:
 
 ```dart
@@ -324,5 +383,8 @@ await tester.tap(find.byKey(DockKeys.action('add')));
 ```
 
 A shared test helper that pumps pages can add the harness in one place. Pages wrapped in `DockStandalone` work under
-the harness too: there the `DockStandalone` does nothing. Test both modes by pumping with `mode: DockLayoutMode.wide`.
+the harness too: there the `DockStandalone` does nothing. Tests that pump a `DockStandalone` page without the harness
+also work. The tap guard's default clock (`DockClock.system()`) follows `tester.pump(duration)` and `pumpAndSettle`, so
+two taps on one action with `pumpAndSettle` in between both fire. A double tap with only `tester.pump()` in between is
+dropped, as on a device. Test both modes by pumping with `mode: DockLayoutMode.wide`.
 `DockKeys.bar`, `.column`, `.rail`, `.tab(id)` and `.action(id)` find the chrome, whatever builder draws it.

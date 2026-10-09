@@ -35,22 +35,56 @@ class DockTabItem<T> extends StatelessWidget {
         selected: data.selected,
         child: DockFocusMarker(
           id: ('tab', tab.id),
-          child: DockSemantics.tab(
-            selected: data.selected,
-            label: tab.semanticLabel ?? tab.label ?? tab.tooltip,
-            value: tab.badge?.label,
-            hint: DockBuilders.of<Object?, Object?, Object?>(
-              context,
-            ).tabPosition?.call(context, data.index, data.count),
-            onTap: data.onTap,
-            child: appKey == null
-                ? child
-                : KeyedSubtree(key: appKey, child: child),
+          child: Semantics.fromProperties(
+            container: true,
+            properties: data.semanticsOf(context),
+            child: ExcludeSemantics(
+              child: appKey == null
+                  ? child
+                  : KeyedSubtree(key: appKey, child: child),
+            ),
           ),
         ),
       ),
     );
   }
+}
+
+/// The tab semantics of one item, for tab bars that build their item widgets
+/// themselves.
+extension DockTabItemSemantics<T> on DockTabItemData<T> {
+  /// The semantics the package gives this tab, as a value: the tab role, the
+  /// selected state, the label (`semanticLabel`, `label` or `tooltip`), the
+  /// badge as value, the position as hint (`DockBuilders.tabPosition`, read
+  /// at [context]) and the tap action.
+  ///
+  /// For a tab bar whose item widgets are built by the bar itself, so that
+  /// neither the package's items nor `DockTabsData.wrap` can be placed: pass
+  /// them to the bar's per-item semantics hook, and mark the bar with
+  /// [DockTabBarSemantics].
+  ///
+  /// ```dart
+  /// tabBar: (context, tabs, items) => DockTabBarSemantics(
+  ///   child: MyTabBar(items: [
+  ///     for (var i = 0; i < tabs.tabs.length; i++)
+  ///       MyTabBarItem(
+  ///         spec: tabs.tabs[i].payload! as MyTabSpec,
+  ///         onTap: tabs.itemData(i).onTap,
+  ///         additionalSemantics: tabs.itemData(i).semanticsOf(context),
+  ///       ),
+  ///   ]),
+  /// )
+  /// ```
+  SemanticsProperties semanticsOf(BuildContext context) =>
+      DockSemantics.tabProperties(
+        selected: selected,
+        label: tab.semanticLabel ?? tab.label ?? tab.tooltip,
+        value: tab.badge?.label,
+        hint: DockBuilders.of<Object?, Object?, Object?>(
+          context,
+        ).tabPosition?.call(context, index, count),
+        onTap: onTap,
+      );
 }
 
 /// Applies the package's per-item wrapping to children a tab bar builds
@@ -78,9 +112,14 @@ extension DockTabsDataWrap<T> on DockTabsData<T> {
 /// Marks a tab bar or rail as a tab bar for assistive technology.
 ///
 /// Use it in custom `tabBar` and `rail` builders, around the widget that
-/// holds the items. Nothing between it and the items may add semantics nodes
-/// of its own (the items carry the tab role). Material's `NavigationBar`
-/// marks itself and needs none.
+/// holds the items. Every semantics node directly below it must be a tab:
+/// Flutter checks this and reports "Children of TabBar must have the tab
+/// role" otherwise. The package's `items`, children wrapped with
+/// `DockTabsData.wrap`, and items that carry
+/// `DockTabsData.itemData(i).semanticsOf(context)` are tabs; nothing between
+/// them and this widget may add nodes of its own. A bar whose items can carry
+/// none of these keeps its own semantics and goes without this widget.
+/// Material's `NavigationBar` marks itself and needs none.
 class DockTabBarSemantics extends StatelessWidget {
   /// Marks [child] as a tab bar.
   const DockTabBarSemantics({super.key, required this.child});

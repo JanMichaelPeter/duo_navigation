@@ -162,7 +162,7 @@ typedef DockTabPositionLabel =
 typedef DockActionLabel =
     String? Function(BuildContext context, DockAction<Object?> action);
 
-/// Every visual of nav_dock: tab items, the tab bar, the rail, actions, the
+/// Every visual of duo_navigation: tab items, the tab bar, the rail, actions, the
 /// page's scaffold, the side column's arrangement, the chips' transition and
 /// the frame's default backdrop.
 ///
@@ -177,7 +177,7 @@ typedef DockActionLabel =
 /// field left null falls back to the scope above. A field that is null all
 /// the way up fails with a [FlutterError] when it is needed.
 ///
-/// `DockMaterialBuilders()` in `package:nav_dock/material.dart` sets every
+/// `DockMaterialBuilders()` in `package:duo_navigation/material.dart` sets every
 /// field to the Material defaults.
 @immutable
 class DockBuilders<T, A, B> {
@@ -397,12 +397,12 @@ class DockBuilders<T, A, B> {
         )
       else
         ErrorDescription(
-          'nav_dock needs a $name builder to draw this part of the '
+          'duo_navigation needs a $name builder to draw this part of the '
           'navigation, and no DockBuilders above sets one.',
         ),
       ErrorHint(
         'Pass builders to DockNavigation, for example the Material defaults:\n'
-        "  import 'package:nav_dock/material.dart';\n"
+        "  import 'package:duo_navigation/material.dart';\n"
         '  DockNavigation(builders: const DockMaterialBuilders(), child: ...)\n'
         'or set $name on DockShell, DockModalScope or a DockBuildersScope. '
         'Builders written for Object? payloads work for every payload type.',

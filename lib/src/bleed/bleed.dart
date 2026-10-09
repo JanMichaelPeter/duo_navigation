@@ -288,28 +288,53 @@ class RenderDockBleed extends RenderShiftedBox {
     if (_reportedClip || _extension == EdgeInsets.zero) return;
     var node = parent;
     while (node != null) {
-      final name = node.runtimeType.toString();
-      if (name == 'RenderDockFrame') return;
-      final clips =
-          node is RenderClipRect ||
-          node is RenderClipRRect ||
-          node is RenderClipOval ||
-          node is RenderClipPath ||
-          (node is RenderViewportBase && node.clipBehavior != Clip.none) ||
-          // A Navigator's Overlay clips unless its clipBehavior is none.
-          name == '_RenderTheater';
-      if (clips) {
+      if (node.runtimeType.toString() == 'RenderDockFrame') return;
+      final cause = _clipCause(node);
+      if (cause != null) {
         _reportedClip = true;
         debugPrint(
-          'nav_dock: a DockBleed is clipped by an ancestor ($name), so it '
-          'stops at the body\'s edge. Wrap the scroll view instead of an item '
-          'in it, give a Navigator clipBehavior: Clip.none, or use a backdrop '
-          '(DockShell.backdrop, DockPageScope.backdrop) for backgrounds.',
+          'duo_navigation: a DockBleed is clipped by $cause, so it stops at the '
+          'body\'s edge. For backgrounds, a backdrop (DockShell.backdrop, '
+          'DockPageScope.backdrop) is never clipped.',
         );
         return;
       }
       node = node.parent;
     }
+  }
+
+  /// What clips at [node], in words an adopter can act on, or null if
+  /// nothing does. A clip set to [Clip.none] doesn't.
+  static String? _clipCause(RenderObject node) {
+    if (node is RenderViewportBase) {
+      return node.clipBehavior == Clip.none
+          ? null
+          : 'a scroll view (put the DockBleed around the scroll view, not '
+                'around an item in it)';
+    }
+    final (clip, widget) = switch (node) {
+      RenderClipRect() => (node.clipBehavior, 'ClipRect'),
+      RenderClipRRect() => (node.clipBehavior, 'ClipRRect'),
+      RenderClipOval() => (node.clipBehavior, 'ClipOval'),
+      RenderClipPath() => (node.clipBehavior, 'ClipPath'),
+      _ => (null, null),
+    };
+    if (clip != null) {
+      return clip == Clip.none
+          ? null
+          : 'a $widget (pass clipBehavior: Clip.none, or move the DockBleed '
+                'above it)';
+    }
+    // A Navigator's Overlay; its render object is private.
+    if (node.runtimeType.toString() == '_RenderTheater') {
+      // ignore: avoid_dynamic_calls
+      final theaterClip = (node as dynamic).clipBehavior as Clip;
+      return theaterClip == Clip.none
+          ? null
+          : 'the Overlay of a Navigator (pass clipBehavior: Clip.none to the '
+                'Navigator, or use DockTabNavigator)';
+    }
+    return null;
   }
 
   @override

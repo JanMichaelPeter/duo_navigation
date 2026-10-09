@@ -1,9 +1,10 @@
-name: nav_dock
+name: duo_navigation
 description: >-
   Thumb-friendly navigation for phones, foldables and tablets: a tab bar on
   phones, one column of tabs and actions at the screen edge on wide screens.
 version: 0.1.0
-repository: https://github.com/JanMichaelPeter/nav_dock
+repository: https://github.com/JanMichaelPeter/duo_navigation
+issue_tracker: https://github.com/JanMichaelPeter/duo_navigation/issues
 
 topics:
   - navigation
@@ -16,7 +17,7 @@ screenshots:
   - description: >-
       One app on a phone, an unfolded foldable and in split screen: navigation
       moves to the screen edge.
-    path: screenshots/nav_dock_demo.gif
+    path: screenshots/duo_navigation_demo.gif
 
 environment:
   sdk: ">=3.9.0 <4.0.0"
@@ -24,7 +25,7 @@ environment:
 
 workspace:
   - example
-  - packages/nav_dock_window_placement
+  - packages/duo_navigation_window_placement
 
 dependencies:
   flutter:

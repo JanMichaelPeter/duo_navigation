@@ -1,7 +1,7 @@
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
-/// The semantics nav_dock gives tabs and actions, for builders that draw items
+/// The semantics duo_navigation gives tabs and actions, for builders that draw items
 /// outside the package's wrappers (a custom bar that does not use
 /// `DockBarData.buildAction`, a custom rail).
 ///
@@ -20,17 +20,37 @@ abstract final class DockSemantics {
     required VoidCallback? onTap,
     required Widget child,
   }) {
-    return Semantics(
+    return Semantics.fromProperties(
       container: true,
-      role: SemanticsRole.tab,
-      selected: selected,
-      label: label,
-      value: value,
-      hint: hint,
-      onTap: onTap,
+      properties: tabProperties(
+        selected: selected,
+        label: label,
+        value: value,
+        hint: hint,
+        onTap: onTap,
+      ),
       child: ExcludeSemantics(child: child),
     );
   }
+
+  /// The semantics of [tab] as a value, for a tab bar that builds its item
+  /// widgets itself and takes per-item semantics (such as a design system's
+  /// `additionalSemantics` field). For one tab of a shell,
+  /// `DockTabsData.itemData(i).semanticsOf(context)` fills them in.
+  static SemanticsProperties tabProperties({
+    required bool selected,
+    required String? label,
+    String? value,
+    String? hint,
+    required VoidCallback? onTap,
+  }) => SemanticsProperties(
+    role: SemanticsRole.tab,
+    selected: selected,
+    label: label,
+    value: value,
+    hint: hint,
+    onTap: onTap,
+  );
 
   /// An action: a button with [label], the badge as [value], enabled while
   /// [onTap] is set, and the tap action.

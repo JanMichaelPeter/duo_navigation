@@ -42,7 +42,9 @@ class DockBodyScope extends StatelessWidget {
   ///
   /// * [DockBodyMode.inset]: the body starts after the chrome, so padding and
   ///   view padding are reduced by it per edge (zero on the covered edges).
-  ///   The body also ends above the keyboard, so no keyboard is reported.
+  ///   The keyboard is reduced by what the frame already took at the bottom:
+  ///   the bar's strip, and the whole keyboard when the frame lifts the body
+  ///   (`DockBodyKeyboardBehavior.lift`).
   /// * [DockBodyMode.overlay]: the body covers the frame and the chrome is
   ///   published as padding (the larger of the system padding and the chrome
   ///   per edge). A bar hidden by the keyboard no longer counts as padding.
@@ -54,15 +56,18 @@ class DockBodyScope extends StatelessWidget {
     final keyboard = outer.viewInsets.bottom;
     switch (geometry.bodyMode) {
       case DockBodyMode.inset:
-        // The body ends above the chrome and the keyboard; the frame took
-        // the keyboard, so nothing below counts it again.
+        // The body ends above the chrome, and above the keyboard if the frame
+        // lifted it (geometry.keyboard). The page sees the rest of the
+        // keyboard, so nothing below counts what the frame took again.
         final taken = chrome.copyWith(
           bottom: math.max(chrome.bottom, geometry.keyboard),
         );
         return outer.copyWith(
           padding: _reduce(outer.padding, taken),
           viewPadding: _reduce(outer.viewPadding, chrome),
-          viewInsets: outer.viewInsets.copyWith(bottom: 0),
+          viewInsets: outer.viewInsets.copyWith(
+            bottom: math.max(0.0, keyboard - taken.bottom),
+          ),
         );
       case DockBodyMode.overlay:
         final visibleChrome = chrome.copyWith(

@@ -1,14 +1,14 @@
 name: Publish to pub.dev
 
-# Runs when a package tag like nav_dock-v0.1.0 is pushed (see tool/release.sh).
+# Runs when a package tag like duo_navigation-v0.1.0 is pushed (see tool/release.sh).
 # The job waits for approval in the pub.dev environment, and pub.dev only
 # accepts uploads from this repository's tags through that environment. Each
 # package's tag pattern on pub.dev is <package>-v{{version}}.
 on:
   push:
     tags:
-      - 'nav_dock-v[0-9]+.[0-9]+.[0-9]+*'
-      - 'nav_dock_window_placement-v[0-9]+.[0-9]+.[0-9]+*'
+      - 'duo_navigation-v[0-9]+.[0-9]+.[0-9]+*'
+      - 'duo_navigation_window_placement-v[0-9]+.[0-9]+.[0-9]+*'
 
 concurrency:
   group: publish

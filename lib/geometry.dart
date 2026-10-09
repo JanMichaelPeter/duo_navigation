@@ -1,4 +1,4 @@
-/// Read-only layout information from nav_dock: the layout mode, the side of
+/// Read-only layout information from duo_navigation: the layout mode, the side of
 /// the column, the window edges and the frame's geometry, plus the bleed
 /// widgets, without the page, action or builder types.
 library;

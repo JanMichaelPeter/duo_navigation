@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nav_dock/material.dart';
-import 'package:nav_dock/testing.dart';
+import 'package:duo_navigation/material.dart';
+import 'package:duo_navigation/testing.dart';
 
 const _tabs = <DockTab<Object?>>[
   DockTab(id: 'a', icon: DockIcon(Icons.home), label: 'A'),
@@ -141,6 +141,22 @@ void main() {
     await tester.tap(find.byKey(DockKeys.tab('b')));
     await tester.pumpAndSettle();
     expect(canHandlePop.last, isTrue);
+  });
+
+  test('a navigator key passed as key is reported', () {
+    expect(
+      () => DockTabNavigator(key: GlobalKey<NavigatorState>()),
+      throwsA(
+        isA<AssertionError>().having(
+          (e) => e.message,
+          'message',
+          contains('navigatorKey'),
+        ),
+      ),
+    );
+    // Other keys are fine.
+    expect(() => DockTabNavigator(key: GlobalKey()), returnsNormally);
+    expect(() => const DockTabNavigator(key: ValueKey('tab')), returnsNormally);
   });
 
   testWidgets('does not clip', (tester) async {

@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../config/keyboard.dart';
+
 import '../builders/builders.dart';
 import '../geometry/body_mode.dart';
 import '../models/action.dart';
@@ -18,10 +20,12 @@ class DockModalScope<A, B> extends StatelessWidget {
     super.key,
     this.bodyMode,
     this.hoisting,
+    this.keyboard,
     this.builders,
     this.navigationVisible = true,
     this.backdrop,
     this.impliedLeading,
+    this.leadingAtEnd,
     required this.child,
   });
 
@@ -32,6 +36,12 @@ class DockModalScope<A, B> extends StatelessWidget {
   /// Whether icon actions of its pages move into the column in wide mode.
   /// Null: `DockNavigationData.hoisting`.
   final DockHoisting? hoisting;
+
+  /// How the bar, the column and the body handle the software keyboard in
+  /// this frame, for example `DockKeyboard(body: DockBodyKeyboardBehavior.lift)`
+  /// for screens whose bodies don't handle it. Null:
+  /// `DockNavigationData.keyboard`.
+  final DockKeyboard? keyboard;
 
   /// Builders for this modal frame only, on top of the app's; null fields
   /// fall back to them.
@@ -47,10 +57,15 @@ class DockModalScope<A, B> extends StatelessWidget {
 
   /// The leading action of the modal's first page (the page on the route this
   /// scope is on, or the first page of a Navigator inside it) when that page
-  /// declares none. It dismisses the modal. Null: [DockImpliedLeading.close]
-  /// if the route is a full-screen dialog, else [DockImpliedLeading.back].
-  /// Pages pushed inside the modal keep back.
+  /// declares none. It dismisses the modal. Null:
+  /// `DockNavigationData.modalLeading`, whose default is
+  /// [DockImpliedLeading.close] if the route is a full-screen dialog, else
+  /// [DockImpliedLeading.back]. Pages pushed inside the modal keep back.
   final DockImpliedLeading? impliedLeading;
+
+  /// Whether the leading action of the modal's first page sits at the end of
+  /// the title bar. Null: `DockNavigationData.modalLeading`.
+  final bool? leadingAtEnd;
 
   /// The modal content, typically its own Navigator.
   final Widget child;
@@ -60,10 +75,12 @@ class DockModalScope<A, B> extends StatelessWidget {
     isModal: true,
     bodyMode: bodyMode,
     hoisting: hoisting,
+    keyboard: keyboard,
     builders: builders,
     navigationVisible: navigationVisible,
     backdrop: backdrop,
     impliedLeading: impliedLeading,
+    leadingAtEnd: leadingAtEnd,
     child: child,
   );
 }

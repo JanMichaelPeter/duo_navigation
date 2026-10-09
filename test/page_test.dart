@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nav_dock/material.dart';
-import 'package:nav_dock/testing.dart';
+import 'package:duo_navigation/material.dart';
+import 'package:duo_navigation/testing.dart';
 
 /// A design system's title spec, carried as the bar payload.
 class _Title {
@@ -368,19 +368,32 @@ void main() {
   group('implied leading', () {
     late BuildContext root;
     final roles = <String, DockActionRole?>{};
+    final atEnd = <String, bool>{};
 
-    /// A page that records the role of its leading action under [name].
-    Widget page(String name, {DockImpliedLeading? impliedLeading}) =>
-        DockPage<Object?, Object?>.custom(
-          impliedLeading: impliedLeading,
-          builder: (context, bar) {
-            roles[name] = bar.leading?.role;
-            return Scaffold(appBar: const DockAppBar(), body: Text(name));
-          },
-        );
+    /// A page that records the role and the place of its leading action
+    /// under [name].
+    Widget page(
+      String name, {
+      DockImpliedLeading? impliedLeading,
+      bool? leadingAtEnd,
+      DockAction<Object?>? leading,
+    }) => DockPage<Object?, Object?>.custom(
+      impliedLeading: impliedLeading,
+      leadingAtEnd: leadingAtEnd,
+      leading: leading,
+      builder: (context, bar) {
+        roles[name] = bar.leading?.role;
+        atEnd[name] = bar.leadingAtEnd;
+        return Scaffold(appBar: const DockAppBar(), body: Text(name));
+      },
+    );
 
-    Future<void> start(WidgetTester tester) async {
+    Future<void> start(
+      WidgetTester tester, {
+      DockNavigationData data = const DockNavigationData(),
+    }) async {
       roles.clear();
+      atEnd.clear();
       await pump(
         tester,
         Builder(
@@ -390,6 +403,7 @@ void main() {
           },
         ),
         mode: DockLayoutMode.compact,
+        data: data,
       );
     }
 
@@ -468,6 +482,105 @@ void main() {
 
       await tapLeading(tester);
       expect(find.text('step 1'), findsNothing);
+    });
+
+    group('app-wide modal defaults', () {
+      const xTopRight = DockNavigationData(
+        modalLeading: DockModalLeading(
+          implied: DockImpliedLeading.close,
+          atEnd: true,
+        ),
+      );
+
+      testWidgets('apply to a modal\'s first page, not to pages inside it', (
+        tester,
+      ) async {
+        await start(tester, data: xTopRight);
+        late BuildContext inner;
+        await push(
+          tester,
+          MaterialPageRoute(
+            builder: (_) => DockModalScope<Object?, Object?>(
+              child: Navigator(
+                onGenerateRoute: (_) => MaterialPageRoute<void>(
+                  builder: (context) {
+                    inner = context;
+                    return page('first');
+                  },
+                ),
+              ),
+            ),
+          ),
+        );
+        expect(roles['first'], DockActionRole.close);
+        expect(atEnd['first'], isTrue);
+
+        Navigator.of(
+          inner,
+        ).push(MaterialPageRoute<void>(builder: (_) => page('second')));
+        await tester.pumpAndSettle();
+        expect(roles['second'], DockActionRole.back);
+        expect(atEnd['second'], isFalse);
+      });
+
+      testWidgets('apply to the implicit modal frame of a root page, also to '
+          'a declared leading action', (tester) async {
+        await start(tester, data: xTopRight);
+        await push(tester, MaterialPageRoute(builder: (_) => page('root')));
+        expect(roles['root'], DockActionRole.close);
+        expect(atEnd['root'], isTrue);
+
+        await push(
+          tester,
+          MaterialPageRoute(
+            builder: (_) => page(
+              'confirmation',
+              leading: DockAction<Object?>.close(onPressed: () {}),
+            ),
+          ),
+        );
+        expect(atEnd['confirmation'], isTrue);
+      });
+
+      testWidgets('the modal scope and the page win', (tester) async {
+        await start(tester, data: xTopRight);
+        await push(
+          tester,
+          MaterialPageRoute(
+            builder: (_) => DockModalScope<Object?, Object?>(
+              impliedLeading: DockImpliedLeading.back,
+              leadingAtEnd: false,
+              child: page('scope'),
+            ),
+          ),
+        );
+        expect(roles['scope'], DockActionRole.back);
+        expect(atEnd['scope'], isFalse);
+
+        await push(
+          tester,
+          MaterialPageRoute(
+            builder: (_) => page(
+              'page',
+              impliedLeading: DockImpliedLeading.back,
+              leadingAtEnd: false,
+            ),
+          ),
+        );
+        expect(roles['page'], DockActionRole.back);
+        expect(atEnd['page'], isFalse);
+      });
+
+      testWidgets('pages in a shell are not modal', (tester) async {
+        await pump(
+          tester,
+          shellWithPushed(page('tab page')),
+          mode: DockLayoutMode.compact,
+          data: xTopRight,
+        );
+        expect(roles['tab page'], DockActionRole.back);
+        expect(atEnd['tab page'], isFalse);
+      });
     });
 
     testWidgets('a page can choose its own', (tester) async {

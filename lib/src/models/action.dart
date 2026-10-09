@@ -48,6 +48,33 @@ enum DockImpliedLeading {
   close,
 }
 
+/// The leading action of a modal's first page, app-wide
+/// (`DockNavigationData.modalLeading`): the page on a modal's route, or the
+/// first page of a `Navigator` inside a `DockModalScope`. The modal scope's
+/// and the page's own settings win.
+@immutable
+class DockModalLeading {
+  /// Defaults for every modal's first page.
+  const DockModalLeading({this.implied, this.atEnd = false});
+
+  /// The leading action implied when the page declares none. Null: close for
+  /// a full-screen dialog, back otherwise.
+  final DockImpliedLeading? implied;
+
+  /// Whether the leading action, implied or declared, sits at the end of the
+  /// title bar (`DockPageScope.leadingAtEnd`).
+  final bool atEnd;
+
+  @override
+  bool operator ==(Object other) =>
+      other is DockModalLeading &&
+      other.implied == implied &&
+      other.atEnd == atEnd;
+
+  @override
+  int get hashCode => Object.hash(implied, atEnd);
+}
+
 /// Whether actions move into the side column in wide mode at all. Set on
 /// `DockNavigationData`, overridden by `DockShell`, `DockModalScope` and
 /// `DockPageScope`.
@@ -153,7 +180,7 @@ class DockAction<A> {
        );
 
   /// The [id] of every [DockAction.back] and [DockAction.close].
-  static const Object backId = #nav_dock_back;
+  static const Object backId = #duo_navigation_back;
 
   /// Identifies the action within its page (or across pages if [shared]).
   /// `DockKeys.action(id)` finds it.
