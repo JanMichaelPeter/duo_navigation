@@ -334,7 +334,7 @@ edges.push(const DockWindowEdges(left: true, right: false)); // split screen
 await tester.tap(find.byKey(DockKeys.action('share')));
 ```
 
-`DockTestHarness` replaces `DockNavigation` in a test (also for pages that use `DockStandalone`: below the harness it does nothing). Its tap guard follows the frames, so `tester.pump(duration)` lets the cooldown pass and tests never wait on real time (`DockTapGuard.disabled` turns it off, `FakeDockClock` controls it directly). `DockKeys.bar`, `.column`, `.rail`, `.tab(id)` and `.action(id)` find the chrome whatever builder draws it.
+`DockTestHarness` replaces `DockNavigation` in a test (also for pages that use `DockStandalone`: below the harness it does nothing). Its tap guard follows the frames, so `tester.pump(duration)` lets the cooldown pass and tests never wait on real time (`DockTapGuard.disabled` turns it off, `FakeDockClock` controls it directly). Outside the harness the default clock (`DockClock.system()`) follows the test's time too, so pages under a plain `DockNavigation` or a `DockStandalone` can be tapped twice with `pumpAndSettle` in between. `DockKeys.bar`, `.column`, `.rail`, `.tab(id)` and `.action(id)` find the chrome whatever builder draws it.
 
 ## Libraries and API stability
 

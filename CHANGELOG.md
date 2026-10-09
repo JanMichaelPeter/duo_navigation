@@ -38,6 +38,10 @@ the design is in the
 * **BREAKING** `DockNavigationData.tapCooldown` is replaced by
   `tapGuard: DockTapGuard(enabled:, cooldown:, clock:)`. The guard's time
   comes from a `DockClock`; `DockTapGuard.disabled` lets every tap through.
+  The default, `DockClock.system()`, is real time on a device and follows
+  `tester.pump(duration)` / `pumpAndSettle` in widget tests, so a page under
+  a plain `DockNavigation` or a `DockStandalone` can be tapped twice in a test
+  without `DockTestHarness`.
 * New `package:nav_dock/testing.dart`: `DockTestHarness` pins layout mode,
   side, window edges, text direction and the tap guard's clock in one widget;
   `FakeWindowEdgesSource` and `FakeDockClock`. It does not depend on

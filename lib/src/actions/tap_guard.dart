@@ -28,7 +28,7 @@ typedef DockTapRejected =
 /// [cooldown]). Different actions don't block each other.
 @immutable
 class DockTapGuard {
-  /// The default guard: on, 350 ms cooldown, a stopwatch clock.
+  /// The default guard: on, 350 ms cooldown, [DockClock.system].
   const DockTapGuard({
     this.enabled = true,
     this.cooldown = const Duration(milliseconds: 350),
@@ -47,8 +47,9 @@ class DockTapGuard {
   /// its own.
   final Duration cooldown;
 
-  /// The time source. Null: a monotonic stopwatch. Tests use
-  /// [DockClock.frameTime] (the default in `DockTestHarness`) or a fake.
+  /// The time source. Null: [DockClock.system], real time on a device and
+  /// test time in widget tests. `DockTestHarness` uses
+  /// [DockClock.frameTime]; tests that control time directly use a fake.
   final DockClock? clock;
 
   /// Called with each dropped tap and the reason, for example to give
