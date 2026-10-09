@@ -145,6 +145,13 @@ DockStandalone(
 Where there is no `DockNavigation`, it provides a compact one: the page shows its title bar with all its actions.
 Below the app's `DockNavigation` it does nothing. Tests don't need it (see step 6).
 
+**The keyboard.** Pages keep handling it as before. The body keeps its height, and its `MediaQuery` reports the part of
+the keyboard the tab bar doesn't already cover. A `Scaffold` resizes for it, and one with
+`resizeToAvoidBottomInset: false` (a form with a sticky action area, a full-height map) doesn't. The frame only moves
+its own chrome: the column lifts above the keyboard, and the bar stays covered (`DockNavigationData.keyboard`). For
+bodies that don't handle the keyboard themselves, `DockShell(keyboard: DockKeyboard(body: DockBodyKeyboardBehavior.lift))`
+lays them out above it instead, for that shell's pages only.
+
 ## 4. Your design system
 
 Every visual is a builder in `DockBuilders`. Replace the Material ones one at a time with `merge`:

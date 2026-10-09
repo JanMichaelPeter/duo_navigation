@@ -102,6 +102,7 @@ class DockFrame<T, A, B> extends StatefulWidget {
     this.navigationVisible = true,
     this.backdrop,
     this.impliedLeading,
+    this.keyboard,
   });
 
   final bool isModal;
@@ -128,6 +129,7 @@ class DockFrame<T, A, B> extends StatefulWidget {
   /// has its own.
   final Widget? backdrop;
   final DockImpliedLeading? impliedLeading;
+  final DockKeyboard? keyboard;
 
   @override
   State<DockFrame<T, A, B>> createState() => _DockFrameState<T, A, B>();
@@ -335,6 +337,7 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
     _curved.curve = config.visibilityCurve;
     _keyboardCurved.curve = config.visibilityCurve;
     final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+    final keyboardConfig = widget.keyboard ?? config.keyboard;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -350,8 +353,8 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
         }
         _lastMode = mode;
         final behavior = mode == DockLayoutMode.compact
-            ? config.keyboard.bar
-            : config.keyboard.column;
+            ? keyboardConfig.bar
+            : keyboardConfig.column;
         _hideForKeyboard(keyboard > 0 && behavior == DockKeyboardBehavior.hide);
         final hidden = !_wantsNavigation || _keyboardHides;
         final tabs = widget.tabs == null
@@ -390,8 +393,9 @@ class _DockFrameState<T, A, B> extends State<DockFrame<T, A, B>>
               systemPadding: padding,
               visibility: _shown,
               keyboard: keyboard,
-              liftColumn: config.keyboard.column == DockKeyboardBehavior.lift,
-              liftBar: config.keyboard.bar == DockKeyboardBehavior.lift,
+              liftColumn: keyboardConfig.column == DockKeyboardBehavior.lift,
+              liftBar: keyboardConfig.bar == DockKeyboardBehavior.lift,
+              liftBody: keyboardConfig.body == DockBodyKeyboardBehavior.lift,
               // The body keeps its slot in every mode, so switching modes
               // (rotation, split view) keeps its State.
               body: _Ordered(

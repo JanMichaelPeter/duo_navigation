@@ -220,11 +220,14 @@ DockNavigationData(
   keyboard: DockKeyboard(
     column: DockKeyboardBehavior.lift,  // default: the column fits above the keyboard
     bar: DockKeyboardBehavior.ignore,   // default: the tab bar is covered
+    body: DockBodyKeyboardBehavior.passThrough, // default: the page's Scaffold decides
   ),
 )
 ```
 
-`lift` keeps the rail and the page's actions (save, done, back) reachable while typing; `hide` hides the column or bar while the keyboard is open; `ignore` leaves it covered. In inset mode the frame lays the body out above the keyboard and reports no keyboard below it, so a page's own `Scaffold` doesn't shrink twice; if an ancestor already made room, nothing moves twice. When space is short, the column keeps the rail and the bottom actions and scrolls the rest.
+`lift` keeps the rail and the page's actions (save, done, back) reachable while typing; `hide` hides the column or bar while the keyboard is open; `ignore` leaves it covered. When space is short, the column keeps the rail and the bottom actions and scrolls the rest. If an ancestor already made room for the keyboard, nothing moves twice.
+
+The body is the page's business by default (`passThrough`): it keeps its height, and its `MediaQuery` reports the part of the keyboard that the bar doesn't already cover, so a `Scaffold` resizes for it, or doesn't with `resizeToAvoidBottomInset: false`, as without nav_dock. `DockBodyKeyboardBehavior.lift` makes the frame lay every body out above the keyboard instead, for bodies that don't handle it themselves. `DockShell(keyboard: ...)` and `DockModalScope(keyboard: ...)` set it per frame.
 
 ### Hiding the navigation
 

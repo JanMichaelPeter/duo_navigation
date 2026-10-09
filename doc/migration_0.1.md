@@ -58,8 +58,10 @@ lays the body out beside them (`DockBodyMode.inset`).
   `DockModalScope`.
 * On its edge, the column still sits at the window edge, over the system inset. To keep it clear of a cutout or
   Android's button bar in landscape, set `columnInset: DockColumnInset.safeArea` on `DockNavigationData`.
-* The frame now handles the software keyboard: the column lifts above it (`DockNavigationData.keyboard`), and in
-  inset mode the body ends above it, so a page's `Scaffold` no longer needs to resize for it.
+* The frame now handles the software keyboard for the chrome: the column lifts above it
+  (`DockNavigationData.keyboard`). The body stays the page's business, so a page's `Scaffold` resizes for the keyboard
+  (or doesn't, with `resizeToAvoidBottomInset: false`) as before; `DockKeyboard(body: DockBodyKeyboardBehavior.lift)`
+  makes the frame lift every body instead.
 
 ## 3. Tabs
 

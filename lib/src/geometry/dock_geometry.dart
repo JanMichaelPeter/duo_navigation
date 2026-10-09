@@ -70,9 +70,9 @@ class DockGeometry {
   final double visibility;
 
   /// The keyboard height the frame took from the body: the open software
-  /// keyboard in [DockBodyMode.inset], zero in [DockBodyMode.overlay] (there
-  /// the page's `Scaffold` handles it). Below the frame, `MediaQuery` reports
-  /// no keyboard in inset mode.
+  /// keyboard in [DockBodyMode.inset] when the frame lifts the body
+  /// (`DockBodyKeyboardBehavior.lift`); zero when the page handles it (the
+  /// default `passThrough`, and [DockBodyMode.overlay]).
   final double keyboard;
 
   /// Whether the navigation is fully hidden.

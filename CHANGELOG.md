@@ -143,10 +143,13 @@ the design is in the
 * The software keyboard: `DockNavigationData.keyboard` with a
   `DockKeyboardBehavior` (`lift`, `hide`, `ignore`) for the column (default
   `lift`: rail and chips stay above the keyboard) and the bar (default
-  `ignore`). In `DockBodyMode.inset` the frame lays the body out above the
-  keyboard and reports none below it, so a page `Scaffold` does not shrink
-  twice; `DockGeometry.keyboard` tells how much it took. An ancestor that
-  already made room is respected.
+  `ignore`). For the body, `DockBodyKeyboardBehavior`: `passThrough` (default)
+  keeps its height and reports the part of the keyboard the bar doesn't cover,
+  so the page's `Scaffold` and its `resizeToAvoidBottomInset` decide; `lift`
+  lays the body out above the keyboard and reports none
+  (`DockGeometry.keyboard` tells how much it took). `DockShell.keyboard` and
+  `DockModalScope.keyboard` override it per frame. An ancestor that already
+  made room is respected.
 * Backdrops: `DockShell.backdrop`, `DockModalScope.backdrop` and per page
   `DockPageScope.backdrop` / `DockPage.backdrop` paint one widget across the
   whole frame, under body and chrome; a page's replaces the frame's while it
