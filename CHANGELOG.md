@@ -29,7 +29,8 @@ the design is in the
 * New `DockNavigationData.columnInset`: the side column sits at the window
   edge over the system inset on its edge (`DockColumnInset.overlap`, the
   default, as in 0.0.1) or after it, clear of cutouts and system buttons
-  (`DockColumnInset.safeArea`).
+  (`DockColumnInset.safeArea`). The README explains the trade-off on phones
+  in landscape.
 * New `DockGeometry.of(context)`: the frame's mode, side and chrome per edge,
   with aspects so widgets rebuild only for what they read.
 * A debug error reports a tab bar that is shorter than the bottom safe area.
