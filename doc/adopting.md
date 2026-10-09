@@ -35,6 +35,27 @@ Nothing changes on screen yet. For the side column to follow the window to the s
 `windowEdgesSource: WindowPlacementEdgesSource()` from `nav_dock_window_placement` to `DockNavigationData`. Create it
 once, in app state, and dispose it with the app.
 
+**Phones in landscape.** With the default breakpoint of 600, a phone in landscape gets the wide layout, and the column
+sits on the screen edge where the camera cutout or Android's button bar may be. `columnInset` decides between the window
+edge, where chips can sit under the cutout, and the safe area, where the column moves inward by the system inset. On
+iPhones that inset is about 59 pt on both sides in landscape. The README has a table. To keep phones in the compact
+layout instead, decide by the window's shorter side:
+
+```dart
+class TabletsWide extends DockLayoutPolicy {
+  const TabletsWide();
+
+  @override
+  DockLayoutMode resolve({required Size window, required Size frame}) =>
+      window.shortestSide >= 600 ? DockLayoutMode.wide : DockLayoutMode.compact;
+}
+
+DockNavigationData(layoutPolicy: const TabletsWide())
+```
+
+Unfolded foldables and tablets still get the column. In split screen the window's shorter side decides, so a narrow
+window on a tablet is compact.
+
 ## 2. The tab scaffold
 
 The `Scaffold` that holds the tab bar and the `IndexedStack` becomes a `DockShell`. It draws the bottom bar in compact

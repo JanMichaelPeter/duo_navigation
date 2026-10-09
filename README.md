@@ -186,7 +186,16 @@ DockPageScope(
 By default (`DockBodyMode.inset`) the frame lays the body out in the free area: beside the column in wide mode, above the tab bar in compact mode. A plain `Scaffold` page works unchanged, and a button at the bottom of a `Column` never ends up under the tab bar.
 
 * Below the frame, `MediaQuery.padding` is zero on the edges the chrome covers and unchanged on the others.
-* On its edge, the column sits at the window edge, over the system inset (`DockColumnInset.overlap`). With `DockNavigationData(columnInset: DockColumnInset.safeArea)` it sits after a cutout or Android's button bar instead, and its builder can paint a background under it. Overlap keeps the column at the edge (iOS reports a landscape inset on both sides, not only the camera side); safeArea keeps chips clear of cutouts and system buttons.
+* On its edge, the column sits at the window edge, over the system inset (`DockColumnInset.overlap`, the default). With `DockNavigationData(columnInset: DockColumnInset.safeArea)` it sits after the inset instead, and its builder can paint a background under it. The trade-off shows on phones in landscape:
+
+  | | `overlap` (default) | `safeArea` |
+  |---|---|---|
+  | Column | at the window edge | moved inward by the system inset |
+  | Next to a camera cutout | chips can sit under it | clear |
+  | Next to Android's button bar (3-button navigation in landscape) | chips can sit under the buttons | clear |
+  | iPhone in landscape | at the edge on both sides | about 59 pt inward on **both** sides, because iOS reports the inset on both sides, not only on the camera's |
+
+  On tablets and foldables the side insets are usually zero, so both behave the same. If your app runs on phones in landscape, choose by what's on the column's edge, or keep phones compact in landscape with a layout policy (see [the guide](doc/adopting.md#1-docknavigation)).
 * The tab bar builder owns the bottom safe area (home indicator): include `MediaQuery.paddingOf(context).bottom` in its height. A debug error reports a bar that is shorter. The bar sees no top padding, so a bar that wraps itself in `SafeArea` doesn't grow by the status bar.
 * `MediaQuery.size` stays the window size, as with Flutter's own sub-screens; use `LayoutBuilder` for the available size.
 
