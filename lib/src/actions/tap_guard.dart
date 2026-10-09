@@ -4,7 +4,7 @@ import '../models/action.dart';
 import 'clock.dart';
 
 /// Why the tap guard dropped a tap.
-enum DockTapRejection {
+enum DuoTapRejection {
   /// The action's page is not the one shown (another tab, a page above it,
   /// a dialog over it).
   notActive,
@@ -16,20 +16,20 @@ enum DockTapRejection {
   cooldown,
 }
 
-/// Called when the tap guard drops a tap; see [DockTapGuard.onRejected].
-typedef DockTapRejected =
-    void Function(DockAction<Object?> action, DockTapRejection reason);
+/// Called when the tap guard drops a tap; see [DuoTapGuard.onRejected].
+typedef DuoTapRejected =
+    void Function(DuoAction<Object?> action, DuoTapRejection reason);
 
 /// Guards action taps against double taps and taps during route transitions.
 ///
 /// While [enabled], a guarded action fires only if its page is the one
 /// shown, its route is not in a transition or a back gesture, and the same
-/// action has not fired within its cooldown ([DockAction.cooldown], else
+/// action has not fired within its cooldown ([DuoAction.cooldown], else
 /// [cooldown]). Different actions don't block each other.
 @immutable
-class DockTapGuard {
-  /// The default guard: on, 350 ms cooldown, [DockClock.system].
-  const DockTapGuard({
+class DuoTapGuard {
+  /// The default guard: on, 350 ms cooldown, [DuoClock.system].
+  const DuoTapGuard({
     this.enabled = true,
     this.cooldown = const Duration(milliseconds: 350),
     this.clock,
@@ -38,7 +38,7 @@ class DockTapGuard {
 
   /// A guard that lets every tap through. For tests that don't care about
   /// double-tap protection.
-  static const DockTapGuard disabled = DockTapGuard(enabled: false);
+  static const DuoTapGuard disabled = DuoTapGuard(enabled: false);
 
   /// Whether taps are guarded at all. Off: every tap fires.
   final bool enabled;
@@ -47,18 +47,18 @@ class DockTapGuard {
   /// its own.
   final Duration cooldown;
 
-  /// The time source. Null: [DockClock.system], real time on a device and
-  /// test time in widget tests. `DockTestHarness` uses
-  /// [DockClock.frameTime]; tests that control time directly use a fake.
-  final DockClock? clock;
+  /// The time source. Null: [DuoClock.system], real time on a device and
+  /// test time in widget tests. `DuoTestHarness` uses
+  /// [DuoClock.frameTime]; tests that control time directly use a fake.
+  final DuoClock? clock;
 
   /// Called with each dropped tap and the reason, for example to give
   /// feedback. Rejections are also logged in debug mode.
-  final DockTapRejected? onRejected;
+  final DuoTapRejected? onRejected;
 
   @override
   bool operator ==(Object other) =>
-      other is DockTapGuard &&
+      other is DuoTapGuard &&
       other.enabled == enabled &&
       other.cooldown == cooldown &&
       other.clock == clock &&

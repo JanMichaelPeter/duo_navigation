@@ -2,19 +2,19 @@ import 'package:flutter/widgets.dart';
 
 import 'tab_stack.dart';
 
-/// A [Navigator] for one tab of a `DockShell`: it doesn't clip, and the
+/// A [Navigator] for one tab of a `DuoShell`: it doesn't clip, and the
 /// system back gesture pops its pages while its tab is shown.
 ///
 /// ```dart
-/// DockShell(
+/// DuoShell(
 ///   tabs: tabs,
 ///   currentIndex: index,
 ///   onTabSelected: (i) => setState(() => index = i),
-///   child: DockTabStack(
+///   child: DuoTabStack(
 ///     index: index,
 ///     children: [
-///       DockTabNavigator(onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => const HomePage())),
-///       DockTabNavigator(onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => const MePage())),
+///       DuoTabNavigator(onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => const HomePage())),
+///       DuoTabNavigator(onGenerateRoute: (_) => MaterialPageRoute(builder: (_) => const MePage())),
 ///     ],
 ///   ),
 /// )
@@ -23,19 +23,19 @@ import 'tab_stack.dart';
 /// * **System back** (Android's back button and gesture, and the predictive
 ///   back animation) pops the shown tab's pages first; on a tab's first page
 ///   it goes to the navigator above, as without tabs. Tabs that aren't shown
-///   (`DockTabStack.isActiveOf`) neither handle back nor tell the app they
+///   (`DuoTabStack.isActiveOf`) neither handle back nor tell the app they
 ///   could, so a pushed page in another tab doesn't keep the app from
 ///   closing.
 /// * **No clip** (`Clip.none`, a plain [Navigator] clips to its bounds), so a
-///   `DockBleed` in a page reaches under the bar and the column.
+///   `DuoBleed` in a page reaches under the bar and the column.
 ///
 /// The arguments are the [Navigator]'s, except that the navigator's key is
 /// [navigatorKey]: `key` keys this widget. Apps with a routing package (such as
 /// go_router's `StatefulShellRoute`) get system back from it and use their
 /// own navigators.
-class DockTabNavigator extends StatefulWidget {
+class DuoTabNavigator extends StatefulWidget {
   /// A tab's navigator; see [Navigator] for the arguments.
-  const DockTabNavigator({
+  const DuoTabNavigator({
     super.key,
     this.navigatorKey,
     this.initialRoute,
@@ -47,7 +47,7 @@ class DockTabNavigator extends StatefulWidget {
     this.handlesSystemBack = true,
   }) : assert(
          key is! GlobalKey<NavigatorState>,
-         'DockTabNavigator(key:) keys the DockTabNavigator, not its Navigator, '
+         'DuoTabNavigator(key:) keys the DuoTabNavigator, not its Navigator, '
          'so a GlobalKey<NavigatorState> passed as key has no currentState. '
          'Pass it as navigatorKey instead.',
        );
@@ -80,10 +80,10 @@ class DockTabNavigator extends StatefulWidget {
   final bool handlesSystemBack;
 
   @override
-  State<DockTabNavigator> createState() => _DockTabNavigatorState();
+  State<DuoTabNavigator> createState() => _DuoTabNavigatorState();
 }
 
-class _DockTabNavigatorState extends State<DockTabNavigator> {
+class _DuoTabNavigatorState extends State<DuoTabNavigator> {
   GlobalKey<NavigatorState>? _ownKey;
   bool? _active;
 
@@ -93,7 +93,7 @@ class _DockTabNavigatorState extends State<DockTabNavigator> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final active = DockTabStack.isActiveOf(context);
+    final active = DuoTabStack.isActiveOf(context);
     final becameActive = _active == false && active;
     _active = active;
     if (becameActive) {

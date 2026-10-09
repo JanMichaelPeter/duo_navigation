@@ -3,24 +3,24 @@ import 'package:duo_navigation/material.dart';
 
 /// A complete custom look, built only from the public builder hooks.
 ///
-/// Optional: with `const DockMaterialBuilders()` instead of [builders],
-/// duo_navigation uses the Material defaults in `DockMaterial`. Override as many or
-/// as few builders as you like with `DockMaterialBuilders().merge(...)`.
+/// Optional: with `const DuoMaterialBuilders()` instead of [builders],
+/// duo_navigation uses the Material defaults in `DuoMaterial`. Override as many or
+/// as few builders as you like with `DuoMaterialBuilders().merge(...)`.
 ///
 /// Showcases, one hook each:
 /// * [tabBar]: floating capsule instead of a NavigationBar.
 /// * [rail]: rounded rectangle with an animated selection.
 /// * [action]: square chips in the column; bar actions keep the defaults.
-/// * [page]: wraps [DockMaterial.page] with a theme override.
+/// * [page]: wraps [DuoMaterial.page] with a theme override.
 /// * [sideColumn]: rail separated from the actions by a short divider.
 /// * [actionTransition]: chips slide up and fade instead of scaling.
-/// * [tabItem]: one item for bar and rail; `DockTab.badge` shows as a badge.
+/// * [tabItem]: one item for bar and rail; `DuoTab.badge` shows as a badge.
 abstract final class CustomStyle {
   static const double _radius = 32;
   static const double _railPadding = 4;
 
   /// Every visual of the custom look.
-  static const DockBuilders builders = DockBuilders(
+  static const DuoBuilders builders = DuoBuilders(
     tabItem: tabItem,
     tabBar: tabBar,
     rail: rail,
@@ -28,11 +28,11 @@ abstract final class CustomStyle {
     page: page,
     sideColumn: sideColumn,
     actionTransition: actionTransition,
-    backdrop: DockMaterial.backdrop, // the strip around the chrome
+    backdrop: DuoMaterial.backdrop, // the strip around the chrome
   );
 
   /// The sizes and timings the custom look is designed for.
-  static DockNavigationData data(DockNavigationData base) {
+  static DuoNavigationData data(DuoNavigationData base) {
     return base.copyWith(
       sideColumnWidth: 80,
       sideItemExtent: 60, // rail and chips both read this
@@ -45,7 +45,7 @@ abstract final class CustomStyle {
   // ------------------------------------------------------------- tab bar ---
 
   static Widget tabBar(
-      BuildContext context, DockTabsData<Object?> data, List<Widget> items) {
+      BuildContext context, DuoTabsData<Object?> data, List<Widget> items) {
     final scheme = Theme.of(context).colorScheme;
     // The frame reports the bar's full height (margin included) to the body,
     // so lists end above the capsule while full-bleed content shows around it.
@@ -59,7 +59,7 @@ abstract final class CustomStyle {
         child: Padding(
           padding: const EdgeInsets.all(6),
           // The items come with their semantics; this marks the tab bar.
-          child: DockTabBarSemantics(
+          child: DuoTabBarSemantics(
             child: Row(
               children: [for (final item in items) Expanded(child: item)],
             ),
@@ -72,16 +72,16 @@ abstract final class CustomStyle {
   // ---------------------------------------------------------------- rail ---
 
   static Widget rail(
-      BuildContext context, DockTabsData<Object?> data, List<Widget> items) {
+      BuildContext context, DuoTabsData<Object?> data, List<Widget> items) {
     final scheme = Theme.of(context).colorScheme;
-    final extent = DockNavigation.of(context).sideItemExtent;
+    final extent = DuoNavigation.of(context).sideItemExtent;
     return Material(
       color: scheme.inverseSurface,
       borderRadius: BorderRadius.circular(_radius),
       elevation: 6,
       child: Padding(
         padding: const EdgeInsets.all(_railPadding),
-        child: DockTabBarSemantics(
+        child: DuoTabBarSemantics(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -98,25 +98,25 @@ abstract final class CustomStyle {
   // ------------------------------------------------------------- tab item ---
 
   /// One look for both: icon and label in the bar, icon only in the rail.
-  static Widget tabItem(BuildContext context, DockTabItemData<Object?> data,
+  static Widget tabItem(BuildContext context, DuoTabItemData<Object?> data,
           {Color? accent}) =>
       _TabItem(
         data: data,
-        showLabel: data.placement == DockTabPlacement.bar,
+        showLabel: data.placement == DuoTabPlacement.bar,
         accent: accent,
       );
 
   // ------------------------------------------------------------- actions ---
 
-  static Widget action(BuildContext context, DockAction<Object?> action,
-      DockActionPlacement placement) {
+  static Widget action(BuildContext context, DuoAction<Object?> action,
+      DuoActionPlacement placement) {
     // Title bar actions: reuse the default look.
-    if (placement != DockActionPlacement.sideColumn) {
-      return DockMaterial.action(context, action, placement);
+    if (placement != DuoActionPlacement.sideColumn) {
+      return DuoMaterial.action(context, action, placement);
     }
     final scheme = Theme.of(context).colorScheme;
-    final extent = DockNavigation.of(context).sideItemExtent;
-    final primary = action.role == DockActionRole.primary;
+    final extent = DuoNavigation.of(context).sideItemExtent;
+    final primary = action.role == DuoActionRole.primary;
     final shape =
         RoundedRectangleBorder(borderRadius: BorderRadius.circular(_radius));
     return Material(
@@ -134,7 +134,7 @@ abstract final class CustomStyle {
           fixedSize: Size.square(extent),
           shape: shape,
         ),
-        icon: DockMaterial.morphingIcon(action.icon!),
+        icon: DuoMaterial.morphingIcon(action.icon!),
       ),
     );
   }
@@ -144,7 +144,7 @@ abstract final class CustomStyle {
   /// Wrapping a default instead of rewriting it: same Scaffold + AppBar,
   /// different app bar theme.
   static Widget page(
-      BuildContext context, DockBarData<Object?, Object?> bar, Widget body) {
+      BuildContext context, DuoBarData<Object?, Object?> bar, Widget body) {
     final theme = Theme.of(context);
     return Theme(
       data: theme.copyWith(
@@ -158,7 +158,7 @@ abstract final class CustomStyle {
           ),
         ),
       ),
-      child: DockMaterial.page(context, bar, body),
+      child: DuoMaterial.page(context, bar, body),
     );
   }
 
@@ -172,7 +172,7 @@ abstract final class CustomStyle {
     Widget? tabs,
     bool hasActions,
   ) {
-    final config = DockNavigation.of(context);
+    final config = DuoNavigation.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
@@ -228,7 +228,7 @@ class _TabItem extends StatelessWidget {
     this.accent,
   });
 
-  final DockTabItemData<Object?> data;
+  final DuoTabItemData<Object?> data;
   final bool showLabel;
 
   /// Tint of the selected tab's pill; the primary color without one.
@@ -243,7 +243,7 @@ class _TabItem extends StatelessWidget {
     // is a translucent tint, so they stay readable on it.
     final foreground = scheme.onInverseSurface;
 
-    Widget icon = DockMaterial.badge(
+    Widget icon = DuoMaterial.badge(
       tab.iconFor(selected: selected).toWidget(),
       tab.badge,
     );

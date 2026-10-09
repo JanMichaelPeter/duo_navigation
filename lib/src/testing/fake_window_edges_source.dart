@@ -3,35 +3,35 @@ import 'dart:async';
 import '../geometry/window_edges.dart';
 import '../geometry/window_edges_source.dart';
 
-/// A [DockWindowEdgesSource] whose edges a test changes over time, for
+/// A [DuoWindowEdgesSource] whose edges a test changes over time, for
 /// example to simulate split screen, a window moved to the other half, or a
 /// fold and unfold.
 ///
 /// ```dart
 /// final edges = FakeWindowEdgesSource();
-/// await tester.pumpWidget(app(DockTestHarness(windowEdgesSource: edges, ...)));
-/// edges.push(const DockWindowEdges(left: true, right: false));
+/// await tester.pumpWidget(app(DuoTestHarness(windowEdgesSource: edges, ...)));
+/// edges.push(const DuoWindowEdges(left: true, right: false));
 /// await tester.pumpAndSettle();
 /// ```
-class FakeWindowEdgesSource implements DockWindowEdgesSource {
+class FakeWindowEdgesSource implements DuoWindowEdgesSource {
   /// Starts with [value] (null: unknown).
   FakeWindowEdgesSource([this._value]);
 
-  final _changes = StreamController<DockWindowEdges?>.broadcast(sync: true);
-  DockWindowEdges? _value;
+  final _changes = StreamController<DuoWindowEdges?>.broadcast(sync: true);
+  DuoWindowEdges? _value;
 
   @override
-  DockWindowEdges? get value => _value;
+  DuoWindowEdges? get value => _value;
 
   @override
-  Stream<DockWindowEdges?> get changes => _changes.stream;
+  Stream<DuoWindowEdges?> get changes => _changes.stream;
 
   /// Reports [edges] (null: unknown) to every listener.
-  void push(DockWindowEdges? edges) {
+  void push(DuoWindowEdges? edges) {
     _value = edges;
     _changes.add(edges);
   }
 
-  /// Whether a `DockNavigation` is listening.
+  /// Whether a `DuoNavigation` is listening.
   bool get hasListener => _changes.hasListener;
 }

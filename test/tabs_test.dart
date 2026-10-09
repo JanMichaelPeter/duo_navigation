@@ -14,18 +14,18 @@ class _Item {
 
 class _Other {}
 
-List<DockTab<_Item>> _typedTabs() => const [
-  DockTab(
+List<DuoTab<_Item>> _typedTabs() => const [
+  DuoTab(
     id: 'home',
-    icon: DockIcon(Icons.home),
+    icon: DuoIcon(Icons.home),
     label: 'Home',
     payload: _Item('home item'),
   ),
-  DockTab(
+  DuoTab(
     id: 'me',
-    icon: DockIcon(Icons.person),
+    icon: DuoIcon(Icons.person),
     label: 'Me',
-    badge: DockBadge.count(3),
+    badge: DuoBadge.count(3),
     key: Key('app-me'),
     payload: _Item('me item'),
   ),
@@ -35,9 +35,9 @@ void main() {
   Future<void> pump(
     WidgetTester tester,
     Widget home, {
-    DockLayoutMode mode = DockLayoutMode.compact,
-    DockBuilders<Object?, Object?, Object?>? builders =
-        const DockMaterialBuilders(),
+    DuoLayoutMode mode = DuoLayoutMode.compact,
+    DuoBuilders<Object?, Object?, Object?>? builders =
+        const DuoMaterialBuilders(),
     Size size = const Size(1000, 700),
     double textScale = 1,
   }) async {
@@ -50,7 +50,7 @@ void main() {
           data: MediaQuery.of(
             context,
           ).copyWith(textScaler: TextScaler.linear(textScale)),
-          child: DockTestHarness(builders: builders, mode: mode, child: child!),
+          child: DuoTestHarness(builders: builders, mode: mode, child: child!),
         ),
         home: home,
       ),
@@ -60,7 +60,7 @@ void main() {
 
   /// A shell around a plain body that tracks the selected index itself.
   Widget shell({
-    List<DockTab<Object?>>? tabs,
+    List<DuoTab<Object?>>? tabs,
     void Function(int index)? onSelected,
     void Function(int index)? onReselected,
     FutureOr<bool> Function(int index)? canSelect,
@@ -68,7 +68,7 @@ void main() {
   }) {
     var index = initial;
     return StatefulBuilder(
-      builder: (context, setState) => DockShell<Object?, Object?, Object?>(
+      builder: (context, setState) => DuoShell<Object?, Object?, Object?>(
         tabs: tabs ?? _typedTabs(),
         currentIndex: index,
         onTabSelected: (i) {
@@ -86,11 +86,11 @@ void main() {
     testWidgets('reach the builders without a cast', (tester) async {
       await pump(
         tester,
-        DockShell<_Item, Object?, Object?>(
+        DuoShell<_Item, Object?, Object?>(
           tabs: _typedTabs(),
           currentIndex: 0,
           onTabSelected: (_) {},
-          builders: DockBuilders<_Item, Object?, Object?>(
+          builders: DuoBuilders<_Item, Object?, Object?>(
             tabItem: (context, data) => Text(data.tab.payload!.name),
           ),
           child: const SizedBox(),
@@ -107,23 +107,23 @@ void main() {
     ) async {
       await pump(
         tester,
-        DockShell<_Item, Object?, Object?>(
+        DuoShell<_Item, Object?, Object?>(
           tabs: _typedTabs(),
           currentIndex: 0,
           onTabSelected: (_) {},
           child: const SizedBox(),
         ),
-        mode: DockLayoutMode.wide,
+        mode: DuoLayoutMode.wide,
       );
-      expect(find.byKey(DockKeys.tab('me')), findsOneWidget);
+      expect(find.byKey(DuoKeys.tab('me')), findsOneWidget);
     });
 
     testWidgets('builders for another payload type fail with a clear error', (
       tester,
     ) async {
       expect(
-        () => const DockMaterialBuilders<Object?, Object?, Object?>().merge(
-          DockBuilders<_Other, Object?, Object?>(
+        () => const DuoMaterialBuilders<Object?, Object?, Object?>().merge(
+          DuoBuilders<_Other, Object?, Object?>(
             tabItem: (context, data) => const SizedBox(),
           ),
         ),
@@ -138,13 +138,13 @@ void main() {
 
       await pump(
         tester,
-        DockShell<_Item, Object?, Object?>(
+        DuoShell<_Item, Object?, Object?>(
           tabs: _typedTabs(),
           currentIndex: 0,
           onTabSelected: (_) {},
           child: const SizedBox(),
         ),
-        builders: DockBuilders<_Other, Object?, Object?>(
+        builders: DuoBuilders<_Other, Object?, Object?>(
           tabItem: (context, data) => const SizedBox(),
           tabBar: (context, data, items) => Row(children: items),
         ),
@@ -154,25 +154,25 @@ void main() {
         isA<FlutterError>().having(
           (e) => e.toStringDeep(),
           'message',
-          contains('DockTab<_Item>'),
+          contains('DuoTab<_Item>'),
         ),
       );
     });
   });
 
   group('keys and semantics', () {
-    for (final mode in DockLayoutMode.values) {
+    for (final mode in DuoLayoutMode.values) {
       testWidgets('${mode.name}: keys, selection, label, badge, tap', (
         tester,
       ) async {
         final handle = tester.ensureSemantics();
         await pump(tester, shell(initial: 1), mode: mode);
 
-        expect(find.byKey(DockKeys.tab('home')), findsOneWidget);
+        expect(find.byKey(DuoKeys.tab('home')), findsOneWidget);
         expect(find.byKey(const Key('app-me')), findsOneWidget);
         expect(
           find.descendant(
-            of: find.byKey(DockKeys.tab('me')),
+            of: find.byKey(DuoKeys.tab('me')),
             matching: find.byKey(const Key('app-me')),
           ),
           findsOneWidget,
@@ -190,7 +190,7 @@ void main() {
           ),
         );
         expect(
-          tester.getSemantics(find.byKey(DockKeys.tab('home'))),
+          tester.getSemantics(find.byKey(DuoKeys.tab('home'))),
           // containsSemantics: deprecated after 3.40, but 3.38 lacks isSemantics.
           // ignore: deprecated_member_use
           containsSemantics(
@@ -216,8 +216,8 @@ void main() {
   group('a bar built from data', () {
     // Builds its own children from the tabs' payloads, as a design system's
     // bar that takes a list of item descriptions does. No tabItem builder.
-    final builders = DockBuilders<Object?, Object?, Object?>(
-      tabBar: (context, data, items) => DockTabBarSemantics(
+    final builders = DuoBuilders<Object?, Object?, Object?>(
+      tabBar: (context, data, items) => DuoTabBarSemantics(
         child: SafeArea(
           child: SizedBox(
             height: 56,
@@ -245,7 +245,7 @@ void main() {
       await pump(tester, shell(initial: 1), builders: builders);
       expect(
         find.descendant(
-          of: find.byKey(DockKeys.tab('me')),
+          of: find.byKey(DuoKeys.tab('me')),
           matching: find.byKey(const Key('app-me')),
         ),
         findsOneWidget,
@@ -270,7 +270,7 @@ void main() {
         ),
       );
       expect(
-        tester.getSemantics(find.byKey(DockKeys.tab('home'))),
+        tester.getSemantics(find.byKey(DuoKeys.tab('home'))),
         // containsSemantics: deprecated after 3.40, but 3.38 lacks isSemantics.
         // ignore: deprecated_member_use
         containsSemantics(
@@ -312,28 +312,28 @@ void main() {
     });
 
     test('itemData describes one tab', () {
-      final data = DockTabsData<_Item>(
+      final data = DuoTabsData<_Item>(
         tabs: _typedTabs(),
         currentIndex: 1,
         onSelected: (_) {},
-        mode: DockLayoutMode.wide,
+        mode: DuoLayoutMode.wide,
       );
       final item = data.itemData(1);
       expect(item.tab.id, 'me');
       expect(item.index, 1);
       expect(item.count, 2);
       expect(item.selected, isTrue);
-      expect(item.placement, DockTabPlacement.rail);
+      expect(item.placement, DuoTabPlacement.rail);
       expect(() => data.itemData(2), throwsRangeError);
     });
   });
 
   group('a bar that builds its own item widgets', () {
-    DockBuilders<Object?, Object?, Object?> builders({
+    DuoBuilders<Object?, Object?, Object?> builders({
       required bool withSemantics,
     }) {
-      Widget bar(BuildContext context, DockTabsData<Object?> tabs, Axis axis) =>
-          DockTabBarSemantics(
+      Widget bar(BuildContext context, DuoTabsData<Object?> tabs, Axis axis) =>
+          DuoTabBarSemantics(
             child: _DsTabBar(
               axis: axis,
               items: [
@@ -348,14 +348,14 @@ void main() {
               ],
             ),
           );
-      return DockBuilders(
+      return DuoBuilders(
         tabBar: (context, tabs, items) =>
             SafeArea(child: bar(context, tabs, Axis.horizontal)),
         rail: (context, tabs, items) => bar(context, tabs, Axis.vertical),
       );
     }
 
-    for (final mode in DockLayoutMode.values) {
+    for (final mode in DuoLayoutMode.values) {
       testWidgets('${mode.name}: items with semanticsOf are tabs', (
         tester,
       ) async {
@@ -364,7 +364,7 @@ void main() {
           tester,
           shell(initial: 1),
           mode: mode,
-          builders: const DockMaterialBuilders<Object?, Object?, Object?>()
+          builders: const DuoMaterialBuilders<Object?, Object?, Object?>()
               .merge(builders(withSemantics: true)),
         );
         expect(tester.takeException(), isNull);
@@ -379,6 +379,9 @@ void main() {
         ]) {
           final node = item(text);
           expect(node.getSemanticsData().role, SemanticsRole.tab);
+          // One node per tab: the tile's own tap merges into it, so a screen
+          // reader stops once.
+          expect(node.childrenCount, 0, reason: '$text has child nodes');
           expect(node.getSemanticsData().hint, hint);
           expect(
             node,
@@ -397,14 +400,14 @@ void main() {
       });
     }
 
-    testWidgets('without them, DockTabBarSemantics reports its children', (
+    testWidgets('without them, DuoTabBarSemantics reports its children', (
       tester,
     ) async {
       final handle = tester.ensureSemantics();
       await pump(
         tester,
         shell(),
-        builders: const DockMaterialBuilders<Object?, Object?, Object?>().merge(
+        builders: const DuoMaterialBuilders<Object?, Object?, Object?>().merge(
           builders(withSemantics: false),
         ),
       );
@@ -420,7 +423,7 @@ void main() {
     testWidgets('selects another tab', (tester) async {
       final selected = <int>[];
       await pump(tester, shell(onSelected: selected.add));
-      await tester.tap(find.byKey(DockKeys.tab('me')));
+      await tester.tap(find.byKey(DuoKeys.tab('me')));
       await tester.pumpAndSettle();
       expect(selected, [1]);
       expect(find.text('tab 1'), findsOneWidget);
@@ -433,7 +436,7 @@ void main() {
         tester,
         shell(onSelected: selected.add, onReselected: reselected.add),
       );
-      await tester.tap(find.byKey(DockKeys.tab('home')));
+      await tester.tap(find.byKey(DuoKeys.tab('home')));
       expect(reselected, [0]);
       expect(selected, isEmpty);
     });
@@ -445,9 +448,9 @@ void main() {
       await pump(
         tester,
         shell(onSelected: selected.add),
-        mode: DockLayoutMode.wide,
+        mode: DuoLayoutMode.wide,
       );
-      await tester.tap(find.byKey(DockKeys.tab('home')));
+      await tester.tap(find.byKey(DuoKeys.tab('home')));
       expect(selected, [0]);
     });
 
@@ -462,7 +465,7 @@ void main() {
           },
         ),
       );
-      await tester.tap(find.byKey(DockKeys.tab('me')));
+      await tester.tap(find.byKey(DuoKeys.tab('me')));
       await tester.pumpAndSettle();
       expect(asked, [1]);
       expect(find.text('tab 0'), findsOneWidget);
@@ -471,7 +474,7 @@ void main() {
     testWidgets('an async veto decides later', (tester) async {
       final answer = Completer<bool>();
       await pump(tester, shell(canSelect: (i) => answer.future));
-      await tester.tap(find.byKey(DockKeys.tab('me')));
+      await tester.tap(find.byKey(DuoKeys.tab('me')));
       await tester.pumpAndSettle();
       expect(find.text('tab 0'), findsOneWidget);
 
@@ -486,13 +489,13 @@ void main() {
         tester,
         shell(onReselected: reselected.add, canSelect: (_) => false),
       );
-      await tester.tap(find.byKey(DockKeys.tab('home')));
+      await tester.tap(find.byKey(DuoKeys.tab('home')));
       expect(reselected, [0]);
     });
   });
 
-  group('DockTabStack', () {
-    Widget stack(int index, List<int> builds) => DockTabStack(
+  group('DuoTabStack', () {
+    Widget stack(int index, List<int> builds) => DuoTabStack(
       index: index,
       children: [
         for (var i = 0; i < 2; i++)
@@ -534,7 +537,7 @@ void main() {
       });
       await tester.pumpWidget(
         MaterialApp(
-          home: DockTabStack(
+          home: DuoTabStack(
             index: 0,
             lazy: false,
             children: [
@@ -563,7 +566,7 @@ void main() {
         final values = <double>[];
         await tester.pumpWidget(
           MaterialApp(
-            home: DockTabStack(
+            home: DuoTabStack(
               index: 0,
               lazy: false,
               maintainTickers: maintain,
@@ -580,29 +583,29 @@ void main() {
 
     testWidgets('with maintainTickers, only the shown tab\'s page claims the '
         'column', (tester) async {
-      Widget page(String id) => DockPage<Object?, Object?>(
+      Widget page(String id) => DuoPage<Object?, Object?>(
         trailing: [
-          DockAction<Object?>(
+          DuoAction<Object?>(
             id: id,
-            icon: const DockIcon(Icons.share),
+            icon: const DuoIcon(Icons.share),
             onPressed: () {},
           ),
         ],
         body: const SizedBox.expand(),
       );
       Finder inColumn(Object id) => find.descendant(
-        of: find.byKey(DockKeys.column),
-        matching: find.byKey(DockKeys.action(id)),
+        of: find.byKey(DuoKeys.column),
+        matching: find.byKey(DuoKeys.action(id)),
       );
       var index = 0;
       await pump(
         tester,
         StatefulBuilder(
-          builder: (context, setState) => DockShell<Object?, Object?, Object?>(
+          builder: (context, setState) => DuoShell<Object?, Object?, Object?>(
             tabs: _typedTabs(),
             currentIndex: index,
             onTabSelected: (i) => setState(() => index = i),
-            child: DockTabStack(
+            child: DuoTabStack(
               index: index,
               lazy: false,
               maintainTickers: true,
@@ -610,12 +613,12 @@ void main() {
             ),
           ),
         ),
-        mode: DockLayoutMode.wide,
+        mode: DuoLayoutMode.wide,
       );
       expect(inColumn('first'), findsOneWidget);
       expect(inColumn('second'), findsNothing);
 
-      await tester.tap(find.byKey(DockKeys.tab('me')));
+      await tester.tap(find.byKey(DuoKeys.tab('me')));
       await tester.pumpAndSettle();
       expect(inColumn('first'), findsNothing);
       expect(inColumn('second'), findsOneWidget);
@@ -625,7 +628,7 @@ void main() {
   group('the rail', () {
     final many = [
       for (var i = 0; i < 9; i++)
-        DockTab<Object?>(id: i, icon: const DockIcon(Icons.star), label: '$i'),
+        DuoTab<Object?>(id: i, icon: const DuoIcon(Icons.star), label: '$i'),
     ];
 
     testWidgets('scrolls when the tabs do not fit, without overflow', (
@@ -634,13 +637,13 @@ void main() {
       await pump(
         tester,
         shell(tabs: many),
-        mode: DockLayoutMode.wide,
+        mode: DuoLayoutMode.wide,
         size: const Size(800, 300),
       );
       expect(tester.takeException(), isNull);
-      final column = tester.getRect(find.byKey(DockKeys.column));
+      final column = tester.getRect(find.byKey(DuoKeys.column));
       expect(
-        tester.getRect(find.byKey(DockKeys.tab(0))).top,
+        tester.getRect(find.byKey(DuoKeys.tab(0))).top,
         greaterThanOrEqualTo(column.top),
       );
     });
@@ -649,11 +652,11 @@ void main() {
       await pump(
         tester,
         shell(tabs: many, initial: 8),
-        mode: DockLayoutMode.wide,
+        mode: DuoLayoutMode.wide,
         size: const Size(800, 300),
       );
-      final column = tester.getRect(find.byKey(DockKeys.column));
-      final last = tester.getRect(find.byKey(DockKeys.tab(8)));
+      final column = tester.getRect(find.byKey(DuoKeys.column));
+      final last = tester.getRect(find.byKey(DuoKeys.tab(8)));
       expect(last.bottom, lessThanOrEqualTo(column.bottom));
       expect(last.top, greaterThanOrEqualTo(column.top));
     });
@@ -662,44 +665,44 @@ void main() {
   testWidgets('the column grows with the text scale, up to a limit', (
     tester,
   ) async {
-    double width() => tester.getSize(find.byKey(DockKeys.column)).width;
-    await pump(tester, shell(), mode: DockLayoutMode.wide, textScale: 1.25);
+    double width() => tester.getSize(find.byKey(DuoKeys.column)).width;
+    await pump(tester, shell(), mode: DuoLayoutMode.wide, textScale: 1.25);
     expect(width(), 72 * 1.25);
-    await pump(tester, shell(), mode: DockLayoutMode.wide, textScale: 3);
+    await pump(tester, shell(), mode: DuoLayoutMode.wide, textScale: 3);
     expect(width(), 72 * 1.5);
   });
 
   group('models', () {
-    test('DockTab has value equality and a resettable copyWith', () {
-      const tab = DockTab<int>(
+    test('DuoTab has value equality and a resettable copyWith', () {
+      const tab = DuoTab<int>(
         id: 'a',
-        icon: DockIcon(Icons.home),
+        icon: DuoIcon(Icons.home),
         label: 'A',
-        badge: DockBadge.dot(),
+        badge: DuoBadge.dot(),
         payload: 1,
       );
       expect(tab, tab.copyWith());
       expect(tab.copyWith(label: 'B'), isNot(tab));
       expect(tab.copyWith(badge: null).badge, isNull);
       expect(tab.copyWith(payload: null).payload, isNull);
-      expect(tab.iconFor(selected: true), const DockIcon(Icons.home));
+      expect(tab.iconFor(selected: true), const DuoIcon(Icons.home));
     });
 
-    test('DockIcon identity', () {
-      expect(const DockIcon(Icons.home).identity, Icons.home);
+    test('DuoIcon identity', () {
+      expect(const DuoIcon(Icons.home).identity, Icons.home);
       expect(
-        const DockIcon.widget(SizedBox(key: ValueKey('k'))).identity,
+        const DuoIcon.widget(SizedBox(key: ValueKey('k'))).identity,
         const ValueKey('k'),
       );
-      expect(const DockIcon.widget(SizedBox(), identity: 'x').identity, 'x');
-      expect(const DockIcon(Icons.home), isNot(const DockIcon(Icons.star)));
+      expect(const DuoIcon.widget(SizedBox(), identity: 'x').identity, 'x');
+      expect(const DuoIcon(Icons.home), isNot(const DuoIcon(Icons.star)));
     });
 
-    test('DockBadge', () {
-      expect(const DockBadge.count(3).label, '3');
-      expect(const DockBadge.text('new').label, 'new');
-      expect(const DockBadge.dot().label, isNull);
-      expect(const DockBadge.dot().isDot, isTrue);
+    test('DuoBadge', () {
+      expect(const DuoBadge.count(3).label, '3');
+      expect(const DuoBadge.text('new').label, 'new');
+      expect(const DuoBadge.dot().label, isNull);
+      expect(const DuoBadge.dot().isDot, isTrue);
     });
   });
 }

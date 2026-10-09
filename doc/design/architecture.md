@@ -50,16 +50,16 @@ own tag, `<package>-v<version>` (`tool/release.sh`).
 
 | Entry point | Contents | Imports |
 |-------------|----------|---------|
-| `package:duo_navigation/geometry.dart` | `DockGeometry`, `DockLayoutMode`, `DockSide`, `DockBodyMode`, `DockWindowEdges`, `DockWindowEdgesSource`, `DockLayoutPolicy`, `DockBleed`, `DockInset` | widgets |
-| `package:duo_navigation/duo_navigation.dart` | `geometry.dart` plus configuration, shell, modal scope, tabs, actions, page layer, builders, `DockKeys`, `DockSemantics` | widgets |
-| `package:duo_navigation/material.dart` | `DockMaterialBuilders`, `DockAppBar` and the Material visuals | material |
-| `package:duo_navigation/testing.dart` | `DockTestHarness`, `FakeWindowEdgesSource`, `FakeDockClock`, `DockKeys` | widgets |
+| `package:duo_navigation/geometry.dart` | `DuoGeometry`, `DuoLayoutMode`, `DuoSide`, `DuoBodyMode`, `DuoWindowEdges`, `DuoWindowEdgesSource`, `DuoLayoutPolicy`, `DuoBleed`, `DuoInset` | widgets |
+| `package:duo_navigation/duo_navigation.dart` | `geometry.dart` plus configuration, shell, modal scope, tabs, actions, page layer, builders, `DuoKeys`, `DuoSemantics` | widgets |
+| `package:duo_navigation/material.dart` | `DuoMaterialBuilders`, `DuoAppBar` and the Material visuals | material |
+| `package:duo_navigation/testing.dart` | `DuoTestHarness`, `FakeWindowEdgesSource`, `FakeDuoClock`, `DuoKeys` | widgets |
 
 `testing.dart` does not import `flutter_test`, so the package has no test dependency. Finders use keys:
-`find.byKey(DockKeys.tab('home'))`.
+`find.byKey(DuoKeys.tab('home'))`.
 
 `duo_navigation_window_placement` exports one class, `WindowPlacementEdgesSource`, which implements
-`DockWindowEdgesSource`. An app that never leaves compact mode does not depend on it.
+`DuoWindowEdgesSource`. An app that never leaves compact mode does not depend on it.
 
 A test in `duo_navigation` fails if a file outside `src/material/` imports `material.dart` or `cupertino.dart`, or if
 `geometry.dart` exports a page, action or builder type.
@@ -67,15 +67,15 @@ A test in `duo_navigation` fails if a file outside `src/material/` imports `mate
 ## 4. Layers and modules
 
 ```
-src/geometry/   modes, sides, window edges and their source, layout policy, DockGeometry      (layer 0)
-src/config/     DockNavigation and DockNavigationData (non-visual configuration)            (layer 0)
-src/builders/   DockBuilders and their scope                                                (layer 1)
+src/geometry/   modes, sides, window edges and their source, layout policy, DuoGeometry      (layer 0)
+src/config/     DuoNavigation and DuoNavigationData (non-visual configuration)            (layer 0)
+src/builders/   DuoBuilders and their scope                                                (layer 1)
 src/frame/      frame render object, body scope, shell, modal scope, visibility, keyboard  (layer 1)
-src/tabs/       DockTab, tab data, tab item wrapper, DockTabStack                          (layer 1)
-src/actions/    DockAction, DockIcon, DockBadge, host, registration, tap guard, column     (layer 2)
-src/page/       DockPageScope, DockBarData, DockBarLayout, DockPage                        (layer 2)
-src/bleed/      DockBackdrop handling, DockBleed, DockInset, scroll helpers                 (layer 1)
-src/a11y/       DockSemantics, traversal order, focus registry
+src/tabs/       DuoTab, tab data, tab item wrapper, DuoTabStack                          (layer 1)
+src/actions/    DuoAction, DuoIcon, DuoBadge, host, registration, tap guard, column     (layer 2)
+src/page/       DuoPageScope, DuoBarData, DuoBarLayout, DuoPage                        (layer 2)
+src/bleed/      DuoBackdrop handling, DuoBleed, DuoInset, scroll helpers                 (layer 1)
+src/a11y/       DuoSemantics, traversal order, focus registry
 src/material/   default visuals (only material.dart imports this)
 src/testing/    harness and fakes (only testing.dart imports this)
 ```
@@ -94,61 +94,65 @@ A module imports only modules of its own layer or below. The adoption levels map
 ### 5.1 Layout mode
 
 ```dart
-abstract class DockLayoutPolicy {
-  const DockLayoutPolicy();
-  const factory DockLayoutPolicy.breakpoint(double width) = _BreakpointPolicy; // default: 600
-  const factory DockLayoutPolicy.fixed(DockLayoutMode mode) = _FixedPolicy;
-  DockLayoutMode resolve({required Size window, required Size frame});
+abstract class DuoLayoutPolicy {
+  const DuoLayoutPolicy();
+  const factory DuoLayoutPolicy.shortestSide(double size) = _ShortestSidePolicy; // default: 600
+  const factory DuoLayoutPolicy.breakpoint(double width) = _BreakpointPolicy;
+  const factory DuoLayoutPolicy.fixed(DuoLayoutMode mode) = _FixedPolicy;
+  DuoLayoutMode resolve({required Size window, required Size frame});
 }
 ```
 
-The default policy uses the **window** width (`MediaQuery.sizeOf`), not the frame width, so nested frames (a modal
-frame over a shell) agree on the mode. `fixed` serves tests and products that want one mode.
+The policies look at the **window** (`MediaQuery.sizeOf`), not the frame, so nested frames (a modal frame over a shell)
+agree on the mode. The default, `shortestSide(600)`, uses the window's shorter side: phones keep the bottom bar in
+landscape, where the column would meet the camera cutout or the system buttons on a short screen, while tablets and
+unfolded foldables get the column. `breakpoint` uses the window width, and `fixed` serves tests and products that want
+one mode.
 
 ### 5.2 Side and window edges
 
-`DockSide.start` / `end` is the preferred edge, resolved against `Directionality`. A `DockWindowEdgesSource` reports
+`DuoSide.start` / `end` is the preferred edge, resolved against `Directionality`. A `DuoWindowEdgesSource` reports
 which physical display edges the window touches:
 
 ```dart
-abstract interface class DockWindowEdgesSource {
-  DockWindowEdges? get value;            // null = unknown
-  Stream<DockWindowEdges?> get changes;
-  const factory DockWindowEdgesSource.fixed(DockWindowEdges? edges) = _FixedEdgesSource;
+abstract interface class DuoWindowEdgesSource {
+  DuoWindowEdges? get value;            // null = unknown
+  Stream<DuoWindowEdges?> get changes;
+  const factory DuoWindowEdgesSource.fixed(DuoWindowEdges? edges) = _FixedEdgesSource;
 }
 ```
 
 The column moves to the other edge only when the window touches that edge and not the preferred one
-(`DockWindowEdges.resolveRight`, kept from 0.0.1). No source, or an unknown value, means the preferred edge.
-`DockNavigation` owns the single subscription, so nested scopes never start a second platform listener.
+(`DuoWindowEdges.resolveRight`, kept from 0.0.1). No source, or an unknown value, means the preferred edge.
+`DuoNavigation` owns the single subscription, so nested scopes never start a second platform listener.
 
-`DockNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` resolve mode, side and edges without a frame
+`DuoNavigation.modeOf`, `sideOf`, `sideOnRight` and `windowEdgesOf` resolve mode, side and edges without a frame
 (level 0). Window-edge changes notify only widgets that read the side or the edges.
 
-### 5.3 DockGeometry
+### 5.3 DuoGeometry
 
 Each frame publishes one immutable geometry object to its body:
 
 ```dart
 @immutable
-class DockGeometry {
-  final DockLayoutMode mode;
-  final DockSide side;            // logical, after window-edge resolution
+class DuoGeometry {
+  final DuoLayoutMode mode;
+  final DuoSide side;            // logical, after window-edge resolution
   final bool columnOnRight;       // physical
-  final DockBodyMode bodyMode;    // inset | overlay
+  final DuoBodyMode bodyMode;    // inset | overlay
   final double visibility;        // 0 = hidden, 1 = shown; animates
   final EdgeInsets systemPadding; // MediaQuery.padding above the frame
   final EdgeInsets chrome;        // area the bar or column covers, per edge, scaled by visibility
   final double keyboard;          // viewInsets.bottom the frame consumed
 
-  /// What the body is inset by, and what a DockBleed widens into. Zero in overlay mode and when hidden.
+  /// What the body is inset by, and what a DuoBleed widens into. Zero in overlay mode and when hidden.
   EdgeInsets get strip;
 
-  static DockGeometry of(BuildContext context, {DockGeometryAspect? aspect});
-  static DockGeometry? maybeOf(BuildContext context, {DockGeometryAspect? aspect});
+  static DuoGeometry of(BuildContext context, {DuoGeometryAspect? aspect});
+  static DuoGeometry? maybeOf(BuildContext context, {DuoGeometryAspect? aspect});
 }
 
-enum DockGeometryAspect { mode, side, chrome, visibility }
+enum DuoGeometryAspect { mode, side, chrome, visibility }
 ```
 
 It is provided as an `InheritedModel`, so a widget that only reads the mode does not rebuild while the bar animates.
@@ -158,7 +162,7 @@ The body also gets an adjusted `MediaQuery` (section 6.3), so existing widgets w
 
 ### 6.1 Slots
 
-`DockShell` and `DockModalScope` build one frame render object with four slots
+`DuoShell` and `DuoModalScope` build one frame render object with four slots
 (`SlottedMultiChildRenderObjectWidget`):
 
 | Slot | Laid out | Painted |
@@ -170,17 +174,17 @@ The body also gets an adjusted `MediaQuery` (section 6.3), so existing widgets w
 
 Slots are stable, so a mode switch never remounts the body: tab, route, scroll positions, text and focus survive a
 rotation or unfold. Bar and column are laid out first. The body is laid out last with constraints that carry the
-resulting geometry (`DockFrameConstraints`, a `BoxConstraints` subclass, as in 0.0.1). A body scope reads them during
-layout and provides `DockGeometry` and `MediaQuery` to the page subtree. The page subtree itself is the same widget
+resulting geometry (`DuoFrameConstraints`, a `BoxConstraints` subclass, as in 0.0.1). A body scope reads them during
+layout and provides `DuoGeometry` and `MediaQuery` to the page subtree. The page subtree itself is the same widget
 instance, so only geometry dependents rebuild.
 
 Hit testing runs in reverse paint order. Chrome that is fully hidden is neither painted nor hit-tested.
 
 ### 6.2 The inset rule
 
-On its edge, the column sits **at the window edge, over the system inset** by default (`DockColumnInset.overlap`),
+On its edge, the column sits **at the window edge, over the system inset** by default (`DuoColumnInset.overlap`),
 and the free area starts after the column. The body keeps any part of the inset wider than the column. With
-`DockColumnInset.safeArea` it sits after the inset (cutout, button bar), and the free area starts after both.
+`DuoColumnInset.safeArea` it sits after the inset (cutout, button bar), and the free area starts after both.
 Overlap is the default because iOS reports a landscape inset on both sides, which would push the column far inward
 on the side without a cutout.
 
@@ -213,22 +217,22 @@ unchanged, and a plain `Column([Expanded(...), button])` never has the button un
 In both modes `MediaQuery.size` stays the window size, as with Flutter's `DisplayFeatureSubScreen`. Use
 `LayoutBuilder` for the available size.
 
-`bodyMode` is set on `DockNavigationData` (app default), on `DockShell` / `DockModalScope` (null inherits) and on
-`DockPageScope`. A page's body mode applies while that page owns the frame (section 10.2). The change animates with
+`bodyMode` is set on `DuoNavigationData` (app default), on `DuoShell` / `DuoModalScope` (null inherits) and on
+`DuoPageScope`. A page's body mode applies while that page owns the frame (section 10.2). The change animates with
 the visibility animation, so a page transition never makes the body jump.
 
 ### 6.4 Keyboard
 
 ```dart
-enum DockKeyboardBehavior { lift, hide, ignore }
+enum DuoKeyboardBehavior { lift, hide, ignore }
 
-enum DockBodyKeyboardBehavior { passThrough, lift }
+enum DuoBodyKeyboardBehavior { passThrough, lift }
 
-class DockKeyboard {
-  const DockKeyboard({
-    this.column = DockKeyboardBehavior.lift,
-    this.bar = DockKeyboardBehavior.ignore,
-    this.body = DockBodyKeyboardBehavior.passThrough,
+class DuoKeyboard {
+  const DuoKeyboard({
+    this.column = DuoKeyboardBehavior.lift,
+    this.bar = DuoKeyboardBehavior.ignore,
+    this.body = DuoBodyKeyboardBehavior.passThrough,
   });
 }
 ```
@@ -241,7 +245,7 @@ The frame reads `viewInsets.bottom` (`k`) from the `MediaQuery` above it. If an 
 | column | laid out in `height − k`; rail and chips ride above the keyboard | hidden while `k > 0` | full height, covered |
 | bar | placed on top of the keyboard | hidden while `k > 0` | stays at the bottom, covered |
 
-In **inset mode** the body follows `DockKeyboard.body`:
+In **inset mode** the body follows `DuoKeyboard.body`:
 
 - `passThrough` (default): the body ends at the bar's top edge as without a keyboard, and below the frame
   `viewInsets.bottom = max(0, k − bottom strip)`, the part of the keyboard the bar doesn't already cover. The page's
@@ -250,7 +254,7 @@ In **inset mode** the body follows `DockKeyboard.body`:
 - `lift`: the frame consumes the keyboard: `bottomReserve = max(k, bar bottom edge above the frame bottom)`, so
   `max(k, barHeight)` for `ignore`, `k` for `hide`, and `k + barHeight` for `lift`; below the frame
   `viewInsets.bottom = 0`, so a page's own `Scaffold` does not resize a second time.
-- `DockShell.keyboard` and `DockModalScope.keyboard` override the app's setting per frame.
+- `DuoShell.keyboard` and `DuoModalScope.keyboard` override the app's setting per frame.
 
 In **overlay mode** the frame does not consume the keyboard. `viewInsets` pass through, and the page's `Scaffold`
 handles them as in 0.0.1.
@@ -262,8 +266,8 @@ bottom-most action and scrolls the other actions. It never throws an overflow er
 
 The navigation is hidden when any of these says so:
 
-- `DockShell(navigationVisible: false)` / `DockModalScope(navigationVisible: false)`;
-- the page that owns the frame (`DockPageScope(visible: false)`);
+- `DuoShell(navigationVisible: false)` / `DuoModalScope(navigationVisible: false)`;
+- the page that owns the frame (`DuoPageScope(visible: false)`);
 - the keyboard rule (`hide`).
 
 Each source drives its own `AnimationController`, and the effective visibility is their product. Controllers only
@@ -278,119 +282,119 @@ hit-tested, wrapped in `ExcludeSemantics` and `ExcludeFocus`, and `chrome` and `
 
 ```dart
 @immutable
-class DockNavigationData {
-  const DockNavigationData({
-    this.layoutPolicy = const DockLayoutPolicy.breakpoint(600),
-    this.side = DockSide.end,
+class DuoNavigationData {
+  const DuoNavigationData({
+    this.layoutPolicy = const DuoLayoutPolicy.shortestSide(600),
+    this.side = DuoSide.end,
     this.windowEdgesSource,                       // null: always `side`
-    this.bodyMode = DockBodyMode.inset,
-    this.keyboard = const DockKeyboard(),
-    this.hoisting = DockHoisting.iconActions,
-    this.tapGuard = const DockTapGuard(),
+    this.bodyMode = DuoBodyMode.inset,
+    this.keyboard = const DuoKeyboard(),
+    this.hoisting = DuoHoisting.iconActions,
+    this.tapGuard = const DuoTapGuard(),
     this.sideColumnWidth = 72,
     this.sideItemExtent = 56,
     this.actionSpacing = 8,
-    this.animation = const DockAnimation(),       // durations and curves for actions, visibility, backdrop
+    this.animation = const DuoAnimation(),       // durations and curves for actions, visibility, backdrop
   });
   // == and hashCode over all fields; copyWith can reset nullable fields (sentinel default).
 }
 
-class DockNavigation extends StatefulWidget {
-  const DockNavigation({super.key, this.data = const DockNavigationData(), required this.builders, required this.child});
-  static DockNavigationData of(BuildContext context);       // FlutterError with a fix hint when missing
-  static DockNavigationData? maybeOf(BuildContext context);
-  static DockLayoutMode modeOf(BuildContext context);
-  static DockSide sideOf(BuildContext context);
+class DuoNavigation extends StatefulWidget {
+  const DuoNavigation({super.key, this.data = const DuoNavigationData(), required this.builders, required this.child});
+  static DuoNavigationData of(BuildContext context);       // FlutterError with a fix hint when missing
+  static DuoNavigationData? maybeOf(BuildContext context);
+  static DuoLayoutMode modeOf(BuildContext context);
+  static DuoSide sideOf(BuildContext context);
 }
 ```
 
-`DockNavigation` sits above the root `Navigator` (`MaterialApp.builder`), so root-level modals see it. Because the
+`DuoNavigation` sits above the root `Navigator` (`MaterialApp.builder`), so root-level modals see it. Because the
 data has value equality, rebuilding it with equal data notifies nobody.
 
 ### 7.2 Builders
 
 ```dart
 @immutable
-class DockBuilders<T, A, B> {
-  const DockBuilders({
+class DuoBuilders<T, A, B> {
+  const DuoBuilders({
     this.tabItem, this.tabBar, this.rail,         // tabs
     this.action, this.actionTransition,           // actions
     this.sideColumn,                              // column arrangement
-    this.page,                                    // DockPage's scaffold
+    this.page,                                    // DuoPage's scaffold
     this.backdrop,                                // a frame's default backdrop
   });
-  final DockTabItemBuilder<T>? tabItem;
-  final DockTabsBuilder<T>? tabBar;
-  final DockTabsBuilder<T>? rail;
-  final DockActionBuilder<A>? action;
-  final DockActionTransitionBuilder? actionTransition;
-  final DockSideColumnBuilder? sideColumn;
-  final DockPageBuilder<A, B>? page;
+  final DuoTabItemBuilder<T>? tabItem;
+  final DuoTabsBuilder<T>? tabBar;
+  final DuoTabsBuilder<T>? rail;
+  final DuoActionBuilder<A>? action;
+  final DuoActionTransitionBuilder? actionTransition;
+  final DuoSideColumnBuilder? sideColumn;
+  final DuoPageBuilder<A, B>? page;
   final WidgetBuilder? backdrop; // shows in the strip around the chrome
 
   /// [other]'s non-null fields win.
-  DockBuilders<T, A, B> merge(DockBuilders<T, A, B>? other);
+  DuoBuilders<T, A, B> merge(DuoBuilders<T, A, B>? other);
 }
 ```
 
-- Builders are provided on `DockNavigation` (app level) and can be overridden on `DockShell(builders: ...)` /
-  `DockModalScope(builders: ...)`. The nearest scope wins, field by field. An override on one shell leaves other
+- Builders are provided on `DuoNavigation` (app level) and can be overridden on `DuoShell(builders: ...)` /
+  `DuoModalScope(builders: ...)`. The nearest scope wins, field by field. An override on one shell leaves other
   shells unchanged.
 - A field that is null all the way up fails with a `FlutterError` naming the field and pointing to
-  `DockMaterialBuilders()` in `package:duo_navigation/material.dart`.
+  `DuoMaterialBuilders()` in `package:duo_navigation/material.dart`.
 - Every builder has the shape `(BuildContext, Data)`. `Data` is immutable and has value equality. Each typedef's
   dartdoc states the builder contract:
 
 | Builder | Gets | Safe area | Semantics | Keys | Animation |
 |---------|------|-----------|-----------|------|-----------|
-| `tabItem` | `DockTabItemData<T>` (tab, index, count, selected, onTap, mode) | n/a | package (section 13) | package (`DockKeys.tab`) | builder (selection) |
-| `tabBar` | `DockTabsData<T>` + built items | builder includes `padding.bottom` | package (tab-bar container) | package | builder |
-| `rail` | `DockTabsData<T>` + built items | column (vertical) | package | package | builder |
-| `action` | `DockActionData<A>` (action, placement, enabled, onPressed) | n/a | package (button, label, enabled) | package (`DockKeys.action`) | package for presence, builder for icon morph |
-| `sideColumn` | `DockSideColumnData` (actions widget, rail widget, hasActions) | gets system inset on its edge | package | package | package |
-| `page` | `DockBarData<A, B>` + body | page | page | page | page |
+| `tabItem` | `DuoTabItemData<T>` (tab, index, count, selected, onTap, mode) | n/a | package (section 13) | package (`DuoKeys.tab`) | builder (selection) |
+| `tabBar` | `DuoTabsData<T>` + built items | builder includes `padding.bottom` | package (tab-bar container) | package | builder |
+| `rail` | `DuoTabsData<T>` + built items | column (vertical) | package | package | builder |
+| `action` | `DuoActionData<A>` (action, placement, enabled, onPressed) | n/a | package (button, label, enabled) | package (`DuoKeys.action`) | package for presence, builder for icon morph |
+| `sideColumn` | `DuoSideColumnData` (actions widget, rail widget, hasActions) | gets system inset on its edge | package | package | package |
+| `page` | `DuoBarData<A, B>` + body | page | page | page | page |
 
-- Builders are called with a context below the shell and `DockNavigation`, so they can read app scopes.
+- Builders are called with a context below the shell and `DuoNavigation`, so they can read app scopes.
 
 ## 8. Typed payloads
 
 ```dart
-class DockTab<T>     { final T? payload; ... }
-class DockAction<A>  { final A? payload; ... }
-class DockPageScope<A, B> { final B? barPayload; ... }   // e.g. a structured title spec
+class DuoTab<T>     { final T? payload; ... }
+class DuoAction<A>  { final A? payload; ... }
+class DuoPageScope<A, B> { final B? barPayload; ... }   // e.g. a structured title spec
 ```
 
-- `DockShell<T, A, B>` and `DockModalScope<A, B>` bind the types for their frame.
-- `DockBuilders<T, A, B>` is provided through two typed inherited scopes, one for tabs (`T`) and one for chrome
+- `DuoShell<T, A, B>` and `DuoModalScope<A, B>` bind the types for their frame.
+- `DuoBuilders<T, A, B>` is provided through two typed inherited scopes, one for tabs (`T`) and one for chrome
   (`A`, `B`). Pages, which don't know `T`, look up the chrome scope. Lookups are by exact type. When nothing matches,
   a debug walk finds the scope that is there and reports both types:
-  `DockBuilders<..., MyAction, ...> expected, found DockBuilders<..., Object?, ...> above this DockPage`.
-- The action host stores `DockAction<Object?>` (generics are covariant). The frame hands the builder a
-  `DockAction<A>` after a checked conversion with the same kind of error, never a bare cast error.
+  `DuoBuilders<..., MyAction, ...> expected, found DuoBuilders<..., Object?, ...> above this DuoPage`.
+- The action host stores `DuoAction<Object?>` (generics are covariant). The frame hands the builder a
+  `DuoAction<A>` after a checked conversion with the same kind of error, never a bare cast error.
 - Apps without payloads write no type arguments. Everything infers to `dynamic` and matches.
 - Apps with payloads declare their types once:
 
 ```dart
-typedef AppDock = DockBuilders<AppTab, AppAction, AppTitle>;
-typedef AppShell = DockShell<AppTab, AppAction, AppTitle>;
-typedef AppPage = DockPage<AppAction, AppTitle>;
+typedef AppDock = DuoBuilders<AppTab, AppAction, AppTitle>;
+typedef AppShell = DuoShell<AppTab, AppAction, AppTitle>;
+typedef AppPage = DuoPage<AppAction, AppTitle>;
 ```
 
 - Icons are descriptors, not widgets, so a component that needs `IconData` gets it directly:
 
 ```dart
-sealed class DockIcon {
-  const factory DockIcon(IconData data) = _DataIcon;
-  const factory DockIcon.image(ImageProvider image) = _ImageIcon;
-  const factory DockIcon.widget(Widget widget, {Object? identity}) = _WidgetIcon;
-  static const DockIcon back = _PlatformIcon.back;   // resolved by the builder (chevron, arrow)
-  static const DockIcon close = _PlatformIcon.close;
+sealed class DuoIcon {
+  const factory DuoIcon(IconData data) = _DataIcon;
+  const factory DuoIcon.image(ImageProvider image) = _ImageIcon;
+  const factory DuoIcon.widget(Widget widget, {Object? identity}) = _WidgetIcon;
+  static const DuoIcon back = _PlatformIcon.back;   // resolved by the builder (chevron, arrow)
+  static const DuoIcon close = _PlatformIcon.close;
   Object get identity;   // keys the icon morph
 }
 ```
 
 The type parameters arrive with their models: `T` with tabs (#11), `A` with actions (#14, #19) and `B` with the page
-layer (#12). Until then `DockBuilders` has none.
+layer (#12). Until then `DuoBuilders` has none.
 
 Two risks are validated early. The first is ergonomics: a fixture in `test/fixtures/typed_payloads.dart` models a
 component library with typed payloads and is used from the geometry/config PR on. The second is real adapters. If
@@ -400,18 +404,18 @@ generics turn out too heavy, a checked accessor (`payloadOf<T>()`) is the fallba
 
 ```dart
 @immutable
-class DockTab<T> {
-  const DockTab({required this.id, required this.icon, this.selectedIcon, this.label,
+class DuoTab<T> {
+  const DuoTab({required this.id, required this.icon, this.selectedIcon, this.label,
                  this.badge, this.tooltip, this.semanticLabel, this.key, this.payload});
   final Object id;
-  final DockIcon icon;
-  final DockIcon? selectedIcon;
+  final DuoIcon icon;
+  final DuoIcon? selectedIcon;
   final String? label;
-  final DockBadge? badge;          // DockBadge.count(3), DockBadge.dot(), DockBadge.text('new')
+  final DuoBadge? badge;          // DuoBadge.count(3), DuoBadge.dot(), DuoBadge.text('new')
   ...
 }
 
-DockShell<T, A, B>(
+DuoShell<T, A, B>(
   tabs: tabs,
   currentIndex: i,
   onTabSelected: (i) => ...,
@@ -419,14 +423,14 @@ DockShell<T, A, B>(
   canSelectTab: (i) async => ...,         // veto, e.g. unsaved changes
   navigationVisible: true,
   bodyMode: null, hoisting: null, keyboard: null, builders: null, backdrop: null,
-  child: DockTabStack(index: i, children: [...]),
+  child: DuoTabStack(index: i, children: [...]),
 )
 ```
 
-- Tab items are built one by one (`tabItem`) and wrapped by the package: semantics (section 13), `DockKeys.tab(id)`
+- Tab items are built one by one (`tabItem`) and wrapped by the package: semantics (section 13), `DuoKeys.tab(id)`
   and badge semantics. The container builders (`tabBar`, `rail`) arrange the built items. Builders can't drop the
   semantics or the keys.
-- `DockTabStack` is the tab container helper. It builds tabs lazily, keeps them alive, and makes inactive tabs inert:
+- `DuoTabStack` is the tab container helper. It builds tabs lazily, keeps them alive, and makes inactive tabs inert:
   `Offstage`, `TickerMode(enabled: false)`, `ExcludeFocus`, `HeroMode(enabled: false)`. It does not clip, so bleeds
   work. Any other container works if it provides `TickerMode(enabled: false)` for inactive tabs. A debug message
   reports two pages owning one frame from different tick-enabled subtrees.
@@ -438,40 +442,40 @@ DockShell<T, A, B>(
 
 ```dart
 @immutable
-class DockAction<A> {
-  const DockAction({required this.id, this.role = DockActionRole.secondary, this.icon, this.label,
+class DuoAction<A> {
+  const DuoAction({required this.id, this.role = DuoActionRole.secondary, this.icon, this.label,
                     this.onPressed, this.enabled = true, this.badge, this.tooltip, this.semanticLabel,
-                    this.key, this.order = 0, this.hoist = DockHoist.auto, this.shared = false,
+                    this.key, this.order = 0, this.hoist = DuoHoist.auto, this.shared = false,
                     this.guarded = true, this.cooldown, this.payload})
       : assert(icon != null || label != null);
-  const DockAction.back({DockIcon? icon = DockIcon.back, String? label, VoidCallback? onPressed, ...});
-  const DockAction.close({DockIcon? icon = DockIcon.close, String? label, VoidCallback? onPressed, ...});
+  const DuoAction.back({DuoIcon? icon = DuoIcon.back, String? label, VoidCallback? onPressed, ...});
+  const DuoAction.close({DuoIcon? icon = DuoIcon.close, String? label, VoidCallback? onPressed, ...});
 }
 
-enum DockActionRole { back, close, primary, secondary, destructive, overflow }
-enum DockHoist { auto, never }
-enum DockHoisting { iconActions, none }
+enum DuoActionRole { back, close, primary, secondary, destructive, overflow }
+enum DuoHoist { auto, never }
+enum DuoHoisting { iconActions, none }
 ```
 
 - `role` gives the builder a styling hook and gives the leading slot its meaning. `back` and `close` share one
   identity across pages, so the chip stays in place and morphs between back and close.
 - A **text-only leading action** ("Cancel") is valid in every mode. It never moves into the column.
 - **Hoisting.** In wide mode an action moves into the column when hoisting is `iconActions` (app, shell or modal scope;
-  nearest wins), the action has an icon and `hoist` is `auto`. With `none`, `DockBarData` is identical in compact and
+  nearest wins), the action has an icon and `hoist` is `auto`. With `none`, `DuoBarData` is identical in compact and
   wide mode, leading action included, and the column holds only the rail.
 - **Column order**, bottom to top: the leading action right above the rail, then the hoisted trailing actions by
   `order`, then by declaration order. The leading chip never moves when trailing actions change.
 - Actions that leave animate out in place (`mergeOrder`, kept from 0.0.1). The package owns presence timing, and
   builders own the visuals.
-- The icon morph is keyed by `DockIcon.identity`. For a widget icon, the identity defaults to the widget's key.
+- The icon morph is keyed by `DuoIcon.identity`. For a widget icon, the identity defaults to the widget's key.
 
 ### 10.2 Which page owns the frame
 
-Each page layer (`DockPageScope`) registers with the nearest frame's action host. A page is **active** while:
+Each page layer (`DuoPageScope`) registers with the nearest frame's action host. A page is **active** while:
 
 - its route is current, **or** its route is not current but only popup routes (dialogs, sheets) are above it. The
   rule used: the route's `secondaryAnimation` is dismissed, because page routes don't animate under popup routes.
-  If this proves unreliable, an exported `DockRouteObserver` replaces it.
+  If this proves unreliable, an exported `DuoRouteObserver` replaces it.
 - and its subtree is ticking (`TickerMode`), so inactive tabs don't compete.
 
 The most recently activated registration owns the column, body mode, visibility and backdrop of the frame. This
@@ -480,18 +484,18 @@ needs no router knowledge, as in 0.0.1.
 ### 10.3 Tap guard
 
 ```dart
-class DockTapGuard {
-  const DockTapGuard({this.enabled = true, this.cooldown = const Duration(milliseconds: 350),
+class DuoTapGuard {
+  const DuoTapGuard({this.enabled = true, this.cooldown = const Duration(milliseconds: 350),
                       this.clock, this.onRejected});
-  final DockClock? clock;                                  // null: a monotonic stopwatch
-  final void Function(DockAction<Object?> action, DockTapRejection reason)? onRejected;
+  final DuoClock? clock;                                  // null: a monotonic stopwatch
+  final void Function(DuoAction<Object?> action, DuoTapRejection reason)? onRejected;
 }
 
-enum DockTapRejection { notActive, transition, cooldown }
+enum DuoTapRejection { notActive, transition, cooldown }
 
-abstract interface class DockClock {
+abstract interface class DuoClock {
   Duration now();
-  static const DockClock frameTime = _FrameTimeClock();   // SchedulerBinding.currentSystemFrameTimeStamp
+  static const DuoClock frameTime = _FrameTimeClock();   // SchedulerBinding.currentSystemFrameTimeStamp
 }
 ```
 
@@ -502,8 +506,8 @@ A guarded tap fires only if:
 3. the same action (same identity as in the column) has not fired within its cooldown (`action.cooldown ??
    tapGuard.cooldown`).
 
-Different actions don't block each other. Rejections call `onRejected` and log in debug mode. `DockTestHarness` uses
-`DockClock.frameTime`, so `tester.pump(duration)` advances the guard and tests never wait on real time.
+Different actions don't block each other. Rejections call `onRejected` and log in debug mode. `DuoTestHarness` uses
+`DuoClock.frameTime`, so `tester.pump(duration)` advances the guard and tests never wait on real time.
 
 ## 11. Page layer
 
@@ -511,62 +515,62 @@ The page layer is optional (level 2). A plain `Scaffold` page in a frame is a fi
 modes.
 
 ```dart
-class DockPageScope<A, B> extends StatefulWidget {
-  const DockPageScope({super.key, this.title, this.barPayload, this.leading, this.automaticallyImplyLeading = true,
+class DuoPageScope<A, B> extends StatefulWidget {
+  const DuoPageScope({super.key, this.title, this.barPayload, this.leading, this.automaticallyImplyLeading = true,
                        this.trailing = const [], this.bodyMode, this.visible = true, this.backdrop, this.hoisting,
                        required this.child});
-  // Registers with the frame and provides DockBarData<A, B> to child.
+  // Registers with the frame and provides DuoBarData<A, B> to child.
 }
 
 @immutable
-class DockBarData<A, B> {
-  final DockLayoutMode mode;
+class DuoBarData<A, B> {
+  final DuoLayoutMode mode;
   final Widget? title;
   final B? payload;
-  final DockAction<A>? leading;            // null in wide mode only when it is in the column
-  final List<DockAction<A>> trailing;      // what stays in the bar
-  final List<DockAction<A>> hoisted;       // what is in the column (for information)
+  final DuoAction<A>? leading;            // null in wide mode only when it is in the column
+  final List<DuoAction<A>> trailing;      // what stays in the bar
+  final List<DuoAction<A>> hoisted;       // what is in the column (for information)
   final bool actionsAtStart;               // the column is on the start edge, so bar actions follow it
-  Widget buildAction(DockAction<A> action, DockActionPlacement placement);
-  static DockBarData<A, B> of<A, B>(BuildContext context);
+  Widget buildAction(DuoAction<A> action, DuoActionPlacement placement);
+  static DuoBarData<A, B> of<A, B>(BuildContext context);
 }
 ```
 
-- `DockBarLayout` (widgets only) lays out leading, title and trailing. It handles start/end mirroring, right-to-left
+- `DuoBarLayout` (widgets only) lays out leading, title and trailing. It handles start/end mirroring, right-to-left
   and the centered-title policy, with or without a leading action. The default app bar and custom bars use it.
-- `DockAppBar` (in `material.dart`) reads `DockBarData.of(context)`, so a page with its own `Scaffold`, keys, bottom
+- `DuoAppBar` (in `material.dart`) reads `DuoBarData.of(context)`, so a page with its own `Scaffold`, keys, bottom
   bar or FAB needs no builder closure:
 
 ```dart
-DockPageScope(
+DuoPageScope(
   title: const Text('Items'),
-  trailing: [DockAction(id: 'add', icon: const DockIcon(Icons.add), onPressed: add)],
+  trailing: [DuoAction(id: 'add', icon: const DuoIcon(Icons.add), onPressed: add)],
   child: Scaffold(
     key: const Key('items'),
-    appBar: const DockAppBar(),
+    appBar: const DuoAppBar(),
     bottomNavigationBar: const ItemsToolbar(),
     body: const ItemsList(),
   ),
 )
 ```
 
-- `DockPage<A, B>` is the convenience widget: `DockPageScope` plus the configured `page` builder.
-- An implied leading action (route can pop) is `DockAction.back()`, or `DockAction.close()` for full-screen dialogs;
-  `DockImpliedLeading` on `DockModalScope` and `DockPageScope` overrides it. A modal's first page (on the modal's route,
+- `DuoPage<A, B>` is the convenience widget: `DuoPageScope` plus the configured `page` builder.
+- An implied leading action (route can pop) is `DuoAction.back()`, or `DuoAction.close()` for full-screen dialogs;
+  `DuoImpliedLeading` on `DuoModalScope` and `DuoPageScope` overrides it. A modal's first page (on the modal's route,
   or first in a `Navigator` inside it) gets one that dismisses the modal.
   Its icon is a descriptor and its tooltip comes from the builder's localizations, so the core stays widgets-only.
-- A `DockPage` with no frame above it brings its own modal frame (kept from 0.0.1).
+- A `DuoPage` with no frame above it brings its own modal frame (kept from 0.0.1).
 
 ## 12. Backdrop and bleed
 
 Content under the chrome is opt-in at three granularities.
 
-**Backdrop.** `DockShell(backdrop: ...)` and `DockPageScope(backdrop: ...)` paint one widget across the whole frame,
+**Backdrop.** `DuoShell(backdrop: ...)` and `DuoPageScope(backdrop: ...)` paint one widget across the whole frame,
 under body and chrome. The active page's backdrop wins over the shell's and cross-fades when the owner changes. This
 covers full-window gradients and pictures with no component knowing about the frame. The cross-fade follows page
 activation, not an interactive back swipe.
 
-**Bleed.** `DockBleed` widens its child toward the strip while keeping its own size, so siblings are unaffected.
+**Bleed.** `DuoBleed` widens its child toward the strip while keeping its own size, so siblings are unaffected.
 
 - Constraints grow by the strip on the chrome side: both `minWidth` and `maxWidth` when tight, `maxWidth` when loose
   (`maxHeight` for the bar). The child is offset when the strip is on the left.
@@ -576,35 +580,35 @@ activation, not an interactive back swipe.
   The tree shape never changes, so state survives mode switches.
 - It is a `RenderShiftedBox`, with intrinsics and dry layout. It adds no layers and no `saveLayer`.
 - Pointer events in the strip go to the chrome (it paints above), not to the child: the frame hit-tests its body
-  only within the body's bounds. Interactive content belongs in a `DockInset`.
+  only within the body's bounds. Interactive content belongs in a `DuoInset`.
 - `column` and `bar` turn the two directions off for content that doesn't touch that edge.
 
-**Inset.** `DockInset` is the inverse: inside a bleed, it pads its child back by the strip and removes that padding
+**Inset.** `DuoInset` is the inverse: inside a bleed, it pads its child back by the strip and removes that padding
 from `MediaQuery`. It is a no-op outside a bleed.
 
 **Scroll views** clip at their bounds, so one item can't bleed out of a list. Wrap the scroll view instead:
-`DockBleed(child: ListView(...))` lays the whole viewport out widened, and its own clip then includes the strip.
-`DockInset.wrapAll(children)` insets every child except the ones wrapped in `DockBleedItem`, so a bleeding header in a
+`DuoBleed(child: ListView(...))` lays the whole viewport out widened, and its own clip then includes the strip.
+`DuoInset.wrapAll(children)` insets every child except the ones wrapped in `DuoBleedItem`, so a bleeding header in a
 list of inset rows needs no custom render object.
 
 **What clips a bleed:** `ClipRect`, scroll views with their default clip, `Material` with a clip, and `Navigator`
-(`clipBehavior` defaults to `Clip.hardEdge`). `Stack` and `IndexedStack` don't. `DockTabStack` doesn't clip. A
-`Navigator` inside the frame needs `clipBehavior: Clip.none` for page-level bleeds. In debug mode, `DockBleed` warns
+(`clipBehavior` defaults to `Clip.hardEdge`). `Stack` and `IndexedStack` don't. `DuoTabStack` doesn't clip. A
+`Navigator` inside the frame needs `clipBehavior: Clip.none` for page-level bleeds. In debug mode, `DuoBleed` warns
 once when a clipping ancestor sits between it and the frame's body. The backdrop is the recommended way to run page
 backgrounds under the chrome, because it is not affected by these clips.
 
-`DockBleed.insetOf(context)` returns the strip for painters and custom layouts.
+`DuoBleed.insetOf(context)` returns the strip for painters and custom layouts.
 
 ## 13. Accessibility
 
 - **Semantics are attached by the package**, outside the builder's output. Strings the core cannot localize come from
-  the builders: `DockBuilders.tabPosition` ("Tab 2 of 3", as a hint) and `DockBuilders.actionLabel` (labels for the
+  the builders: `DuoBuilders.tabPosition` ("Tab 2 of 3", as a hint) and `DuoBuilders.actionLabel` (labels for the
   implied back and close actions).
   - tab items: `SemanticsRole.tab`, selected, label (`semanticLabel ?? label ?? tooltip`), tap action, badge text;
   - the tab bar and rail: `SemanticsRole.tabBar` container;
   - actions: button, label, enabled, tap action, badge text.
 
-  Builders can add semantics but not drop the package's. `DockSemantics.tab(...)` / `DockSemantics.action(...)`
+  Builders can add semantics but not drop the package's. `DuoSemantics.tab(...)` / `DuoSemantics.action(...)`
   helpers keep the tap action for builders that wrap their own items.
 - **Traversal order** (`FocusTraversalOrder` and `OrdinalSortKey`), the same in both modes:
   1. the page: its title bar, then its content;
@@ -622,19 +626,19 @@ backgrounds under the chrome, because it is not affected by these clips.
 ## 14. Testing support
 
 ```dart
-DockTestHarness(
-  mode: DockLayoutMode.wide,          // a fixed policy
-  side: DockSide.end,
+DuoTestHarness(
+  mode: DuoLayoutMode.wide,          // a fixed policy
+  side: DuoSide.end,
   windowEdges: FakeWindowEdgesSource(),
   textDirection: TextDirection.rtl,
-  tapGuard: const DockTapGuard(clock: DockClock.frameTime),   // the default in the harness
-  builders: DockMaterialBuilders(),
+  tapGuard: const DuoTapGuard(clock: DuoClock.frameTime),   // the default in the harness
+  builders: DuoMaterialBuilders(),
   child: ...,
 )
 ```
 
 - `FakeWindowEdgesSource.push(edges)` changes the edges over time (fold, unfold, window moved).
-- `DockKeys.tab(id)`, `.action(id)`, `.column`, `.bar`, `.rail` are used by the default visuals. The key contract for
+- `DuoKeys.tab(id)`, `.action(id)`, `.column`, `.bar`, `.rail` are used by the default visuals. The key contract for
   custom builders is documented: the package applies these keys around builder output.
 - The package's own acceptance tests live in `test/acceptance/`, one file per behavior in section 18.
 
@@ -652,11 +656,11 @@ DockTestHarness(
 
 | Situation | 0.0.1 | 0.1.0 |
 |-----------|-------|-------|
-| No `DockNavigation` above a frame or page | silently used defaults (wide on an 800×600 test surface) | `FlutterError` with the fix; `maybeOf` for optional use |
-| No builder for a field | n/a (built-in defaults) | `FlutterError` naming the field and `DockMaterialBuilders` |
+| No `DuoNavigation` above a frame or page | silently used defaults (wide on an 800×600 test surface) | `FlutterError` with the fix; `maybeOf` for optional use |
+| No builder for a field | n/a (built-in defaults) | `FlutterError` naming the field and `DuoMaterialBuilders` |
 | Builder or page payload type mismatch | cast error inside a builder | `FlutterError` naming expected and found types at lookup |
 | Bar shorter than the bottom safe area | drew under the home indicator | debug assertion |
-| Two tabs' pages own one frame | wrong chips | debug message pointing to `TickerMode` / `DockTabStack` |
+| Two tabs' pages own one frame | wrong chips | debug message pointing to `TickerMode` / `DuoTabStack` |
 | Bleed under a clipping ancestor | cut silently | debug warning naming the ancestor |
 | Rejected tap | silent | `onRejected` callback and a debug log |
 
@@ -664,20 +668,21 @@ DockTestHarness(
 
 | 0.0.1 | 0.1.0 |
 |-------|-------|
-| `DockNavigationData(tabBarBuilder: ..., railBuilder: ..., actionBuilder: ..., pageBuilder: ..., sideColumnBuilder: ..., actionTransitionBuilder: ...)` | `DockNavigation(builders: DockMaterialBuilders().merge(DockBuilders(...)))` |
+| package `nav_dock`, types `Dock*` | package `duo_navigation`, types `Duo*` (`DockShell` → `DuoShell`, ...) |
+| `DockNavigationData(tabBarBuilder: ..., railBuilder: ..., actionBuilder: ..., pageBuilder: ..., sideColumnBuilder: ..., actionTransitionBuilder: ...)` | `DuoNavigation(builders: DuoMaterialBuilders().merge(DuoBuilders(...)))` |
 | `DockDefaults.*` | `package:duo_navigation/material.dart` |
-| `breakpoint: 600` | `layoutPolicy: DockLayoutPolicy.breakpoint(600)` |
-| `windowEdges:` / `detectWindowEdges:` | `windowEdgesSource: WindowPlacementEdgesSource()` (separate package) or `DockWindowEdgesSource.fixed(...)` |
-| body under the chrome, obstruction as padding | `bodyMode: DockBodyMode.inset` (default); `overlay` for the old behavior |
-| column overlapped the system inset | unchanged by default; `columnInset: DockColumnInset.safeArea` places it after |
-| `tapCooldown:` | `tapGuard: DockTapGuard(cooldown: ...)`; cooldown is per action |
-| `DockTab(icon: Icon(...), data: ...)` | `DockTab(id: ..., icon: DockIcon(...), payload: ...)` |
-| `DockAction(icon: Icon(...), pinToBar: true, data: ...)` | `DockAction(icon: DockIcon(...), hoist: DockHoist.never, payload: ...)` |
-| `DockAction.back(icon: ...)` (no label) | `DockAction.back(label: 'Cancel')` allowed |
-| `DockPage.custom(builder: (context, bar) => ...)` | `DockPageScope(child: Scaffold(appBar: const DockAppBar(), ...))` |
-| `DockBarData.trailingAtStart` | `DockBarData.actionsAtStart`, handled by `DockBarLayout` |
-| `DockScope.modeOf(context)` | `DockGeometry.of(context, aspect: mode).mode` or `DockNavigation.modeOf(context)` |
-| inactive tabs via your own `Offstage` + `TickerMode` | `DockTabStack` (or any container providing `TickerMode`) |
+| `breakpoint: 600` | `layoutPolicy: DuoLayoutPolicy.breakpoint(600)` |
+| `windowEdges:` / `detectWindowEdges:` | `windowEdgesSource: WindowPlacementEdgesSource()` (separate package) or `DuoWindowEdgesSource.fixed(...)` |
+| body under the chrome, obstruction as padding | `bodyMode: DuoBodyMode.inset` (default); `overlay` for the old behavior |
+| column overlapped the system inset | unchanged by default; `columnInset: DuoColumnInset.safeArea` places it after |
+| `tapCooldown:` | `tapGuard: DuoTapGuard(cooldown: ...)`; cooldown is per action |
+| `DockTab(icon: Icon(...), data: ...)` | `DuoTab(id: ..., icon: DuoIcon(...), payload: ...)` |
+| `DockAction(icon: Icon(...), pinToBar: true, data: ...)` | `DuoAction(icon: DuoIcon(...), hoist: DuoHoist.never, payload: ...)` |
+| `DockAction.back(icon: ...)` (no label) | `DuoAction.back(label: 'Cancel')` allowed |
+| `DockPage.custom(builder: (context, bar) => ...)` | `DuoPageScope(child: Scaffold(appBar: const DuoAppBar(), ...))` |
+| `DockBarData.trailingAtStart` | `DuoBarData.actionsAtStart`, handled by `DuoBarLayout` |
+| `DockScope.modeOf(context)` | `DuoGeometry.of(context, aspect: mode).mode` or `DuoNavigation.modeOf(context)` |
+| inactive tabs via your own `Offstage` + `TickerMode` | `DuoTabStack` (or any container providing `TickerMode`) |
 
 ## 18. Acceptance
 
@@ -704,7 +709,7 @@ The redesign is done when each of these is shown by a test:
 | Question | Where | Fallback |
 |----------|-------|----------|
 | Are scoped generics comfortable in a real adapter? | #20 fixture, early adopters | checked `payloadOf<T>()` accessor |
-| Does `secondaryAnimation` reliably mark "only popups above"? | #14 | `DockRouteObserver` |
+| Does `secondaryAnimation` reliably mark "only popups above"? | #14 | `DuoRouteObserver` |
 | Do platforms announce "tab x of n" from the tab roles? | #18, release checklist #39 | explicit position in the semantic label |
 | Is per-page body mode smooth during page transitions? | #6, #23 | body mode per frame only |
 

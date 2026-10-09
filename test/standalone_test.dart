@@ -4,12 +4,12 @@ import 'package:duo_navigation/material.dart';
 
 const _wideWindow = Size(1000, 700);
 
-Widget _page({VoidCallback? onShare}) => DockPage<Object?, Object?>(
+Widget _page({VoidCallback? onShare}) => DuoPage<Object?, Object?>(
   title: const Text('Details'),
   trailing: [
-    DockAction<Object?>(
+    DuoAction<Object?>(
       id: 'share',
-      icon: const DockIcon(Icons.share),
+      icon: const DuoIcon(Icons.share),
       onPressed: onShare,
     ),
   ],
@@ -44,8 +44,8 @@ void main() {
     );
     Navigator.of(root).push(
       MaterialPageRoute<void>(
-        builder: (_) => DockStandalone(
-          builders: const DockMaterialBuilders(),
+        builder: (_) => DuoStandalone(
+          builders: const DuoMaterialBuilders(),
           child: _page(onShare: () => shares++),
         ),
       ),
@@ -54,22 +54,22 @@ void main() {
 
     // Compact on a wide window: the actions stay in the title bar.
     expect(find.widgetWithText(AppBar, 'Details'), findsOneWidget);
-    expect(find.byKey(DockKeys.column), findsNothing);
-    await tester.tap(find.byKey(DockKeys.action('share')));
+    expect(find.byKey(DuoKeys.column), findsNothing);
+    await tester.tap(find.byKey(DuoKeys.action('share')));
     expect(shares, 1);
 
-    await tester.tap(find.byKey(DockKeys.action(DockAction.backId)));
+    await tester.tap(find.byKey(DuoKeys.action(DuoAction.backId)));
     await tester.pumpAndSettle();
     expect(find.text('Details'), findsNothing);
   });
 
-  group('without DockTestHarness, the default tap guard follows the test', () {
+  group('without DuoTestHarness, the default tap guard follows the test', () {
     Future<List<int>> pumpPage(WidgetTester tester) async {
       final shares = <int>[];
       await tester.pumpWidget(
         MaterialApp(
-          home: DockStandalone(
-            builders: const DockMaterialBuilders(),
+          home: DuoStandalone(
+            builders: const DuoMaterialBuilders(),
             child: _page(onShare: () => shares.add(shares.length)),
           ),
         ),
@@ -82,9 +82,9 @@ void main() {
       tester,
     ) async {
       final shares = await pumpPage(tester);
-      await tester.tap(find.byKey(DockKeys.action('share')));
+      await tester.tap(find.byKey(DuoKeys.action('share')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(DockKeys.action('share')));
+      await tester.tap(find.byKey(DuoKeys.action('share')));
       await tester.pumpAndSettle();
       expect(shares, hasLength(2));
     });
@@ -93,18 +93,18 @@ void main() {
       tester,
     ) async {
       final shares = await pumpPage(tester);
-      await tester.tap(find.byKey(DockKeys.action('share')));
+      await tester.tap(find.byKey(DuoKeys.action('share')));
       await tester.pump();
-      await tester.tap(find.byKey(DockKeys.action('share')));
+      await tester.tap(find.byKey(DuoKeys.action('share')));
       await tester.pump();
       expect(shares, hasLength(1));
     });
   });
 
-  group('DockClock.system', () {
+  group('DuoClock.system', () {
     testWidgets('advances with frame time', (tester) async {
       await tester.pumpWidget(const SizedBox());
-      final clock = DockClock.system();
+      final clock = DuoClock.system();
       final start = clock.now();
       // A frame that happens a second later (in the app, a tap's ripple or
       // any animation schedules one).
@@ -117,7 +117,7 @@ void main() {
     });
 
     testWidgets('advances with real time when no frame comes', (tester) async {
-      final clock = DockClock.system();
+      final clock = DuoClock.system();
       final start = clock.now();
       await tester.runAsync(
         () => Future<void>.delayed(const Duration(milliseconds: 60)),
@@ -129,31 +129,31 @@ void main() {
     });
   });
 
-  testWidgets('below a DockNavigation it changes nothing', (tester) async {
-    late DockLayoutMode mode;
-    Widget app(DockBuilders<Object?, Object?, Object?> standaloneBuilders) =>
+  testWidgets('below a DuoNavigation it changes nothing', (tester) async {
+    late DuoLayoutMode mode;
+    Widget app(DuoBuilders<Object?, Object?, Object?> standaloneBuilders) =>
         MaterialApp(
-          builder: (context, child) => DockNavigation(
-            builders: const DockMaterialBuilders(),
-            data: const DockNavigationData(
-              layoutPolicy: DockLayoutPolicy.fixed(DockLayoutMode.wide),
+          builder: (context, child) => DuoNavigation(
+            builders: const DuoMaterialBuilders(),
+            data: const DuoNavigationData(
+              layoutPolicy: DuoLayoutPolicy.fixed(DuoLayoutMode.wide),
             ),
             child: child!,
           ),
-          home: DockStandalone(
+          home: DuoStandalone(
             builders: standaloneBuilders,
             child: Builder(
               builder: (context) {
-                mode = DockNavigation.modeOf(context);
+                mode = DuoNavigation.modeOf(context);
                 return const _Counter();
               },
             ),
           ),
         );
 
-    await tester.pumpWidget(app(const DockMaterialBuilders()));
-    expect(find.byType(DockNavigation), findsOneWidget);
-    expect(mode, DockLayoutMode.wide);
+    await tester.pumpWidget(app(const DuoMaterialBuilders()));
+    expect(find.byType(DuoNavigation), findsOneWidget);
+    expect(mode, DuoLayoutMode.wide);
     await tester.tap(find.byType(_Counter));
     await tester.pump();
     expect(find.text('1'), findsOneWidget);
@@ -161,7 +161,7 @@ void main() {
     // Its own builders are not used, and the child keeps its State.
     await tester.pumpWidget(
       app(
-        DockBuilders<Object?, Object?, Object?>(
+        DuoBuilders<Object?, Object?, Object?>(
           page: (context, bar, body) => throw StateError('not used'),
         ),
       ),
@@ -175,12 +175,10 @@ void main() {
   ) async {
     await tester.pumpWidget(
       MaterialApp(
-        builder: (context, child) => DockNavigation(
-          builders: const DockMaterialBuilders(),
-          child: child!,
-        ),
-        home: DockStandalone(
-          builders: DockBuilders<Object?, Object?, Object?>(
+        builder: (context, child) =>
+            DuoNavigation(builders: const DuoMaterialBuilders(), child: child!),
+        home: DuoStandalone(
+          builders: DuoBuilders<Object?, Object?, Object?>(
             page: (context, bar, body) => const Text('standalone page'),
           ),
           child: _page(),

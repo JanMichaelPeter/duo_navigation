@@ -11,14 +11,14 @@ class _Spec {
 
 class _Other {}
 
-const _tabs = <DockTab<Object?>>[
-  DockTab(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+const _tabs = <DuoTab<Object?>>[
+  DuoTab(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
 ];
 
-Finder _action(Object id) => find.byKey(DockKeys.action(id));
+Finder _action(Object id) => find.byKey(DuoKeys.action(id));
 Finder _inColumn(Finder finder) =>
-    find.descendant(of: find.byKey(DockKeys.column), matching: finder);
+    find.descendant(of: find.byKey(DuoKeys.column), matching: finder);
 Finder _inBar(Finder finder) =>
     find.descendant(of: find.byType(AppBar), matching: finder);
 
@@ -26,14 +26,14 @@ void main() {
   Future<void> pump(
     WidgetTester tester,
     Widget home, {
-    DockLayoutMode mode = DockLayoutMode.wide,
-    DockTapGuard tapGuard = const DockTapGuard(clock: DockClock.frameTime),
-    DockBuilders<Object?, Object?, Object?>? builders =
-        const DockMaterialBuilders(),
+    DuoLayoutMode mode = DuoLayoutMode.wide,
+    DuoTapGuard tapGuard = const DuoTapGuard(clock: DuoClock.frameTime),
+    DuoBuilders<Object?, Object?, Object?>? builders =
+        const DuoMaterialBuilders(),
   }) async {
     await tester.pumpWidget(
       MaterialApp(
-        builder: (context, child) => DockTestHarness(
+        builder: (context, child) => DuoTestHarness(
           builders: builders,
           mode: mode,
           tapGuard: tapGuard,
@@ -46,7 +46,7 @@ void main() {
   }
 
   /// A shell with one nested navigator whose root page is [page].
-  Widget shell(Widget page) => DockShell<Object?, Object?, Object?>(
+  Widget shell(Widget page) => DuoShell<Object?, Object?, Object?>(
     tabs: _tabs,
     currentIndex: 0,
     onTabSelected: (_) {},
@@ -55,17 +55,17 @@ void main() {
     ),
   );
 
-  DockAction<Object?> icon(
+  DuoAction<Object?> icon(
     Object id, {
     VoidCallback? onPressed,
     int order = 0,
     bool guarded = true,
     bool enabled = true,
     Duration? cooldown,
-    DockHoist hoist = DockHoist.auto,
-  }) => DockAction<Object?>(
+    DuoHoist hoist = DuoHoist.auto,
+  }) => DuoAction<Object?>(
     id: id,
-    icon: const DockIcon(Icons.star),
+    icon: const DuoIcon(Icons.star),
     tooltip: '$id',
     onPressed: onPressed ?? () {},
     order: order,
@@ -86,7 +86,7 @@ void main() {
           Builder(
             builder: (context) {
               pageContext = context;
-              return DockPage<Object?, Object?>(
+              return DuoPage<Object?, Object?>(
                 trailing: [icon('share'), icon('edit')],
                 body: const SizedBox.expand(),
               );
@@ -120,7 +120,7 @@ void main() {
           Builder(
             builder: (context) {
               pageContext = context;
-              return DockPage<Object?, Object?>(
+              return DuoPage<Object?, Object?>(
                 trailing: [icon('share')],
                 body: const SizedBox.expand(),
               );
@@ -140,16 +140,16 @@ void main() {
     testWidgets('taps under a dialog are rejected as not active', (
       tester,
     ) async {
-      final rejected = <DockTapRejection>[];
+      final rejected = <DuoTapRejection>[];
       var taps = 0;
       late BuildContext pageContext;
       await tester.pumpWidget(
         MaterialApp(
-          builder: (context, child) => DockTestHarness(
-            builders: const DockMaterialBuilders(),
-            mode: DockLayoutMode.wide,
-            tapGuard: DockTapGuard(
-              clock: DockClock.frameTime,
+          builder: (context, child) => DuoTestHarness(
+            builders: const DuoMaterialBuilders(),
+            mode: DuoLayoutMode.wide,
+            tapGuard: DuoTapGuard(
+              clock: DuoClock.frameTime,
               onRejected: (action, reason) => rejected.add(reason),
             ),
             child: child!,
@@ -157,7 +157,7 @@ void main() {
           home: Builder(
             builder: (context) {
               pageContext = context;
-              return DockPage<Object?, Object?>(
+              return DuoPage<Object?, Object?>(
                 trailing: [icon('share', onPressed: () => taps++)],
                 body: const SizedBox.expand(),
               );
@@ -181,7 +181,7 @@ void main() {
       );
       chip.onPressed!();
       expect(taps, 0);
-      expect(rejected, [DockTapRejection.notActive]);
+      expect(rejected, [DuoTapRejection.notActive]);
     });
 
     testWidgets('a pushed page still takes over the column', (tester) async {
@@ -192,7 +192,7 @@ void main() {
           Builder(
             builder: (context) {
               pageContext = context;
-              return DockPage<Object?, Object?>(
+              return DuoPage<Object?, Object?>(
                 trailing: [icon('share')],
                 body: const SizedBox.expand(),
               );
@@ -202,7 +202,7 @@ void main() {
       );
       Navigator.of(pageContext).push(
         MaterialPageRoute<void>(
-          builder: (_) => DockPage<Object?, Object?>(
+          builder: (_) => DuoPage<Object?, Object?>(
             trailing: [icon('edit')],
             body: const SizedBox.expand(),
           ),
@@ -217,21 +217,20 @@ void main() {
   group('tap guard', () {
     Future<List<Object>> pumpPage(
       WidgetTester tester,
-      List<DockAction<Object?>> Function(void Function(Object id) tap)
-      actions, {
-      List<DockTapRejection>? rejected,
+      List<DuoAction<Object?>> Function(void Function(Object id) tap) actions, {
+      List<DuoTapRejection>? rejected,
     }) async {
       final taps = <Object>[];
       await pump(
         tester,
         shell(
-          DockPage<Object?, Object?>(
+          DuoPage<Object?, Object?>(
             trailing: actions(taps.add),
             body: const SizedBox.expand(),
           ),
         ),
-        tapGuard: DockTapGuard(
-          clock: DockClock.frameTime,
+        tapGuard: DuoTapGuard(
+          clock: DuoClock.frameTime,
           onRejected: rejected == null
               ? null
               : (action, reason) => rejected.add(reason),
@@ -256,7 +255,7 @@ void main() {
     testWidgets('a repeated tap within the cooldown is rejected', (
       tester,
     ) async {
-      final rejected = <DockTapRejection>[];
+      final rejected = <DuoTapRejection>[];
       final taps = await pumpPage(
         tester,
         (tap) => [icon('a', onPressed: () => tap('a'))],
@@ -265,7 +264,7 @@ void main() {
       await tester.tap(_action('a'));
       await tester.tap(_action('a'));
       expect(taps, ['a']);
-      expect(rejected, [DockTapRejection.cooldown]);
+      expect(rejected, [DuoTapRejection.cooldown]);
 
       await tester.pump(const Duration(milliseconds: 400));
       await tester.tap(_action('a'));
@@ -319,15 +318,15 @@ void main() {
   });
 
   group('placement', () {
-    for (final mode in DockLayoutMode.values) {
+    for (final mode in DuoLayoutMode.values) {
       testWidgets('${mode.name}: a text-only leading action stays in the bar', (
         tester,
       ) async {
         await pump(
           tester,
           shell(
-            DockPage<Object?, Object?>(
-              leading: DockAction<Object?>.back(icon: null, label: 'Cancel'),
+            DuoPage<Object?, Object?>(
+              leading: DuoAction<Object?>.back(icon: null, label: 'Cancel'),
               trailing: [icon('share')],
               body: const SizedBox.expand(),
             ),
@@ -335,8 +334,8 @@ void main() {
           mode: mode,
         );
         expect(_inBar(find.text('Cancel')), findsOneWidget);
-        if (mode == DockLayoutMode.wide) {
-          expect(_inColumn(_action(DockAction.backId)), findsNothing);
+        if (mode == DuoLayoutMode.wide) {
+          expect(_inColumn(_action(DuoAction.backId)), findsNothing);
           expect(_inColumn(_action('share')), findsOneWidget);
         }
       });
@@ -346,9 +345,9 @@ void main() {
       await pump(
         tester,
         shell(
-          DockPage<Object?, Object?>(
+          DuoPage<Object?, Object?>(
             trailing: [
-              icon('pinned', hoist: DockHoist.never),
+              icon('pinned', hoist: DuoHoist.never),
               icon('free'),
             ],
             body: const SizedBox.expand(),
@@ -376,7 +375,7 @@ void main() {
       );
       Navigator.of(pageContext).push(
         MaterialPageRoute<void>(
-          builder: (_) => DockPage<Object?, Object?>(
+          builder: (_) => DuoPage<Object?, Object?>(
             trailing: [
               icon('a'),
               icon('b', order: 1),
@@ -393,7 +392,7 @@ void main() {
       expect(y('b'), lessThan(y('a')));
       expect(y('a'), lessThan(y('c')));
       expect(y('c'), lessThan(y('d')));
-      expect(y('d'), lessThan(y(DockAction.backId)));
+      expect(y('d'), lessThan(y(DuoAction.backId)));
     });
 
     testWidgets('the implied back action gets the Material tooltip', (
@@ -410,12 +409,12 @@ void main() {
             },
           ),
         ),
-        mode: DockLayoutMode.compact,
+        mode: DuoLayoutMode.compact,
       );
       Navigator.of(pageContext).push(
         MaterialPageRoute<void>(
           builder: (_) =>
-              const DockPage<Object?, Object?>(body: SizedBox.expand()),
+              const DuoPage<Object?, Object?>(body: SizedBox.expand()),
         ),
       );
       await tester.pumpAndSettle();
@@ -425,18 +424,18 @@ void main() {
   });
 
   group('typed payloads', () {
-    Widget typedShell(List<DockAction<Object?>> actions) =>
-        DockShell<Object?, _Spec, Object?>(
+    Widget typedShell(List<DuoAction<Object?>> actions) =>
+        DuoShell<Object?, _Spec, Object?>(
           tabs: _tabs,
           currentIndex: 0,
           onTabSelected: (_) {},
-          builders: DockBuilders<Object?, _Spec, Object?>(
+          builders: DuoBuilders<Object?, _Spec, Object?>(
             action: (context, action, placement) =>
                 Text('${action.payload!.name} ${placement.name}'),
           ),
           child: Navigator(
             onGenerateRoute: (_) => MaterialPageRoute<void>(
-              builder: (_) => DockPage<Object?, Object?>(
+              builder: (_) => DuoPage<Object?, Object?>(
                 trailing: actions,
                 body: const SizedBox.expand(),
               ),
@@ -444,32 +443,32 @@ void main() {
           ),
         );
 
-    for (final mode in DockLayoutMode.values) {
+    for (final mode in DuoLayoutMode.values) {
       testWidgets('${mode.name}: reach the action builder without a cast', (
         tester,
       ) async {
         await tester.pumpWidget(
           MaterialApp(
-            builder: (context, child) => DockTestHarness(
-              builders: const DockMaterialBuilders(),
+            builder: (context, child) => DuoTestHarness(
+              builders: const DuoMaterialBuilders(),
               mode: mode,
               child: child!,
             ),
-            home: DockShell<Object?, _Spec, Object?>(
+            home: DuoShell<Object?, _Spec, Object?>(
               tabs: _tabs,
               currentIndex: 0,
               onTabSelected: (_) {},
-              builders: DockBuilders<Object?, _Spec, Object?>(
+              builders: DuoBuilders<Object?, _Spec, Object?>(
                 action: (context, action, placement) =>
                     Text('${action.payload!.name} ${placement.name}'),
               ),
               child: Navigator(
                 onGenerateRoute: (_) => MaterialPageRoute<void>(
-                  builder: (_) => DockPage<_Spec, Object?>(
+                  builder: (_) => DuoPage<_Spec, Object?>(
                     trailing: [
-                      DockAction<_Spec>(
+                      DuoAction<_Spec>(
                         id: 'share',
-                        icon: const DockIcon(Icons.share),
+                        icon: const DuoIcon(Icons.share),
                         payload: const _Spec('spec'),
                         onPressed: () {},
                       ),
@@ -484,9 +483,7 @@ void main() {
         await tester.pumpAndSettle();
         expect(
           find.text(
-            mode == DockLayoutMode.wide
-                ? 'spec sideColumn'
-                : 'spec barTrailing',
+            mode == DuoLayoutMode.wide ? 'spec sideColumn' : 'spec barTrailing',
           ),
           findsOneWidget,
         );
@@ -499,9 +496,9 @@ void main() {
       await pump(
         tester,
         typedShell([
-          DockAction<_Other>(
+          DuoAction<_Other>(
             id: 'share',
-            icon: const DockIcon(Icons.share),
+            icon: const DuoIcon(Icons.share),
             onPressed: () {},
           ),
         ]),
@@ -528,11 +525,11 @@ void main() {
         shell(
           ValueListenableBuilder(
             valueListenable: which,
-            builder: (context, id, _) => DockPage<Object?, Object?>(
+            builder: (context, id, _) => DuoPage<Object?, Object?>(
               trailing: [
-                DockAction<Object?>(
+                DuoAction<Object?>(
                   id: 'fav',
-                  icon: DockIcon.widget(Text('icon $id'), identity: id),
+                  icon: DuoIcon.widget(Text('icon $id'), identity: id),
                   onPressed: () {},
                 ),
               ],
@@ -550,13 +547,13 @@ void main() {
       expect(find.text('icon a'), findsNothing);
     });
 
-    group('DockIconMorph', () {
+    group('DuoIconMorph', () {
       Widget morph(String id, {bool reduceMotion = false}) => MediaQuery(
         data: MediaQueryData(disableAnimations: reduceMotion),
         child: Directionality(
           textDirection: TextDirection.ltr,
-          child: DockIconMorph(
-            icon: DockIcon.widget(const SizedBox(), identity: id),
+          child: DuoIconMorph(
+            icon: DuoIcon.widget(const SizedBox(), identity: id),
             // A design system's own rendering.
             builder: (context, icon) => Text('drawn ${icon.identity}'),
           ),
@@ -590,34 +587,34 @@ void main() {
     });
 
     test('platform icons have no widget of their own', () {
-      expect(() => DockIcon.back.toWidget(), throwsFlutterError);
-      expect(DockIcon.back.identity, isNot(DockIcon.close.identity));
+      expect(() => DuoIcon.back.toWidget(), throwsFlutterError);
+      expect(DuoIcon.back.identity, isNot(DuoIcon.close.identity));
     });
   });
 
-  group('DockAction', () {
+  group('DuoAction', () {
     test('back and close share an identity but not a role', () {
-      const back = DockAction<Object?>.back();
-      const close = DockAction<Object?>.close();
+      const back = DuoAction<Object?>.back();
+      const close = DuoAction<Object?>.close();
       expect(back.id, close.id);
       expect(back.shared && close.shared, isTrue);
-      expect(back.role, DockActionRole.back);
-      expect(close.role, DockActionRole.close);
-      expect(back.icon, DockIcon.back);
+      expect(back.role, DuoActionRole.back);
+      expect(close.role, DuoActionRole.close);
+      expect(back.icon, DuoIcon.back);
     });
 
     test('a text-only back action does not move to the column', () {
       expect(
-        const DockAction<Object?>.back(icon: null, label: 'Cancel').canHoist,
+        const DuoAction<Object?>.back(icon: null, label: 'Cancel').canHoist,
         isFalse,
       );
     });
 
     test('has value equality and a resettable copyWith', () {
-      const action = DockAction<int>(
+      const action = DuoAction<int>(
         id: 'a',
-        icon: DockIcon(Icons.star),
-        badge: DockBadge.count(2),
+        icon: DuoIcon(Icons.star),
+        badge: DuoBadge.count(2),
         payload: 1,
       );
       expect(action, action.copyWith());

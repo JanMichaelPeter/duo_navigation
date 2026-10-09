@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:duo_navigation/material.dart';
 import 'package:duo_navigation/testing.dart';
 
-const _tabs = <DockTab<Object?>>[
-  DockTab(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+const _tabs = <DuoTab<Object?>>[
+  DuoTab(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
 ];
 
 const _field = Key('field');
@@ -19,17 +19,17 @@ void main() {
   /// keyboard height from [keyboard] reported above the app.
   Future<void> pump(
     WidgetTester tester, {
-    DockLayoutMode mode = DockLayoutMode.wide,
-    DockKeyboard behavior = const DockKeyboard(),
+    DuoLayoutMode mode = DuoLayoutMode.wide,
+    DuoKeyboard behavior = const DuoKeyboard(),
     Size size = const Size(800, 600),
     bool resizingScaffold = false,
-    DockBodyMode bodyMode = DockBodyMode.inset,
+    DuoBodyMode bodyMode = DuoBodyMode.inset,
     int actions = 1,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
-    Widget shell = DockShell<Object?, Object?, Object?>(
+    Widget shell = DuoShell<Object?, Object?, Object?>(
       tabs: _tabs,
       currentIndex: 0,
       onTabSelected: (_) {},
@@ -38,13 +38,13 @@ void main() {
         onGenerateInitialRoutes: (_, _) => [
           MaterialPageRoute<void>(builder: (_) => const SizedBox()),
           MaterialPageRoute<void>(
-            builder: (_) => DockPage<Object?, Object?>(
+            builder: (_) => DuoPage<Object?, Object?>(
               title: const Text('Profile'),
               trailing: [
                 for (var i = 0; i < actions; i++)
-                  DockAction<Object?>(
+                  DuoAction<Object?>(
                     id: i == 0 ? 'save' : 'a$i',
-                    icon: const DockIcon(Icons.check),
+                    icon: const DuoIcon(Icons.check),
                     onPressed: () {},
                   ),
               ],
@@ -68,10 +68,10 @@ void main() {
             data: MediaQuery.of(
               context,
             ).copyWith(viewInsets: EdgeInsets.only(bottom: height)),
-            child: DockTestHarness(
-              builders: const DockMaterialBuilders(),
+            child: DuoTestHarness(
+              builders: const DuoMaterialBuilders(),
               mode: mode,
-              data: DockNavigationData(keyboard: behavior),
+              data: DuoNavigationData(keyboard: behavior),
               child: child!,
             ),
           ),
@@ -83,8 +83,8 @@ void main() {
   }
 
   Rect rect(WidgetTester tester, Key key) => tester.getRect(find.byKey(key));
-  Rect rail(WidgetTester tester) => rect(tester, DockKeys.rail);
-  Rect chip(WidgetTester tester) => rect(tester, DockKeys.action('save'));
+  Rect rail(WidgetTester tester) => rect(tester, DuoKeys.rail);
+  Rect chip(WidgetTester tester) => rect(tester, DuoKeys.action('save'));
 
   group('the column', () {
     testWidgets('lifts above the keyboard, and is unchanged without one', (
@@ -125,7 +125,7 @@ void main() {
     ) async {
       await pump(
         tester,
-        behavior: const DockKeyboard(column: DockKeyboardBehavior.ignore),
+        behavior: const DuoKeyboard(column: DuoKeyboardBehavior.ignore),
       );
       final before = rail(tester);
       keyboard.value = 250;
@@ -137,16 +137,16 @@ void main() {
     testWidgets('hide: hides while the keyboard is open', (tester) async {
       await pump(
         tester,
-        behavior: const DockKeyboard(column: DockKeyboardBehavior.hide),
+        behavior: const DuoKeyboard(column: DuoKeyboardBehavior.hide),
       );
       keyboard.value = 250;
       await tester.pumpAndSettle();
-      final geometry = DockGeometry.of(tester.element(find.byKey(_field)));
+      final geometry = DuoGeometry.of(tester.element(find.byKey(_field)));
       expect(geometry.isHidden, isTrue);
       keyboard.value = 0;
       await tester.pumpAndSettle();
       expect(
-        DockGeometry.of(tester.element(find.byKey(_field))).isHidden,
+        DuoGeometry.of(tester.element(find.byKey(_field))).isHidden,
         isFalse,
       );
     });
@@ -158,7 +158,7 @@ void main() {
       keyboard.value = 250; // 150 left above it
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      final column = rect(tester, DockKeys.column);
+      final column = rect(tester, DuoKeys.column);
       expect(column.height, 150);
       // The rail keeps its place at the bottom of the column.
       expect(rail(tester).bottom, lessThanOrEqualTo(column.bottom));
@@ -186,12 +186,12 @@ void main() {
 
   group('the bar', () {
     const phone = Size(400, 800);
-    Rect bar(WidgetTester tester) => rect(tester, DockKeys.bar);
+    Rect bar(WidgetTester tester) => rect(tester, DuoKeys.bar);
 
     testWidgets('ignore (default): covered, the body ends at the keyboard', (
       tester,
     ) async {
-      await pump(tester, mode: DockLayoutMode.compact, size: phone);
+      await pump(tester, mode: DuoLayoutMode.compact, size: phone);
       final before = bar(tester);
       keyboard.value = 300;
       await tester.pumpAndSettle();
@@ -204,9 +204,9 @@ void main() {
     ) async {
       await pump(
         tester,
-        mode: DockLayoutMode.compact,
+        mode: DuoLayoutMode.compact,
         size: phone,
-        behavior: const DockKeyboard(bar: DockKeyboardBehavior.lift),
+        behavior: const DuoKeyboard(bar: DuoKeyboardBehavior.lift),
       );
       keyboard.value = 300;
       await tester.pumpAndSettle();
@@ -217,14 +217,14 @@ void main() {
     testWidgets('hide: hidden while the keyboard is open', (tester) async {
       await pump(
         tester,
-        mode: DockLayoutMode.compact,
+        mode: DuoLayoutMode.compact,
         size: phone,
-        behavior: const DockKeyboard(bar: DockKeyboardBehavior.hide),
+        behavior: const DuoKeyboard(bar: DuoKeyboardBehavior.hide),
       );
       keyboard.value = 300;
       await tester.pumpAndSettle();
       expect(
-        DockGeometry.of(tester.element(find.byKey(_field))).isHidden,
+        DuoGeometry.of(tester.element(find.byKey(_field))).isHidden,
         isTrue,
       );
       expect(rect(tester, _field).bottom, 800 - 300);
@@ -240,8 +240,8 @@ void main() {
       WidgetTester tester, {
       required Size size,
       required bool resize,
-      DockKeyboard? app,
-      DockKeyboard? shell,
+      DuoKeyboard? app,
+      DuoKeyboard? shell,
     }) async {
       tester.view.physicalSize = size;
       tester.view.devicePixelRatio = 1;
@@ -249,12 +249,12 @@ void main() {
       addTearDown(tester.view.reset);
       await tester.pumpWidget(
         MaterialApp(
-          builder: (context, child) => DockTestHarness(
-            builders: const DockMaterialBuilders<Object?, Object?, Object?>(),
-            data: DockNavigationData(keyboard: app ?? const DockKeyboard()),
+          builder: (context, child) => DuoTestHarness(
+            builders: const DuoMaterialBuilders<Object?, Object?, Object?>(),
+            data: DuoNavigationData(keyboard: app ?? const DuoKeyboard()),
             child: child!,
           ),
-          home: DockShell<Object?, Object?, Object?>(
+          home: DuoShell<Object?, Object?, Object?>(
             tabs: _tabs,
             currentIndex: 0,
             onTabSelected: (_) {},
@@ -270,7 +270,7 @@ void main() {
       return tester.getRect(find.byKey(body));
     }
 
-    const lift = DockKeyboard(body: DockBodyKeyboardBehavior.lift);
+    const lift = DuoKeyboard(body: DuoBodyKeyboardBehavior.lift);
 
     for (final size in const [Size(400, 800), Size(800, 600)]) {
       final compact = size.width < 600;
@@ -280,7 +280,7 @@ void main() {
           'its height', (tester) async {
         final rect = await pageBody(tester, size: size, resize: false);
         final bottom = compact
-            ? tester.getRect(find.byKey(DockKeys.bar)).top
+            ? tester.getRect(find.byKey(DuoKeys.bar)).top
             : size.height;
         expect(rect.bottom, bottom);
       });
@@ -316,11 +316,7 @@ void main() {
   testWidgets('a page Scaffold in the inset body does not shrink twice', (
     tester,
   ) async {
-    await pump(
-      tester,
-      mode: DockLayoutMode.compact,
-      size: const Size(400, 800),
-    );
+    await pump(tester, mode: DuoLayoutMode.compact, size: const Size(400, 800));
     keyboard.value = 300;
     await tester.pumpAndSettle();
     // The field sits at the bottom of the page Scaffold's body, which ends
@@ -331,13 +327,13 @@ void main() {
   testWidgets('overlay mode leaves the keyboard to the page', (tester) async {
     await pump(
       tester,
-      mode: DockLayoutMode.compact,
+      mode: DuoLayoutMode.compact,
       size: const Size(400, 800),
-      bodyMode: DockBodyMode.overlay,
+      bodyMode: DuoBodyMode.overlay,
     );
     keyboard.value = 300;
     await tester.pumpAndSettle();
-    final geometry = DockGeometry.of(tester.element(find.byKey(_field)));
+    final geometry = DuoGeometry.of(tester.element(find.byKey(_field)));
     expect(geometry.keyboard, 0);
     // The page's Scaffold sees the keyboard and makes room itself.
     expect(

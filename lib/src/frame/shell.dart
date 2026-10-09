@@ -14,18 +14,18 @@ import 'frame.dart';
 /// the active page's actions above a rail.
 ///
 /// Routing-agnostic: pass go_router's `StatefulNavigationShell`, a
-/// `DockTabStack` of navigators, or any container as [child]. Inactive tabs
-/// must be under `TickerMode(enabled: false)` (`DockTabStack` and go_router's
+/// `DuoTabStack` of navigators, or any container as [child]. Inactive tabs
+/// must be under `TickerMode(enabled: false)` (`DuoTabStack` and go_router's
 /// indexed stack do this) so their pages don't claim the side column.
 ///
-/// [T] is the tabs' payload type (`DockTab<T>`), [A] the actions' and [B] the
+/// [T] is the tabs' payload type (`DuoTab<T>`), [A] the actions' and [B] the
 /// title bars' payload type of its pages; the builders get them typed.
 ///
 /// Push modal pages on the ROOT navigator; they then cover this shell, which
 /// hides the tab bar / rail for free.
-class DockShell<T, A, B> extends StatelessWidget {
+class DuoShell<T, A, B> extends StatelessWidget {
   /// Frames [child] with tab bar (compact) or side column + rail (wide).
-  const DockShell({
+  const DuoShell({
     super.key,
     required this.tabs,
     required this.currentIndex,
@@ -42,7 +42,7 @@ class DockShell<T, A, B> extends StatelessWidget {
   });
 
   /// Top-level destinations, in display order.
-  final List<DockTab<T>> tabs;
+  final List<DuoTab<T>> tabs;
 
   /// Index of the selected tab in [tabs].
   final int currentIndex;
@@ -62,40 +62,40 @@ class DockShell<T, A, B> extends StatelessWidget {
   final FutureOr<bool> Function(int index)? canSelectTab;
 
   /// Whether the body is laid out beside the bar and column or under them.
-  /// Null: `DockNavigationData.bodyMode`.
-  final DockBodyMode? bodyMode;
+  /// Null: `DuoNavigationData.bodyMode`.
+  final DuoBodyMode? bodyMode;
 
   /// Whether icon actions of its pages move into the column in wide mode.
-  /// Null: `DockNavigationData.hoisting`.
-  final DockHoisting? hoisting;
+  /// Null: `DuoNavigationData.hoisting`.
+  final DuoHoisting? hoisting;
 
   /// How the bar, the column and the body handle the software keyboard in
-  /// this frame, for example `DockKeyboard(body: DockBodyKeyboardBehavior.lift)`
+  /// this frame, for example `DuoKeyboard(body: DuoBodyKeyboardBehavior.lift)`
   /// for screens whose bodies don't handle it. Null:
-  /// `DockNavigationData.keyboard`.
-  final DockKeyboard? keyboard;
+  /// `DuoNavigationData.keyboard`.
+  final DuoKeyboard? keyboard;
 
   /// Builders for this shell only (its bar, rail, column and pages), on top
   /// of the app's; null fields fall back to them.
-  final DockBuilders<T, A, B>? builders;
+  final DuoBuilders<T, A, B>? builders;
 
   /// Whether the tab bar or side column shows. False hides it with an
   /// animation and gives the body the whole frame, for example for a camera,
-  /// a video or onboarding. A page can hide it too (`DockPageScope.visible`).
+  /// a video or onboarding. A page can hide it too (`DuoPageScope.visible`).
   final bool navigationVisible;
 
   /// Painted across the whole frame, under the body, the bar and the column:
   /// a gradient or picture behind every page, with no page knowing about the
-  /// frame. A page's own `DockPageScope.backdrop` replaces it while that page
+  /// frame. A page's own `DuoPageScope.backdrop` replaces it while that page
   /// is shown.
   final Widget? backdrop;
 
-  /// The tab navigators, for example a `DockTabStack`.
+  /// The tab navigators, for example a `DuoTabStack`.
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return DockFrame<T, A, B>(
+    return DuoFrame<T, A, B>(
       isModal: false,
       tabs: tabs,
       currentIndex: currentIndex,

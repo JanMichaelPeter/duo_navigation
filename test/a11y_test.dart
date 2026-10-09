@@ -5,18 +5,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:duo_navigation/material.dart';
 import 'package:duo_navigation/testing.dart';
 
-const _tabs = <DockTab<Object?>>[
-  DockTab(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab(
+const _tabs = <DuoTab<Object?>>[
+  DuoTab(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab(
     id: 'me',
-    icon: DockIcon(Icons.person),
+    icon: DuoIcon(Icons.person),
     label: 'Me',
-    badge: DockBadge.count(2),
+    badge: DuoBadge.count(2),
   ),
 ];
 
-Finder _action(Object id) => find.byKey(DockKeys.action(id));
-Finder _tab(Object id) => find.byKey(DockKeys.tab(id));
+Finder _action(Object id) => find.byKey(DuoKeys.action(id));
+Finder _tab(Object id) => find.byKey(DuoKeys.tab(id));
 
 /// Whether the focused widget is inside [finder].
 bool _focusIn(WidgetTester tester, Finder finder) {
@@ -56,9 +56,9 @@ void main() {
   /// 'edit' action with a badge, and a button in the body.
   Future<void> pump(
     WidgetTester tester, {
-    DockLayoutMode? mode = DockLayoutMode.wide,
-    DockBuilders<Object?, Object?, Object?> builders =
-        const DockMaterialBuilders(),
+    DuoLayoutMode? mode = DuoLayoutMode.wide,
+    DuoBuilders<Object?, Object?, Object?> builders =
+        const DuoMaterialBuilders(),
     TextDirection? direction,
     bool disableAnimations = false,
   }) async {
@@ -71,14 +71,14 @@ void main() {
           data: MediaQuery.of(
             context,
           ).copyWith(disableAnimations: disableAnimations),
-          child: DockTestHarness(
+          child: DuoTestHarness(
             builders: builders,
             mode: mode,
             textDirection: direction,
             child: child!,
           ),
         ),
-        home: DockShell<Object?, Object?, Object?>(
+        home: DuoShell<Object?, Object?, Object?>(
           tabs: _tabs,
           currentIndex: 0,
           onTabSelected: (_) {},
@@ -86,21 +86,21 @@ void main() {
             onGenerateInitialRoutes: (_, _) => [
               MaterialPageRoute<void>(builder: (_) => const SizedBox()),
               MaterialPageRoute<void>(
-                builder: (_) => DockPage<Object?, Object?>(
+                builder: (_) => DuoPage<Object?, Object?>(
                   title: const Text('Details'),
                   trailing: [
-                    DockAction<Object?>(
+                    DuoAction<Object?>(
                       id: 'share',
-                      icon: const DockIcon(Icons.share),
+                      icon: const DuoIcon(Icons.share),
                       tooltip: 'Share',
                       onPressed: () {},
                     ),
-                    DockAction<Object?>(
+                    DuoAction<Object?>(
                       id: 'edit',
-                      icon: const DockIcon(Icons.edit),
+                      icon: const DuoIcon(Icons.edit),
                       tooltip: 'Edit',
                       enabled: false,
-                      badge: const DockBadge.count(5),
+                      badge: const DuoBadge.count(5),
                       onPressed: () {},
                     ),
                   ],
@@ -121,7 +121,7 @@ void main() {
   }
 
   group('semantics', () {
-    for (final mode in DockLayoutMode.values) {
+    for (final mode in DuoLayoutMode.values) {
       testWidgets('${mode.name}: actions are labeled buttons', (tester) async {
         final handle = tester.ensureSemantics();
         await pump(tester, mode: mode);
@@ -149,7 +149,7 @@ void main() {
         );
         // The implied back action gets a localized label.
         expect(
-          tester.getSemantics(_action(DockAction.backId)),
+          tester.getSemantics(_action(DuoAction.backId)),
           // ignore: deprecated_member_use
           containsSemantics(label: 'Back', isButton: true, hasTapAction: true),
         );
@@ -174,15 +174,15 @@ void main() {
       final handle = tester.ensureSemantics();
       await pump(
         tester,
-        builders: const DockMaterialBuilders<Object?, Object?, Object?>().merge(
-          DockBuilders<Object?, Object?, Object?>(
+        builders: const DuoMaterialBuilders<Object?, Object?, Object?>().merge(
+          DuoBuilders<Object?, Object?, Object?>(
             tabItem: (context, data) => Padding(
               padding: const EdgeInsets.all(2),
-              child: DockMaterial.tabItem(context, data),
+              child: DuoMaterial.tabItem(context, data),
             ),
             action: (context, action, placement) => Padding(
               padding: const EdgeInsets.all(2),
-              child: DockMaterial.action(context, action, placement),
+              child: DuoMaterial.action(context, action, placement),
             ),
           ),
         ),
@@ -206,8 +206,8 @@ void main() {
       final handle = tester.ensureSemantics();
       await pump(
         tester,
-        builders: const DockMaterialBuilders<Object?, Object?, Object?>().merge(
-          DockBuilders<Object?, Object?, Object?>(
+        builders: const DuoMaterialBuilders<Object?, Object?, Object?>().merge(
+          DuoBuilders<Object?, Object?, Object?>(
             // The classic mistake: excluding semantics loses the tap action.
             action: (context, action, placement) => Semantics(
               excludeSemantics: true,
@@ -231,7 +231,7 @@ void main() {
       handle.dispose();
     });
 
-    for (final mode in DockLayoutMode.values) {
+    for (final mode in DuoLayoutMode.values) {
       testWidgets('${mode.name}: meets the tap target guidelines', (
         tester,
       ) async {
@@ -300,7 +300,7 @@ void main() {
       await focusInside(tester, _tab('me'));
       tester.view.physicalSize = const Size(400, 800);
       await tester.pumpAndSettle();
-      expect(find.byKey(DockKeys.bar), findsOneWidget);
+      expect(find.byKey(DuoKeys.bar), findsOneWidget);
       expect(_focusIn(tester, _tab('me')), isTrue);
     });
 
@@ -329,19 +329,19 @@ void main() {
       MaterialApp(
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(context).copyWith(disableAnimations: true),
-          child: DockTestHarness(
-            builders: const DockMaterialBuilders(),
-            mode: DockLayoutMode.compact,
+          child: DuoTestHarness(
+            builders: const DuoMaterialBuilders(),
+            mode: DuoLayoutMode.compact,
             child: child!,
           ),
         ),
         home: ValueListenableBuilder(
           valueListenable: icon,
-          builder: (context, data, _) => DockPage<Object?, Object?>(
+          builder: (context, data, _) => DuoPage<Object?, Object?>(
             trailing: [
-              DockAction<Object?>(
+              DuoAction<Object?>(
                 id: 'fav',
-                icon: DockIcon(data),
+                icon: DuoIcon(data),
                 tooltip: 'Favorite',
                 onPressed: () {},
               ),

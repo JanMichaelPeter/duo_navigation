@@ -5,9 +5,9 @@ import 'package:duo_navigation/testing.dart';
 
 /// The recipes of doc/adopting.md, as they are written there.
 
-const _tabs = <DockTab<Object?>>[
-  DockTab(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+const _tabs = <DuoTab<Object?>>[
+  DuoTab(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
 ];
 
 class _TitleSpec {
@@ -24,20 +24,20 @@ class _NavBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bar = DockBarData.of<Object?, Object?>(context);
+    final bar = DuoBarData.of<Object?, Object?>(context);
     final title = bar.payload;
     assert(title == null || title is _TitleSpec, 'Needs a _TitleSpec.');
     final leading = bar.leading;
     return SafeArea(
       bottom: false,
-      child: DockBarLayout(
+      child: DuoBarLayout(
         leading: leading == null
             ? null
-            : bar.buildAction(leading, DockActionPlacement.barLeading),
+            : bar.buildAction(leading, DuoActionPlacement.barLeading),
         title: title is _TitleSpec ? Text('spec ${title.text}') : bar.title,
         trailing: [
           for (final a in bar.trailing)
-            bar.buildAction(a, DockActionPlacement.barTrailing),
+            bar.buildAction(a, DuoActionPlacement.barTrailing),
         ],
         actionsAtStart: bar.trailingAtStart,
         leadingAtEnd: bar.leadingAtEnd,
@@ -46,32 +46,12 @@ class _NavBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-/// The guide's layout policy that keeps phones compact in landscape.
-class _TabletsWide extends DockLayoutPolicy {
-  const _TabletsWide();
-
-  @override
-  DockLayoutMode resolve({required Size window, required Size frame}) =>
-      window.shortestSide >= 600 ? DockLayoutMode.wide : DockLayoutMode.compact;
-}
-
 void main() {
-  test('phones stay compact in landscape with the guide\'s policy', () {
-    const policy = _TabletsWide();
-    DockLayoutMode at(double width, double height) =>
-        policy.resolve(window: Size(width, height), frame: Size(width, height));
-    expect(at(390, 844), DockLayoutMode.compact); // phone, portrait
-    expect(at(844, 390), DockLayoutMode.compact); // phone, landscape
-    expect(at(1024, 768), DockLayoutMode.wide); // tablet
-    expect(at(673, 841), DockLayoutMode.wide); // foldable, unfolded
-    expect(at(400, 1000), DockLayoutMode.compact); // narrow split window
-  });
-
   Future<void> pump(
     WidgetTester tester,
     Widget page, {
-    DockLayoutMode mode = DockLayoutMode.wide,
-    DockBuilders<Object?, Object?, Object?>? builders,
+    DuoLayoutMode mode = DuoLayoutMode.wide,
+    DuoBuilders<Object?, Object?, Object?>? builders,
     EdgeInsets padding = EdgeInsets.zero,
   }) async {
     tester.view.physicalSize = const Size(1000, 700);
@@ -83,20 +63,20 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MaterialApp(
-        builder: (context, child) => DockTestHarness(
-          builders: const DockMaterialBuilders<Object?, Object?, Object?>()
+        builder: (context, child) => DuoTestHarness(
+          builders: const DuoMaterialBuilders<Object?, Object?, Object?>()
               .merge(builders),
           mode: mode,
           child: child!,
         ),
-        home: DockShell<Object?, Object?, Object?>(
+        home: DuoShell<Object?, Object?, Object?>(
           tabs: _tabs,
           currentIndex: 0,
           onTabSelected: (_) {},
-          child: DockTabStack(
+          child: DuoTabStack(
             index: 0,
             children: [
-              DockTabNavigator(
+              DuoTabNavigator(
                 onGenerateRoute: (_) =>
                     MaterialPageRoute<void>(builder: (_) => page),
               ),
@@ -112,12 +92,12 @@ void main() {
   Rect rect(WidgetTester tester, String key) =>
       tester.getRect(find.byKey(Key(key)));
 
-  testWidgets('a bleed in a DockTabNavigator reaches under the column', (
+  testWidgets('a bleed in a DuoTabNavigator reaches under the column', (
     tester,
   ) async {
     await pump(
       tester,
-      const DockBleed(
+      const DuoBleed(
         child: ColoredBox(key: Key('map'), color: Colors.green),
       ),
     );
@@ -137,7 +117,7 @@ void main() {
             child: Stack(
               children: [
                 const Positioned.fill(
-                  child: DockBleed(
+                  child: DuoBleed(
                     bar: false,
                     child: ColoredBox(
                       key: Key('background'),
@@ -166,20 +146,20 @@ void main() {
     expect(taps, 1);
   });
 
-  testWidgets('wrapAll: DockBleedItem rows bleed, wrapped ones do not', (
+  testWidgets('wrapAll: DuoBleedItem rows bleed, wrapped ones do not', (
     tester,
   ) async {
     await pump(
       tester,
-      DockBleed(
+      DuoBleed(
         child: ListView(
-          children: DockInset.wrapAll([
-            const DockBleedItem(child: SizedBox(key: Key('hero'), height: 50)),
+          children: DuoInset.wrapAll([
+            const DuoBleedItem(child: SizedBox(key: Key('hero'), height: 50)),
             const SizedBox(key: Key('row'), height: 50),
             // Not the list entry itself: wrapAll can't see it.
             const Padding(
               padding: EdgeInsets.zero,
-              child: DockBleedItem(
+              child: DuoBleedItem(
                 child: SizedBox(key: Key('hidden'), height: 50),
               ),
             ),
@@ -199,11 +179,11 @@ void main() {
     await pump(
       tester,
       const SizedBox.expand(),
-      mode: DockLayoutMode.compact,
+      mode: DuoLayoutMode.compact,
       padding: const EdgeInsets.only(bottom: 34),
-      builders: DockBuilders<Object?, Object?, Object?>(
+      builders: DuoBuilders<Object?, Object?, Object?>(
         tabBar: (context, tabs, items) => Material(
-          child: DockTabBarSemantics(
+          child: DuoTabBarSemantics(
             child: Row(
               children: [for (final item in items) Expanded(child: item)],
             ),
@@ -224,7 +204,7 @@ void main() {
       ),
     );
     expect(tester.takeException(), isNull); // the bar covers the safe area
-    expect(tester.getRect(find.byKey(DockKeys.bar)).height, 56 + 34);
+    expect(tester.getRect(find.byKey(DuoKeys.bar)).height, 56 + 34);
     await tester.tapAt(const Offset(100, 700 - 2)); // the last pixels
     expect(taps, 1);
   });
@@ -234,18 +214,18 @@ void main() {
   ) async {
     await pump(
       tester,
-      DockPageScope<Object?, _TitleSpec>(
+      DuoPageScope<Object?, _TitleSpec>(
         barPayload: const _TitleSpec('Details'),
         trailing: [
-          DockAction<Object?>(id: 'edit', label: 'Edit', onPressed: () {}),
+          DuoAction<Object?>(id: 'edit', label: 'Edit', onPressed: () {}),
         ],
         child: const Scaffold(appBar: _NavBar(), body: SizedBox.expand()),
       ),
-      mode: DockLayoutMode.compact,
+      mode: DuoLayoutMode.compact,
       padding: const EdgeInsets.only(top: 40),
     );
     expect(find.text('spec Details'), findsOneWidget);
-    expect(find.byKey(DockKeys.action('edit')), findsOneWidget);
+    expect(find.byKey(DuoKeys.action('edit')), findsOneWidget);
     // Below the status bar.
     expect(tester.getRect(find.text('spec Details')).top, greaterThan(40));
   });

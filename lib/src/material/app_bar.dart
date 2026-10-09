@@ -6,24 +6,24 @@ import '../models/enums.dart';
 import '../page/bar_layout.dart';
 
 /// A Material [AppBar] for the page around it: it reads the page's
-/// `DockBarData` (from a `DockPageScope` or `DockPage`) and lays out its
-/// leading action, title and actions with [DockBarLayout].
+/// `DuoBarData` (from a `DuoPageScope` or `DuoPage`) and lays out its
+/// leading action, title and actions with [DuoBarLayout].
 ///
 /// Use it in a page's own `Scaffold`:
 ///
 /// ```dart
-/// DockPageScope(
+/// DuoPageScope(
 ///   title: const Text('Details'),
-///   child: Scaffold(appBar: const DockAppBar(), body: ...),
+///   child: Scaffold(appBar: const DuoAppBar(), body: ...),
 /// )
 /// ```
 ///
 /// Colors, elevation and text styles come from the [AppBarTheme] unless set
 /// here; the parameters are [AppBar]'s. When the side column is at the start
 /// edge, the bar's actions move to the start too.
-class DockAppBar extends StatelessWidget implements PreferredSizeWidget {
+class DuoAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// An app bar for the page around it.
-  const DockAppBar({
+  const DuoAppBar({
     super.key,
     this.centerTitle,
     this.toolbarHeight,
@@ -80,7 +80,7 @@ class DockAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bar = DockBarData.of<Object?, Object?>(context);
+    final bar = DuoBarData.of<Object?, Object?>(context);
     final theme = Theme.of(context);
     final appBarTheme = theme.appBarTheme;
     final centered =
@@ -93,7 +93,7 @@ class DockAppBar extends StatelessWidget implements PreferredSizeWidget {
     final leading = bar.leading;
     return AppBar(
       automaticallyImplyLeading: false,
-      // The whole toolbar is one DockBarLayout in the title slot.
+      // The whole toolbar is one DuoBarLayout in the title slot.
       titleSpacing: 0,
       centerTitle: false,
       toolbarHeight: toolbarHeight,
@@ -119,14 +119,14 @@ class DockAppBar extends StatelessWidget implements PreferredSizeWidget {
         child: SizedBox(
           width: double.infinity,
           height: toolbarHeight ?? appBarTheme.toolbarHeight ?? kToolbarHeight,
-          child: DockBarLayout(
+          child: DuoBarLayout(
             leading: leading == null
                 ? null
-                : bar.buildAction(leading, DockActionPlacement.barLeading),
+                : bar.buildAction(leading, DuoActionPlacement.barLeading),
             title: bar.title,
             trailing: [
               for (final action in bar.trailing)
-                bar.buildAction(action, DockActionPlacement.barTrailing),
+                bar.buildAction(action, DuoActionPlacement.barTrailing),
             ],
             centerTitle: centered,
             actionsAtStart: bar.trailingAtStart,

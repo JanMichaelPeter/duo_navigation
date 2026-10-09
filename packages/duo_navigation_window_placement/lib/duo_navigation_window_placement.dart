@@ -3,8 +3,8 @@
 /// ```dart
 /// final edges = WindowPlacementEdgesSource();
 ///
-/// DockNavigation(
-///   data: DockNavigationData(windowEdgesSource: edges),
+/// DuoNavigation(
+///   data: DuoNavigationData(windowEdgesSource: edges),
 ///   child: ...,
 /// )
 /// ```
@@ -26,7 +26,7 @@ import 'package:window_placement/window_placement.dart';
 /// native side first, and the live stream is only opened if that worked.
 ///
 /// Create one for the app and [dispose] it when the app goes away.
-class WindowPlacementEdgesSource implements DockWindowEdgesSource {
+class WindowPlacementEdgesSource implements DuoWindowEdgesSource {
   /// Starts detecting right away.
   WindowPlacementEdgesSource() {
     if (_supported) _start();
@@ -38,17 +38,17 @@ class WindowPlacementEdgesSource implements DockWindowEdgesSource {
           defaultTargetPlatform == TargetPlatform.android);
 
   final _detector = WindowPlacementDetector();
-  final StreamController<DockWindowEdges?> _changes =
-      StreamController<DockWindowEdges?>.broadcast();
+  final StreamController<DuoWindowEdges?> _changes =
+      StreamController<DuoWindowEdges?>.broadcast();
   StreamSubscription<WindowPlacementInfo>? _subscription;
-  DockWindowEdges? _value;
+  DuoWindowEdges? _value;
   bool _disposed = false;
 
   @override
-  DockWindowEdges? get value => _value;
+  DuoWindowEdges? get value => _value;
 
   @override
-  Stream<DockWindowEdges?> get changes => _changes.stream;
+  Stream<DuoWindowEdges?> get changes => _changes.stream;
 
   Future<void> _start() async {
     try {
@@ -66,13 +66,13 @@ class WindowPlacementEdgesSource implements DockWindowEdgesSource {
   void _apply(WindowPlacementInfo info) => _set(
     info.placement == WindowPlacement.unknown
         ? null
-        : DockWindowEdges(
+        : DuoWindowEdges(
             left: info.touchesLeftEdge,
             right: info.touchesRightEdge,
           ),
   );
 
-  void _set(DockWindowEdges? edges) {
+  void _set(DuoWindowEdges? edges) {
     if (_disposed || edges == _value) return;
     _value = edges;
     _changes.add(edges);

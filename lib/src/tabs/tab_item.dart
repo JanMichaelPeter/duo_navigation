@@ -13,14 +13,14 @@ import '../models/tabs_data.dart';
 /// The item's own semantics are excluded and replaced by one node with the
 /// tab role, the selected state, the label (`semanticLabel`, `label` or
 /// `tooltip`), the badge as value, the position as hint
-/// (`DockBuilders.tabPosition`) and the tap action, so assistive technology
-/// gets the same tab whatever the builder draws ([DockSemantics.tab]).
-class DockTabItem<T> extends StatelessWidget {
+/// (`DuoBuilders.tabPosition`) and the tap action, so assistive technology
+/// gets the same tab whatever the builder draws ([DuoSemantics.tab]).
+class DuoTabItem<T> extends StatelessWidget {
   /// Wraps [child], the built item for [data].
-  const DockTabItem({super.key, required this.data, required this.child});
+  const DuoTabItem({super.key, required this.data, required this.child});
 
   /// The tab and its position.
-  final DockTabItemData<T> data;
+  final DuoTabItemData<T> data;
 
   /// The item as the builder drew it.
   final Widget child;
@@ -30,14 +30,16 @@ class DockTabItem<T> extends StatelessWidget {
     final tab = data.tab;
     final appKey = tab.key;
     return KeyedSubtree(
-      key: DockKeys.tab(tab.id),
+      key: DuoKeys.tab(tab.id),
       child: _RevealWhenSelected(
         selected: data.selected,
-        child: DockFocusMarker(
+        child: DuoFocusMarker(
           id: ('tab', tab.id),
           child: Semantics.fromProperties(
             container: true,
-            properties: data.semanticsOf(context),
+            // The item's own semantics are excluded below, so the tap comes
+            // from here.
+            properties: data.semanticsOf(context, tap: true),
             child: ExcludeSemantics(
               child: appKey == null
                   ? child
@@ -52,19 +54,19 @@ class DockTabItem<T> extends StatelessWidget {
 
 /// The tab semantics of one item, for tab bars that build their item widgets
 /// themselves.
-extension DockTabItemSemantics<T> on DockTabItemData<T> {
+extension DuoTabItemSemantics<T> on DuoTabItemData<T> {
   /// The semantics the package gives this tab, as a value: the tab role, the
   /// selected state, the label (`semanticLabel`, `label` or `tooltip`), the
-  /// badge as value, the position as hint (`DockBuilders.tabPosition`, read
+  /// badge as value, the position as hint (`DuoBuilders.tabPosition`, read
   /// at [context]) and the tap action.
   ///
   /// For a tab bar whose item widgets are built by the bar itself, so that
-  /// neither the package's items nor `DockTabsData.wrap` can be placed: pass
+  /// neither the package's items nor `DuoTabsData.wrap` can be placed: pass
   /// them to the bar's per-item semantics hook, and mark the bar with
-  /// [DockTabBarSemantics].
+  /// [DuoTabBarSemantics].
   ///
   /// ```dart
-  /// tabBar: (context, tabs, items) => DockTabBarSemantics(
+  /// tabBar: (context, tabs, items) => DuoTabBarSemantics(
   ///   child: MyTabBar(items: [
   ///     for (var i = 0; i < tabs.tabs.length; i++)
   ///       MyTabBarItem(
@@ -75,30 +77,39 @@ extension DockTabItemSemantics<T> on DockTabItemData<T> {
   ///   ]),
   /// )
   /// ```
-  SemanticsProperties semanticsOf(BuildContext context) =>
-      DockSemantics.tabProperties(
+  ///
+  /// The tap action is left out unless [tap] is true: the item's own tap
+  /// target (an `InkWell`, a `GestureDetector`) provides it and merges into
+  /// the same node. A second tap action would split the item into two nodes,
+  /// and a screen reader would stop twice. Pass `tap: true` only for an item
+  /// without a tap target of its own whose semantics are excluded.
+  ///
+  /// The bar must keep every field it gets, `role` in particular: without it
+  /// the item is no tab, and `DuoTabBarSemantics` around the bar fails.
+  SemanticsProperties semanticsOf(BuildContext context, {bool tap = false}) =>
+      DuoSemantics.tabProperties(
         selected: selected,
         label: tab.semanticLabel ?? tab.label ?? tab.tooltip,
         value: tab.badge?.label,
-        hint: DockBuilders.of<Object?, Object?, Object?>(
+        hint: DuoBuilders.of<Object?, Object?, Object?>(
           context,
         ).tabPosition?.call(context, index, count),
-        onTap: onTap,
+        onTap: tap ? onTap : null,
       );
 }
 
 /// Applies the package's per-item wrapping to children a tab bar builds
 /// itself.
-extension DockTabsDataWrap<T> on DockTabsData<T> {
+extension DuoTabsDataWrap<T> on DuoTabsData<T> {
   /// Wraps [child], the widget a bar built for the tab at [index], like the
-  /// package wraps its own items: `DockKeys.tab(id)` and `DockTab.key`, and
+  /// package wraps its own items: `DuoKeys.tab(id)` and `DuoTab.key`, and
   /// the tab's semantics (selected state, label, badge, position, tap), which
   /// replace the child's own. Use it for bars that build their children from
   /// [tabs] instead of placing the built `items`; mark the bar with
-  /// [DockTabBarSemantics].
+  /// [DuoTabBarSemantics].
   ///
   /// ```dart
-  /// tabBar: (context, data, items) => DockTabBarSemantics(
+  /// tabBar: (context, data, items) => DuoTabBarSemantics(
   ///   child: MyTabBar(children: [
   ///     for (var i = 0; i < data.tabs.length; i++)
   ///       data.wrap(i, MyTabButton(spec: data.tabs[i].payload, onTap: data.itemData(i).onTap)),
@@ -106,7 +117,7 @@ extension DockTabsDataWrap<T> on DockTabsData<T> {
   /// )
   /// ```
   Widget wrap(int index, Widget child) =>
-      DockTabItem<T>(data: itemData(index), child: child);
+      DuoTabItem<T>(data: itemData(index), child: child);
 }
 
 /// Marks a tab bar or rail as a tab bar for assistive technology.
@@ -115,14 +126,18 @@ extension DockTabsDataWrap<T> on DockTabsData<T> {
 /// holds the items. Every semantics node directly below it must be a tab:
 /// Flutter checks this and reports "Children of TabBar must have the tab
 /// role" otherwise. The package's `items`, children wrapped with
-/// `DockTabsData.wrap`, and items that carry
-/// `DockTabsData.itemData(i).semanticsOf(context)` are tabs; nothing between
+/// `DuoTabsData.wrap`, and items that carry
+/// `DuoTabsData.itemData(i).semanticsOf(context)` are tabs; nothing between
 /// them and this widget may add nodes of its own. A bar whose items can carry
 /// none of these keeps its own semantics and goes without this widget.
 /// Material's `NavigationBar` marks itself and needs none.
-class DockTabBarSemantics extends StatelessWidget {
+///
+/// Flutter runs the check only while semantics are on, in a test with
+/// `tester.ensureSemantics()` or in a debug run with a screen reader. Test a
+/// custom bar with semantics on and expect no exception.
+class DuoTabBarSemantics extends StatelessWidget {
   /// Marks [child] as a tab bar.
-  const DockTabBarSemantics({super.key, required this.child});
+  const DuoTabBarSemantics({super.key, required this.child});
 
   /// The bar or rail.
   final Widget child;

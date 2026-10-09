@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:duo_navigation/material.dart';
 
 const _tabs = [
-  DockTab<Object?>(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab<Object?>(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+  DuoTab<Object?>(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab<Object?>(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
 ];
 
 const _plain = Key('plain');
@@ -30,13 +30,13 @@ const Widget _probeBody = Column(
 enum _Frame { shell, modal }
 
 Widget _app({
-  DockNavigationData data = const DockNavigationData(),
-  DockBuilders<Object?, Object?, Object?>? builders,
+  DuoNavigationData data = const DuoNavigationData(),
+  DuoBuilders<Object?, Object?, Object?>? builders,
   EdgeInsets padding = EdgeInsets.zero,
   EdgeInsets viewInsets = EdgeInsets.zero,
   TextDirection direction = TextDirection.ltr,
   _Frame frame = _Frame.shell,
-  DockBodyMode? bodyMode,
+  DuoBodyMode? bodyMode,
   Widget body = _probeBody,
 }) {
   return MaterialApp(
@@ -48,8 +48,8 @@ Widget _app({
       ),
       child: Directionality(
         textDirection: direction,
-        child: DockNavigation(
-          builders: const DockMaterialBuilders<Object?, Object?, Object?>()
+        child: DuoNavigation(
+          builders: const DuoMaterialBuilders<Object?, Object?, Object?>()
               .merge(builders),
           data: data,
           child: child!,
@@ -57,14 +57,14 @@ Widget _app({
       ),
     ),
     home: switch (frame) {
-      _Frame.shell => DockShell<Object?, Object?, Object?>(
+      _Frame.shell => DuoShell<Object?, Object?, Object?>(
         tabs: _tabs,
         currentIndex: 0,
         onTabSelected: (_) {},
         bodyMode: bodyMode,
         child: body,
       ),
-      _Frame.modal => DockModalScope<Object?, Object?>(
+      _Frame.modal => DuoModalScope<Object?, Object?>(
         bodyMode: bodyMode,
         child: body,
       ),
@@ -90,8 +90,8 @@ void main() {
   MediaQueryData bodyMediaQuery(WidgetTester tester) =>
       MediaQuery.of(tester.element(find.byKey(_plain)));
 
-  DockGeometry geometry(WidgetTester tester) =>
-      DockGeometry.of(tester.element(find.byKey(_plain)));
+  DuoGeometry geometry(WidgetTester tester) =>
+      DuoGeometry.of(tester.element(find.byKey(_plain)));
 
   group('inset (default), wide', () {
     for (final frame in _Frame.values) {
@@ -108,7 +108,7 @@ void main() {
           tester,
           _app(
             frame: frame,
-            data: const DockNavigationData(side: DockSide.start),
+            data: const DuoNavigationData(side: DuoSide.start),
           ),
         );
         expect(rectOf(tester, _plain).left, 72);
@@ -119,7 +119,7 @@ void main() {
         await pump(tester, _app(frame: frame, direction: TextDirection.rtl));
         expect(rectOf(tester, _plain).left, 72);
         expect(rectOf(tester, _plain).right, 1000);
-        expect(geometry(tester).side, DockSide.end);
+        expect(geometry(tester).side, DuoSide.end);
         expect(geometry(tester).columnOnRight, isFalse);
       });
 
@@ -128,27 +128,27 @@ void main() {
           tester,
           _app(
             frame: frame,
-            data: const DockNavigationData(
-              windowEdgesSource: DockWindowEdgesSource.fixed(
-                DockWindowEdges(left: true, right: false),
+            data: const DuoNavigationData(
+              windowEdgesSource: DuoWindowEdgesSource.fixed(
+                DuoWindowEdges(left: true, right: false),
               ),
             ),
           ),
         );
         expect(rectOf(tester, _plain).left, 72);
-        expect(geometry(tester).side, DockSide.start);
+        expect(geometry(tester).side, DuoSide.start);
       });
     }
 
-    testWidgets('a DockPage without a frame brings its own', (tester) async {
+    testWidgets('a DuoPage without a frame brings its own', (tester) async {
       await pump(
         tester,
         MaterialApp(
-          builder: (context, child) => DockNavigation(
-            builders: const DockMaterialBuilders(),
+          builder: (context, child) => DuoNavigation(
+            builders: const DuoMaterialBuilders(),
             child: child!,
           ),
-          home: const DockPage<Object?, Object?>(body: _probeBody),
+          home: const DuoPage<Object?, Object?>(body: _probeBody),
         ),
       );
       expect(rectOf(tester, _plain).right, 1000 - 72);
@@ -177,7 +177,7 @@ void main() {
         tester,
         _app(
           padding: const EdgeInsets.only(right: 100),
-          data: const DockNavigationData(columnInset: DockColumnInset.safeArea),
+          data: const DuoNavigationData(columnInset: DuoColumnInset.safeArea),
         ),
       );
       expect(rectOf(tester, _plain).right, 1000 - 100 - 72);
@@ -233,7 +233,7 @@ void main() {
         tester,
         _app(
           padding: const EdgeInsets.only(top: 40, bottom: 20),
-          builders: DockBuilders<Object?, Object?, Object?>(
+          builders: DuoBuilders<Object?, Object?, Object?>(
             // A bar that pads itself on every side, as design systems do.
             tabBar: (context, tabs, items) => const SafeArea(
               child: SizedBox(key: bar, height: 56, width: double.infinity),
@@ -242,7 +242,7 @@ void main() {
         ),
         size: phone,
       );
-      expect(tester.getSize(find.byKey(DockKeys.bar)).height, 56 + 20);
+      expect(tester.getSize(find.byKey(DuoKeys.bar)).height, 56 + 20);
       expect(tester.getRect(find.byKey(bar)).bottom, 800 - 20);
     });
 
@@ -254,7 +254,7 @@ void main() {
       await pump(
         tester,
         _app(
-          builders: DockBuilders<Object?, Object?, Object?>(
+          builders: DuoBuilders<Object?, Object?, Object?>(
             tabBar: (context, tabs, items) => ValueListenableBuilder(
               valueListenable: tall,
               builder: (context, isTall, _) => AnimatedContainer(
@@ -287,7 +287,7 @@ void main() {
         _app(viewInsets: const EdgeInsets.only(bottom: 300)),
         size: phone,
       );
-      final bar = tester.getRect(find.byKey(DockKeys.bar));
+      final bar = tester.getRect(find.byKey(DuoKeys.bar));
       expect(rectOf(tester, _safe).bottom, bar.top);
       // The bar's strip is already off the body; the page sees the rest.
       expect(bodyMediaQuery(tester).viewInsets.bottom, 300 - bar.height);
@@ -301,8 +301,8 @@ void main() {
         tester,
         _app(
           viewInsets: const EdgeInsets.only(bottom: 300),
-          data: const DockNavigationData(
-            keyboard: DockKeyboard(body: DockBodyKeyboardBehavior.lift),
+          data: const DuoNavigationData(
+            keyboard: DuoKeyboard(body: DuoBodyKeyboardBehavior.lift),
           ),
         ),
         size: phone,
@@ -319,7 +319,7 @@ void main() {
         tester,
         _app(
           padding: const EdgeInsets.only(bottom: 34),
-          builders: DockBuilders<Object?, Object?, Object?>(
+          builders: DuoBuilders<Object?, Object?, Object?>(
             tabBar: (context, tabs, items) => const SizedBox(height: 20),
           ),
         ),
@@ -362,7 +362,7 @@ void main() {
     testWidgets('reproduces 0.0.1: the body covers the frame', (tester) async {
       await pump(
         tester,
-        _app(bodyMode: DockBodyMode.overlay),
+        _app(bodyMode: DuoBodyMode.overlay),
         size: const Size(800, 600),
       );
       expect(rectOf(tester, _plain).left, 0);
@@ -376,7 +376,7 @@ void main() {
     testWidgets('can be the app default', (tester) async {
       await pump(
         tester,
-        _app(data: const DockNavigationData(bodyMode: DockBodyMode.overlay)),
+        _app(data: const DuoNavigationData(bodyMode: DuoBodyMode.overlay)),
       );
       expect(rectOf(tester, _plain).right, 1000);
     });
@@ -385,7 +385,7 @@ void main() {
       await pump(
         tester,
         _app(
-          bodyMode: DockBodyMode.overlay,
+          bodyMode: DuoBodyMode.overlay,
           viewInsets: const EdgeInsets.only(bottom: 300),
         ),
         size: const Size(400, 800),
@@ -409,14 +409,14 @@ void main() {
   });
 
   testWidgets('geometry aspects limit rebuilds', (tester) async {
-    final modeBuilds = <DockLayoutMode>[];
+    final modeBuilds = <DuoLayoutMode>[];
     final chromeBuilds = <EdgeInsets>[];
     final tall = ValueNotifier(false);
     addTearDown(tall.dispose);
     await pump(
       tester,
       _app(
-        builders: DockBuilders<Object?, Object?, Object?>(
+        builders: DuoBuilders<Object?, Object?, Object?>(
           tabBar: (context, tabs, items) => ValueListenableBuilder(
             valueListenable: tall,
             builder: (context, isTall, _) =>
@@ -428,10 +428,7 @@ void main() {
             Builder(
               builder: (context) {
                 modeBuilds.add(
-                  DockGeometry.of(
-                    context,
-                    aspect: DockGeometryAspect.mode,
-                  ).mode,
+                  DuoGeometry.of(context, aspect: DuoGeometryAspect.mode).mode,
                 );
                 return const SizedBox();
               },
@@ -439,9 +436,9 @@ void main() {
             Builder(
               builder: (context) {
                 chromeBuilds.add(
-                  DockGeometry.of(
+                  DuoGeometry.of(
                     context,
-                    aspect: DockGeometryAspect.chrome,
+                    aspect: DuoGeometryAspect.chrome,
                   ).chrome,
                 );
                 return const SizedBox();
@@ -461,7 +458,7 @@ void main() {
     expect(chromeBuilds.last, const EdgeInsets.only(bottom: 120));
   });
 
-  testWidgets('DockGeometry.of fails loudly outside a frame', (tester) async {
+  testWidgets('DuoGeometry.of fails loudly outside a frame', (tester) async {
     late BuildContext context;
     await tester.pumpWidget(
       Builder(
@@ -471,8 +468,8 @@ void main() {
         },
       ),
     );
-    expect(DockGeometry.maybeOf(context), isNull);
-    expect(() => DockGeometry.of(context), throwsFlutterError);
+    expect(DuoGeometry.maybeOf(context), isNull);
+    expect(() => DuoGeometry.of(context), throwsFlutterError);
   });
 
   testWidgets('taps reach the column over the body and the body elsewhere', (
@@ -482,7 +479,7 @@ void main() {
     await pump(
       tester,
       _app(
-        bodyMode: DockBodyMode.overlay,
+        bodyMode: DuoBodyMode.overlay,
         body: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => bodyTaps++,

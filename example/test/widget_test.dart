@@ -115,12 +115,12 @@ void main() {
     await tester.tap(find.byIcon(Icons.map_outlined));
     await tester.pumpAndSettle();
     final map = find.descendant(
-      of: find.byType(DockBleed),
+      of: find.byType(DuoBleed),
       matching: find.byType(CustomPaint),
     );
     expect(tester.getRect(map.first).right, 1024);
     // The column covers the map's right edge.
-    expect(tester.getRect(find.byKey(DockKeys.column)).right, 1024);
+    expect(tester.getRect(find.byKey(DuoKeys.column)).right, 1024);
   });
 
   testWidgets('the camera page hides the navigation', (tester) async {
@@ -130,7 +130,7 @@ void main() {
     await tester.tap(find.text('Camera'));
     await tester.pumpAndSettle();
     final camera = tester.element(find.byIcon(Icons.camera_alt_outlined));
-    expect(DockGeometry.of(camera).isHidden, isTrue);
+    expect(DuoGeometry.of(camera).isHidden, isTrue);
 
     // The close button stays reachable in the bar, at the top right.
     final close = inAppBar(find.byIcon(Icons.close));
@@ -139,7 +139,7 @@ void main() {
     await tester.tap(close);
     await tester.pumpAndSettle();
     expect(
-      DockGeometry.of(tester.element(find.text('Camera'))).isHidden,
+      DuoGeometry.of(tester.element(find.text('Camera'))).isHidden,
       isFalse,
     );
   });
@@ -149,7 +149,7 @@ void main() {
       tester,
     ) async {
       await pumpAt(tester, size);
-      await tester.tap(find.byKey(DockKeys.tab('profile')));
+      await tester.tap(find.byKey(DuoKeys.tab('profile')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Edit'));
       await tester.pumpAndSettle();
@@ -167,7 +167,7 @@ void main() {
     await tester.pumpWidget(const GoRouterExampleApp());
     await tester.pumpAndSettle();
     expect(find.widgetWithText(AppBar, 'Items'), findsOneWidget);
-    await tester.tap(find.byKey(DockKeys.tab('map')));
+    await tester.tap(find.byKey(DuoKeys.tab('map')));
     await tester.pumpAndSettle();
     expect(find.byIcon(Icons.my_location), findsOneWidget);
   });

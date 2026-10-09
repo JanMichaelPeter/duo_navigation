@@ -26,14 +26,14 @@ class _ScopedKey {
   int get hashCode => Object.hash(identityHashCode(owner), id);
 }
 
-Object _keyFor(DockActionRegistration owner, DockAction<Object?> action) =>
+Object _keyFor(DuoActionRegistration owner, DuoAction<Object?> action) =>
     action.shared ? action.id : _ScopedKey(owner, action.id);
 
 class _Item {
   _Item(this.key, this.action, this.owner, {required this.animateIn});
   final Object key;
-  DockAction<Object?> action;
-  DockActionRegistration owner;
+  DuoAction<Object?> action;
+  DuoActionRegistration owner;
   bool visible = true;
   final bool animateIn;
 }
@@ -41,24 +41,24 @@ class _Item {
 /// The animated action stack inside the side column. Anchored to the bottom,
 /// so the back button (always last) sits right above the rail and never moves
 /// when trailing actions above it change.
-class DockActionColumn extends StatefulWidget {
-  const DockActionColumn({
+class DuoActionColumn extends StatefulWidget {
+  const DuoActionColumn({
     super.key,
     required this.host,
     required this.buildChip,
   });
 
-  final DockActionHost host;
+  final DuoActionHost host;
 
   /// Builds one chip with the frame's action builder.
-  final Widget Function(BuildContext context, DockAction<Object?> action)
+  final Widget Function(BuildContext context, DuoAction<Object?> action)
   buildChip;
 
   @override
-  State<DockActionColumn> createState() => _DockActionColumnState();
+  State<DuoActionColumn> createState() => _DuoActionColumnState();
 }
 
-class _DockActionColumnState extends State<DockActionColumn> {
+class _DuoActionColumnState extends State<DuoActionColumn> {
   List<_Item> _items = [];
 
   @override
@@ -69,7 +69,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
   }
 
   @override
-  void didUpdateWidget(DockActionColumn oldWidget) {
+  void didUpdateWidget(DuoActionColumn oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.host != widget.host) {
       oldWidget.host.removeListener(_onHostChanged);
@@ -92,7 +92,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
 
   List<_Item> _reconcile({required bool initial}) {
     final owner = widget.host.active;
-    final next = <Object, DockAction<Object?>>{};
+    final next = <Object, DuoAction<Object?>>{};
     if (owner != null) {
       for (final a in owner.actions) {
         if (a.canHoist) next[_keyFor(owner, a)] = a;
@@ -125,7 +125,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
     return result;
   }
 
-  Widget _chip(BuildContext context, DockAction<Object?> action) =>
+  Widget _chip(BuildContext context, DuoAction<Object?> action) =>
       _chipItem(widget.buildChip(context, action), action);
 
   void _remove(Object key) {
@@ -135,8 +135,8 @@ class _DockActionColumnState extends State<DockActionColumn> {
 
   @override
   Widget build(BuildContext context) {
-    final config = DockNavigation.of(context);
-    final builders = DockBuilders.of<Object?, Object?, Object?>(context);
+    final config = DuoNavigation.of(context);
+    final builders = DuoBuilders.of<Object?, Object?, Object?>(context);
     return Align(
       alignment: Alignment.bottomCenter,
       child: SingleChildScrollView(
@@ -163,7 +163,7 @@ class _DockActionColumnState extends State<DockActionColumn> {
                   // transition does horizontally.
                   child: Center(
                     child: KeyedSubtree(
-                      key: DockKeys.action(item.action.id),
+                      key: DuoKeys.action(item.action.id),
                       child: _chip(context, item.owner.guarded(item.action)),
                     ),
                   ),
@@ -176,5 +176,5 @@ class _DockActionColumnState extends State<DockActionColumn> {
   }
 }
 
-Widget _chipItem(Widget chip, DockAction<Object?> action) =>
-    DockActionItem(action: action, child: chip);
+Widget _chipItem(Widget chip, DuoAction<Object?> action) =>
+    DuoActionItem(action: action, child: chip);

@@ -18,7 +18,7 @@ export 'src/frame/shell.dart';
 export 'src/frame/side_column_layout.dart';
 export 'src/keys.dart';
 export 'src/models/action.dart';
-export 'src/models/bar_data.dart' show DockActionWidgetBuilder, DockBarData;
+export 'src/models/bar_data.dart' show DuoActionWidgetBuilder, DuoBarData;
 export 'src/models/dock_badge.dart';
 export 'src/models/dock_icon.dart';
 export 'src/models/enums.dart';
@@ -29,6 +29,6 @@ export 'src/page.dart';
 export 'src/page/bar_layout.dart';
 export 'src/page/page_scope.dart';
 export 'src/tabs/tab_item.dart'
-    show DockTabBarSemantics, DockTabItemSemantics, DockTabsDataWrap;
+    show DuoTabBarSemantics, DuoTabItemSemantics, DuoTabsDataWrap;
 export 'src/tabs/tab_navigator.dart';
 export 'src/tabs/tab_stack.dart';

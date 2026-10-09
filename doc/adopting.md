@@ -7,24 +7,24 @@ step. Each step ships on its own, and the app keeps working in between. (Coming 
 
 The order:
 
-1. [`DockNavigation` above the root navigator](#1-docknavigation)
-2. [The tab scaffold becomes a `DockShell`](#2-the-tab-scaffold)
+1. [`DuoNavigation` above the root navigator](#1-docknavigation)
+2. [The tab scaffold becomes a `DuoShell`](#2-the-tab-scaffold)
 3. [Pages, one at a time](#3-pages-one-at-a-time)
 4. [Your design system's tab bar and title bar](#4-your-design-system)
 5. [Content under the chrome](#5-content-under-the-chrome)
 6. [Tests](#6-tests)
 
-## 1. DockNavigation
+## 1. DuoNavigation
 
-Put a `DockNavigation` above the root `Navigator`, so pages pushed on it (modals, full-screen flows) see it too. Use
+Put a `DuoNavigation` above the root `Navigator`, so pages pushed on it (modals, full-screen flows) see it too. Use
 the Material visuals to begin with; your own come in step 4.
 
 ```dart
 import 'package:duo_navigation/material.dart'; // duo_navigation and its Material visuals
 
 MaterialApp(
-  builder: (context, child) => DockNavigation(
-    builders: const DockMaterialBuilders(),
+  builder: (context, child) => DuoNavigation(
+    builders: const DuoMaterialBuilders(),
     child: child!,
   ),
   home: const AppShell(),
@@ -32,33 +32,20 @@ MaterialApp(
 ```
 
 Nothing changes on screen yet. For the side column to follow the window to the screen edge in split screen, add
-`windowEdgesSource: WindowPlacementEdgesSource()` from `duo_navigation_window_placement` to `DockNavigationData`. Create it
+`windowEdgesSource: WindowPlacementEdgesSource()` from `duo_navigation_window_placement` to `DuoNavigationData`. Create it
 once, in app state, and dispose it with the app.
 
-**Phones in landscape.** With the default breakpoint of 600, a phone in landscape gets the wide layout, and the column
-sits on the screen edge where the camera cutout or Android's button bar may be. `columnInset` decides between the window
-edge, where chips can sit under the cutout, and the safe area, where the column moves inward by the system inset. On
-iPhones that inset is about 59 pt on both sides in landscape. The README has a table. To keep phones in the compact
-layout instead, decide by the window's shorter side:
-
-```dart
-class TabletsWide extends DockLayoutPolicy {
-  const TabletsWide();
-
-  @override
-  DockLayoutMode resolve({required Size window, required Size frame}) =>
-      window.shortestSide >= 600 ? DockLayoutMode.wide : DockLayoutMode.compact;
-}
-
-DockNavigationData(layoutPolicy: const TabletsWide())
-```
-
-Unfolded foldables and tablets still get the column. In split screen the window's shorter side decides, so a narrow
-window on a tablet is compact.
+**Phones in landscape.** By default (`DuoLayoutPolicy.shortestSide(600)`) the layout follows the window's shorter
+side, so phones keep the bottom bar in both orientations. Tablets and unfolded foldables get the column, and in split
+screen a window whose shorter side is under 600 is compact. To give phones the column in landscape too, use
+`DuoNavigationData(layoutPolicy: const DuoLayoutPolicy.breakpoint(600))`. Then the column sits on the screen edge where
+the camera cutout or Android's button bar may be, and `columnInset` decides between the window edge (chips can sit
+under the cutout) and the safe area (the column moves inward by the system inset, on iPhones about 59 pt on both
+sides). The README has a table.
 
 ## 2. The tab scaffold
 
-The `Scaffold` that holds the tab bar and the `IndexedStack` becomes a `DockShell`. It draws the bottom bar in compact
+The `Scaffold` that holds the tab bar and the `IndexedStack` becomes a `DuoShell`. It draws the bottom bar in compact
 mode and the rail in the side column in wide mode.
 
 ```dart
@@ -69,20 +56,20 @@ Scaffold(
 )
 
 // After
-DockShell(
+DuoShell(
   tabs: const [
-    DockTab(id: 'home', icon: DockIcon(Icons.home_outlined), selectedIcon: DockIcon(Icons.home), label: 'Home'),
-    DockTab(id: 'me', icon: DockIcon(Icons.person_outline), selectedIcon: DockIcon(Icons.person), label: 'Me'),
+    DuoTab(id: 'home', icon: DuoIcon(Icons.home_outlined), selectedIcon: DuoIcon(Icons.home), label: 'Home'),
+    DuoTab(id: 'me', icon: DuoIcon(Icons.person_outline), selectedIcon: DuoIcon(Icons.person), label: 'Me'),
   ],
   currentIndex: index,
   onTabSelected: select,
   // A tap on the current tab pops it to its root.
   onTabReselected: (i) => navigatorKeys[i].currentState?.popUntil((route) => route.isFirst),
-  child: DockTabStack(
+  child: DuoTabStack(
     index: index,
     children: [
       for (final (i, root) in roots.indexed)
-        DockTabNavigator(
+        DuoTabNavigator(
           navigatorKey: navigatorKeys[i],
           onGenerateRoute: (settings) => MaterialPageRoute(settings: settings, builder: (_) => root),
         ),
@@ -91,10 +78,10 @@ DockShell(
 )
 ```
 
-**`IndexedStack` → `DockTabStack`.** Both keep every tab's state, and neither paints, hit-tests, focuses or exposes
+**`IndexedStack` → `DuoTabStack`.** Both keep every tab's state, and neither paints, hit-tests, focuses or exposes
 semantics for the hidden tabs. The differences:
 
-| | `IndexedStack` | `DockTabStack` |
+| | `IndexedStack` | `DuoTabStack` |
 |---|---|---|
 | Builds tabs | all at once | when first shown (`lazy: false` builds all) |
 | Tickers in hidden tabs | keep running | paused (`maintainTickers: true` keeps them running) |
@@ -104,9 +91,9 @@ semantics for the hidden tabs. The differences:
 A tab with a long-running animation (a video, a map camera) that relied on `IndexedStack` keeping it running needs
 `maintainTickers: true`.
 
-**`Navigator` → `DockTabNavigator`.** It takes the `Navigator`'s arguments, except the key. Pass the
+**`Navigator` → `DuoTabNavigator`.** It takes the `Navigator`'s arguments, except the key. Pass the
 `GlobalKey<NavigatorState>` you used as `Navigator(key: ...)` as `navigatorKey:`, because `key:` keys the
-`DockTabNavigator` itself (a debug assertion catches the mix-up). It adds two things:
+`DuoTabNavigator` itself (a debug assertion catches the mix-up). It adds two things:
 
 * Android's system back pops the shown tab's pages before it leaves the app. A hidden tab's pages don't keep the app
   from closing. With a plain `Navigator` per tab, you had to wire this yourself with `NavigatorPopHandler`.
@@ -114,7 +101,7 @@ A tab with a long-running animation (a video, a map camera) that relied on `Inde
   the bar and the column (step 5).
 
 **go_router.** `StatefulShellRoute.indexedStack` already keeps tabs alive and handles system back. Pass its `shell`
-as the `DockShell`'s child, as `example/lib/main_go_router.dart` does.
+as the `DuoShell`'s child, as `example/lib/main_go_router.dart` does.
 
 The pages don't change in this step. In inset mode (the default) the body is laid out beside the bar and the column,
 so a page's own `Scaffold` and `AppBar` lay out as before. Remove what only kept content clear of the old bar, such as
@@ -123,7 +110,7 @@ bottom padding.
 ## 3. Pages, one at a time
 
 A page with its own `Scaffold` and `AppBar` works in the shell as it is. Migrate it when you want its actions to move
-into the side column in wide mode. Wrap it in a `DockPageScope`, and replace `AppBar` with `DockAppBar`:
+into the side column in wide mode. Wrap it in a `DuoPageScope`, and replace `AppBar` with `DuoAppBar`:
 
 ```dart
 // Before
@@ -136,56 +123,58 @@ Scaffold(
 )
 
 // After
-DockPageScope(
+DuoPageScope(
   title: const Text('Items'),
-  trailing: [DockAction(id: 'add', icon: const DockIcon(Icons.add), tooltip: 'Add', onPressed: add)],
-  child: Scaffold(appBar: const DockAppBar(), body: const ItemsList()),
+  trailing: [DuoAction(id: 'add', icon: const DuoIcon(Icons.add), tooltip: 'Add', onPressed: add)],
+  child: Scaffold(appBar: const DuoAppBar(), body: const ItemsList()),
 )
 ```
 
-The `Scaffold` keeps its keys, `bottomNavigationBar`, `floatingActionButton` and everything else. `DockPage` is the same
+The `Scaffold` keeps its keys, `bottomNavigationBar`, `floatingActionButton` and everything else. `DuoPage` is the same
 thing in one widget, for pages that don't need their own `Scaffold`.
 
 * **Back and close are implied.** Back for pushed pages, close for full-screen dialogs.
-  `impliedLeading: DockImpliedLeading.close` asks for close on other routes, such as a custom modal route. The first
-  page of a `Navigator` inside a `DockModalScope` gets an action that dismisses the whole modal.
-* **"Cancel" and a close button at the top right.** `DockAction.back(icon: null, label: 'Cancel')` is a text-only leading
+  `impliedLeading: DuoImpliedLeading.close` asks for close on other routes, such as a custom modal route. The first
+  page of a `Navigator` inside a `DuoModalScope` gets an action that dismisses the whole modal.
+* **"Cancel" and a close button at the top right.** `DuoAction.back(icon: null, label: 'Cancel')` is a text-only leading
   action that stays in the bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the bar.
   Without a leading action it does nothing, so a page whose close action is conditional can set it unconditionally.
   If all your modals close at the top right, set it once:
-  `DockNavigationData(modalLeading: DockModalLeading(implied: DockImpliedLeading.close, atEnd: true))`.
-* **Actions that should never move** get `hoist: DockHoist.never`. `DockHoisting.none` on `DockNavigationData`, a
+  `DuoNavigationData(modalLeading: DuoModalLeading(implied: DuoImpliedLeading.close, atEnd: true))`. It applies to
+  modal starts: a `DuoModalScope`'s first page, and a page presented as a full-screen dialog or a sheet. Pages that a
+  modal pushes on the root navigator afterwards keep back.
+* **Actions that should never move** get `hoist: DuoHoist.never`. `DuoHoisting.none` on `DuoNavigationData`, a
   shell or a page keeps all of them in the bar.
 
-**Pages that are also shown outside the shell.** Pages, shells and modal frames need a `DockNavigation` above them and
+**Pages that are also shown outside the shell.** Pages, shells and modal frames need a `DuoNavigation` above them and
 fail loudly without one. During a migration, some pages can also be reached from places that have none, such as a
-route pushed by a plugin or a second `MaterialApp`. Wrap those in a `DockStandalone`:
+route pushed by a plugin or a second `MaterialApp`. Wrap those in a `DuoStandalone`:
 
 ```dart
-DockStandalone(
-  builders: const DockMaterialBuilders(),
-  child: const ItemDetailsPage(), // uses DockPageScope
+DuoStandalone(
+  builders: const DuoMaterialBuilders(),
+  child: const ItemDetailsPage(), // uses DuoPageScope
 )
 ```
 
-Where there is no `DockNavigation`, it provides a compact one: the page shows its title bar with all its actions.
-Below the app's `DockNavigation` it does nothing. Existing tests that pump such a page directly keep working: the tap
+Where there is no `DuoNavigation`, it provides a compact one: the page shows its title bar with all its actions.
+Below the app's `DuoNavigation` it does nothing. Existing tests that pump such a page directly keep working: the tap
 guard's default clock follows the test's time (see step 6).
 
 **The keyboard.** Pages keep handling it as before. The body keeps its height, and its `MediaQuery` reports the part of
 the keyboard the tab bar doesn't already cover. A `Scaffold` resizes for it, and one with
 `resizeToAvoidBottomInset: false` (a form with a sticky action area, a full-height map) doesn't. The frame only moves
-its own chrome: the column lifts above the keyboard, and the bar stays covered (`DockNavigationData.keyboard`). For
-bodies that don't handle the keyboard themselves, `DockShell(keyboard: DockKeyboard(body: DockBodyKeyboardBehavior.lift))`
+its own chrome: the column lifts above the keyboard, and the bar stays covered (`DuoNavigationData.keyboard`). For
+bodies that don't handle the keyboard themselves, `DuoShell(keyboard: DuoKeyboard(body: DuoBodyKeyboardBehavior.lift))`
 lays them out above it instead, for that shell's pages only.
 
 ## 4. Your design system
 
-Every visual is a builder in `DockBuilders`. Replace the Material ones one at a time with `merge`:
+Every visual is a builder in `DuoBuilders`. Replace the Material ones one at a time with `merge`:
 
 ```dart
-DockNavigation(
-  builders: const DockMaterialBuilders().merge(myBuilders),
+DuoNavigation(
+  builders: const DuoMaterialBuilders().merge(myBuilders),
   child: child!,
 )
 ```
@@ -193,13 +182,13 @@ DockNavigation(
 Each builder's typedef documents its contract: what it gets, its constraints, what the package owns (keys, semantics)
 and what the builder owns (visuals, animation, the bottom safe area of the bar).
 
-**Build `DockBuilders` once.** `DockBuilders` compare their builders by identity. A `DockBuilders(...)` created in
+**Build `DuoBuilders` once.** `DuoBuilders` compare their builders by identity. A `DuoBuilders(...)` created in
 `build()` with closures is new on every build, and rebuilds everything below it. Make it `const`, a top-level or
 `static final` value, or keep it in a `State` and create a new one only when its inputs change:
 
 ```dart
 class _ShellState extends State<Shell> {
-  late DockBuilders<Object?, Object?, Object?> _builders = _make(widget.options);
+  late DuoBuilders<Object?, Object?, Object?> _builders = _make(widget.options);
 
   @override
   void didUpdateWidget(Shell oldWidget) {
@@ -207,26 +196,26 @@ class _ShellState extends State<Shell> {
     if (widget.options != oldWidget.options) _builders = _make(widget.options);
   }
 
-  static DockBuilders<Object?, Object?, Object?> _make(MyBarOptions options) =>
-      DockBuilders(tabBar: (context, tabs, items) => MyTabBar(options: options, children: items));
+  static DuoBuilders<Object?, Object?, Object?> _make(MyBarOptions options) =>
+      DuoBuilders(tabBar: (context, tabs, items) => MyTabBar(options: options, children: items));
 
   @override
-  Widget build(BuildContext context) => DockShell(builders: _builders, ...);
+  Widget build(BuildContext context) => DuoShell(builders: _builders, ...);
 }
 ```
 
 ### The tab bar
 
 The `tabBar` and `rail` builders get the package's built `items`, one per tab (drawn by `tabItem`), and arrange them.
-Mark the widget that holds them with `DockTabBarSemantics`.
+Mark the widget that holds them with `DuoTabBarSemantics`.
 
 **A bar that builds its children from data.** Some design systems' tab bars take a list of item descriptions instead
 of widgets. Such a bar can't place `items`. It builds its own children, wraps each with `tabs.wrap(i, child)`, and
-reports taps through `tabs.itemData(i).onTap`. `wrap` applies the same keys (`DockKeys.tab(id)`, `DockTab.key`) and
+reports taps through `tabs.itemData(i).onTap`. `wrap` applies the same keys (`DuoKeys.tab(id)`, `DuoTab.key`) and
 semantics as the package's items. `itemData(i).onTap` applies the shell's selection, re-selection and veto rules:
 
 ```dart
-tabBar: (context, tabs, items) => DockTabBarSemantics(
+tabBar: (context, tabs, items) => DuoTabBarSemantics(
   child: MyTabBar(
     children: [
       for (var i = 0; i < tabs.tabs.length; i++)
@@ -237,15 +226,15 @@ tabBar: (context, tabs, items) => DockTabBarSemantics(
 ```
 
 Such a bar needs no `tabItem` builder (the rail still does, unless it is built the same way). Carry the design
-system's item description in `DockTab.payload`, typed with `DockShell<MyTabSpec, ...>` if you like.
+system's item description in `DuoTab.payload`, typed with `DuoShell<MyTabSpec, ...>` if you like.
 
 **A bar that builds its item widgets itself.** Some bars take only the item descriptions and build every item widget
 inside, so nothing can be wrapped around an item. If the item description has a semantics hook, pass it the tab's
 semantics as a value, `tabs.itemData(i).semanticsOf(context)`. It carries the tab role, the selected state, the label,
-the badge, the position and the tap action:
+the badge and the position:
 
 ```dart
-tabBar: (context, tabs, items) => DockTabBarSemantics(
+tabBar: (context, tabs, items) => DuoTabBarSemantics(
   child: MyTabBar(
     items: [
       for (var i = 0; i < tabs.tabs.length; i++)
@@ -259,9 +248,24 @@ tabBar: (context, tabs, items) => DockTabBarSemantics(
 ),
 ```
 
-`DockTabBarSemantics` requires every semantics node directly below it to be a tab. Flutter reports
-"Children of TabBar must have the tab role" when one isn't, for example around a bar whose items carry no tab semantics.
-A bar without any per-item hook keeps its own semantics and goes without `DockTabBarSemantics`. Its items then read as
+* **The tap comes from the item.** `semanticsOf` leaves the tap action out, because the item's own tap target (its
+  `InkWell` or `GestureDetector`) provides it in the same node. With a second tap action in the semantics, Flutter
+  would split the item into two nodes, and a screen reader would stop twice per tab. Only an item without a tap target
+  of its own needs `semanticsOf(context, tap: true)`.
+* **Every field must arrive, `role` in particular.** A design system that merges the hook's properties field by field
+  and doesn't copy `role` loses the tab role.
+* **`DuoTabBarSemantics` requires every semantics node directly below it to be a tab.** Flutter reports "Children of
+  TabBar must have the tab role" when one isn't. It checks this only while semantics are on: in a test with
+  `tester.ensureSemantics()`, or in a debug run with a screen reader. So test the bar with semantics on:
+
+  ```dart
+  final semantics = tester.ensureSemantics();
+  await tester.pumpWidget(app); // compact mode, so the tab bar shows
+  expect(tester.takeException(), isNull); // no "Children of TabBar must have the tab role"
+  semantics.dispose();
+  ```
+
+A bar without any per-item hook keeps its own semantics and goes without `DuoTabBarSemantics`. Its items then read as
 buttons rather than tabs.
 
 **The bottom safe area.** The bar owns it: its height includes `MediaQuery.paddingOf(context).bottom`, and a debug error
@@ -281,8 +285,8 @@ tabItem: (context, item) => InkWell(
 
 ### The title bar
 
-A design system's title bar reads the page's `DockBarData`. It's written for pages of any payload type, so it reads the
-data as `DockBarData.of<Object?, Object?>(context)` and checks its own payload type:
+A design system's title bar reads the page's `DuoBarData`. It's written for pages of any payload type, so it reads the
+data as `DuoBarData.of<Object?, Object?>(context)` and checks its own payload type:
 
 ```dart
 class MyNavBar extends StatelessWidget implements PreferredSizeWidget {
@@ -293,17 +297,17 @@ class MyNavBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bar = DockBarData.of<Object?, Object?>(context);
+    final bar = DuoBarData.of<Object?, Object?>(context);
     final title = bar.payload;
     assert(title == null || title is MyTitleSpec, 'MyNavBar needs a MyTitleSpec as barPayload.');
     final leading = bar.leading;
     // Scaffold gives an app bar its preferred height plus the status bar.
     return SafeArea(
       bottom: false,
-      child: DockBarLayout(
-        leading: leading == null ? null : bar.buildAction(leading, DockActionPlacement.barLeading),
+      child: DuoBarLayout(
+        leading: leading == null ? null : bar.buildAction(leading, DuoActionPlacement.barLeading),
         title: title is MyTitleSpec ? MyTitle(title) : bar.title,
-        trailing: [for (final a in bar.trailing) bar.buildAction(a, DockActionPlacement.barTrailing)],
+        trailing: [for (final a in bar.trailing) bar.buildAction(a, DuoActionPlacement.barTrailing)],
         actionsAtStart: bar.trailingAtStart,
         leadingAtEnd: bar.leadingAtEnd,
       ),
@@ -312,8 +316,8 @@ class MyNavBar extends StatelessWidget implements PreferredSizeWidget {
 }
 ```
 
-`DockBarLayout` mirrors in right-to-left layouts. It also follows the column to the start edge and handles the leading
-action at the end. In the `action` builder, `DockIconMorph(icon: action.icon!, builder: ...)` cross-fades back into
+`DuoBarLayout` mirrors in right-to-left layouts. It also follows the column to the start edge and handles the leading
+action at the end. In the `action` builder, `DuoIconMorph(icon: action.icon!, builder: ...)` cross-fades back into
 close with your own icon rendering.
 
 ## 5. Content under the chrome
@@ -321,13 +325,13 @@ close with your own icon rendering.
 In inset mode the body stops beside the bar and the column. What used to run under them on purpose (a map, a hero image,
 a header background) needs one of these:
 
-* **A backdrop** for the whole window: `DockShell(backdrop: ...)`, or a page's own `backdrop`. No clip can cut it.
-* **`DockBleed`** for one component: it widens its child toward the column and the bar, and keeps its own size.
+* **A backdrop** for the whole window: `DuoShell(backdrop: ...)`, or a page's own `backdrop`. No clip can cut it.
+* **`DuoBleed`** for one component: it widens its child toward the column and the bar, and keeps its own size.
 
 Recipes:
 
-**A bleed in a tab.** A plain `Navigator` clips its pages, so a `DockBleed` in a tab page stops at the body's edge. Use
-`DockTabNavigator` (it doesn't clip), or give your navigator `clipBehavior: Clip.none`. Scroll views clip too: wrap the
+**A bleed in a tab.** A plain `Navigator` clips its pages, so a `DuoBleed` in a tab page stops at the body's edge. Use
+`DuoTabNavigator` (it doesn't clip), or give your navigator `clipBehavior: Clip.none`. Scroll views clip too: wrap the
 scroll view in the bleed, not an item in it. In debug mode a bleed that is clipped names the clipping ancestor.
 
 **A header whose background bleeds while its actions don't.** Put the bleed in a `Positioned.fill` behind the header's
@@ -336,20 +340,20 @@ content. `bar: false` keeps it out of the bar's strip:
 ```dart
 Stack(
   children: [
-    Positioned.fill(child: DockBleed(bar: false, child: HeaderBackground())),
+    Positioned.fill(child: DuoBleed(bar: false, child: HeaderBackground())),
     const HeaderContent(), // actions stay beside the column and can be tapped
   ],
 )
 ```
 
-**A list with a few bleeding rows.** Wrap the list in one `DockBleed`, and the rows in `DockInset.wrapAll`. Rows inside a
-`DockBleedItem` bleed, and the others stay beside the chrome:
+**A list with a few bleeding rows.** Wrap the list in one `DuoBleed`, and the rows in `DuoInset.wrapAll`. Rows inside a
+`DuoBleedItem` bleed, and the others stay beside the chrome:
 
 ```dart
-DockBleed(
+DuoBleed(
   child: ListView(
-    children: DockInset.wrapAll([
-      DockBleedItem(child: Image.asset('hero.webp', fit: BoxFit.cover)),
+    children: DuoInset.wrapAll([
+      DuoBleedItem(child: Image.asset('hero.webp', fit: BoxFit.cover)),
       const Text('Details'),
       const SummaryRow(),
     ]),
@@ -357,34 +361,34 @@ DockBleed(
 )
 ```
 
-`wrapAll` recognizes `DockBleedItem` by its type, so it must be the list entry itself. A `DockBleedItem` inside a
-`Padding`, or inside your own wrapper widget, is wrapped in a `DockInset` like any other row.
+`wrapAll` recognizes `DuoBleedItem` by its type, so it must be the list entry itself. A `DuoBleedItem` inside a
+`Padding`, or inside your own wrapper widget, is wrapped in a `DuoInset` like any other row.
 
 **The available size.** `MediaQuery.sizeOf(context)` stays the window size, as everywhere in Flutter. In wide mode the
-body is narrower by the column. Use a `LayoutBuilder` for the size the page has, and `DockGeometry.of(context)` for the
+body is narrower by the column. Use a `LayoutBuilder` for the size the page has, and `DuoGeometry.of(context)` for the
 mode and the strip the chrome covers.
 
 ## 6. Tests
 
-Widget tests that pump a migrated page need a `DockNavigation`. Use `DockTestHarness` from
+Widget tests that pump a migrated page need a `DuoNavigation`. Use `DuoTestHarness` from
 `package:duo_navigation/testing.dart`. It pins the layout mode, the window edges and the text direction, and its tap guard
 follows `tester.pump`:
 
 ```dart
 await tester.pumpWidget(MaterialApp(
-  builder: (context, child) => DockTestHarness(
-    builders: const DockMaterialBuilders(), // or your design system's
-    mode: DockLayoutMode.compact,
+  builder: (context, child) => DuoTestHarness(
+    builders: const DuoMaterialBuilders(), // or your design system's
+    mode: DuoLayoutMode.compact,
     child: child!,
   ),
   home: const ItemDetailsPage(),
 ));
-await tester.tap(find.byKey(DockKeys.action('add')));
+await tester.tap(find.byKey(DuoKeys.action('add')));
 ```
 
-A shared test helper that pumps pages can add the harness in one place. Pages wrapped in `DockStandalone` work under
-the harness too: there the `DockStandalone` does nothing. Tests that pump a `DockStandalone` page without the harness
-also work. The tap guard's default clock (`DockClock.system()`) follows `tester.pump(duration)` and `pumpAndSettle`, so
+A shared test helper that pumps pages can add the harness in one place. Pages wrapped in `DuoStandalone` work under
+the harness too: there the `DuoStandalone` does nothing. Tests that pump a `DuoStandalone` page without the harness
+also work. The tap guard's default clock (`DuoClock.system()`) follows `tester.pump(duration)` and `pumpAndSettle`, so
 two taps on one action with `pumpAndSettle` in between both fire. A double tap with only `tester.pump()` in between is
-dropped, as on a device. Test both modes by pumping with `mode: DockLayoutMode.wide`.
-`DockKeys.bar`, `.column`, `.rail`, `.tab(id)` and `.action(id)` find the chrome, whatever builder draws it.
+dropped, as on a device. Test both modes by pumping with `mode: DuoLayoutMode.wide`.
+`DuoKeys.bar`, `.column`, `.rail`, `.tab(id)` and `.action(id)` find the chrome, whatever builder draws it.

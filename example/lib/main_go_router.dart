@@ -13,7 +13,7 @@ import 'tabs_home.dart' show TabAccent, tabs;
 ///
 /// `StatefulShellRoute.indexedStack` keeps one navigator per tab and puts
 /// inactive tabs under `TickerMode(enabled: false)`, which is all a
-/// `DockShell` needs. Pages are the same as in `main.dart`.
+/// `DuoShell` needs. Pages are the same as in `main.dart`.
 void main() => runApp(const GoRouterExampleApp());
 
 GoRouter _buildRouter() => GoRouter(
@@ -21,7 +21,7 @@ GoRouter _buildRouter() => GoRouter(
       routes: [
         StatefulShellRoute.indexedStack(
           builder: (context, state, shell) =>
-              DockShell<TabAccent, Object?, Object?>(
+              DuoShell<TabAccent, Object?, Object?>(
             tabs: tabs,
             currentIndex: shell.currentIndex,
             // A tap on the current tab goes back to its first page.
@@ -80,11 +80,11 @@ class _GoRouterExampleAppState extends State<GoRouterExampleApp> {
       title: 'duo_navigation with go_router',
       theme: ThemeData(colorSchemeSeed: Colors.indigo),
       routerConfig: _router,
-      builder: (context, child) => DockNavigation(
+      builder: (context, child) => DuoNavigation(
         builders: CustomStyle.builders,
         data: CustomStyle.data(
-          DockNavigationData(
-            layoutPolicy: const DockLayoutPolicy.breakpoint(466),
+          DuoNavigationData(
+            layoutPolicy: const DuoLayoutPolicy.breakpoint(466),
             windowEdgesSource: _windowEdges,
           ),
         ),

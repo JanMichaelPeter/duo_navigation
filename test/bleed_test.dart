@@ -3,9 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:duo_navigation/material.dart';
 import 'package:duo_navigation/testing.dart';
 
-const _tabs = <DockTab<Object?>>[
-  DockTab(id: 'home', icon: DockIcon(Icons.home), label: 'Home'),
-  DockTab(id: 'me', icon: DockIcon(Icons.person), label: 'Me'),
+const _tabs = <DuoTab<Object?>>[
+  DuoTab(id: 'home', icon: DuoIcon(Icons.home), label: 'Home'),
+  DuoTab(id: 'me', icon: DuoIcon(Icons.person), label: 'Me'),
 ];
 
 const _bled = Key('bled');
@@ -16,12 +16,12 @@ const _inset = Key('inset');
 enum _Frame { shell, modal }
 
 /// A body with a bleeding box, a plain sibling, a SafeArea box and a
-/// DockInset box inside the bleed.
+/// DuoInset box inside the bleed.
 Widget _probe({bool column = true, bool bar = true}) => Column(
   crossAxisAlignment: CrossAxisAlignment.stretch,
   children: [
     Expanded(
-      child: DockBleed(
+      child: DuoBleed(
         column: column,
         bar: bar,
         child: const Column(
@@ -38,7 +38,7 @@ Widget _probe({bool column = true, bool bar = true}) => Column(
               ),
             ),
             Expanded(
-              child: DockInset(child: SizedBox.expand(key: _inset)),
+              child: DuoInset(child: SizedBox.expand(key: _inset)),
             ),
           ],
         ),
@@ -52,9 +52,9 @@ void main() {
   Future<void> pump(
     WidgetTester tester,
     Widget body, {
-    DockLayoutMode mode = DockLayoutMode.wide,
+    DuoLayoutMode mode = DuoLayoutMode.wide,
     _Frame frame = _Frame.shell,
-    DockNavigationData data = const DockNavigationData(),
+    DuoNavigationData data = const DuoNavigationData(),
     TextDirection? direction,
     EdgeInsets padding = EdgeInsets.zero,
     bool visible = true,
@@ -70,8 +70,8 @@ void main() {
           data: MediaQuery.of(
             context,
           ).copyWith(padding: padding, viewPadding: padding),
-          child: DockTestHarness(
-            builders: const DockMaterialBuilders(),
+          child: DuoTestHarness(
+            builders: const DuoMaterialBuilders(),
             data: data,
             mode: mode,
             textDirection: direction,
@@ -79,7 +79,7 @@ void main() {
           ),
         ),
         home: switch (frame) {
-          _Frame.shell => DockShell<Object?, Object?, Object?>(
+          _Frame.shell => DuoShell<Object?, Object?, Object?>(
             tabs: _tabs,
             currentIndex: 0,
             onTabSelected: (_) {},
@@ -87,7 +87,7 @@ void main() {
             backdrop: backdrop,
             child: body,
           ),
-          _Frame.modal => DockModalScope<Object?, Object?>(
+          _Frame.modal => DuoModalScope<Object?, Object?>(
             navigationVisible: visible,
             backdrop: backdrop,
             child: body,
@@ -100,7 +100,7 @@ void main() {
 
   Rect rect(WidgetTester tester, Key key) => tester.getRect(find.byKey(key));
 
-  group('DockBleed', () {
+  group('DuoBleed', () {
     for (final frame in _Frame.values) {
       testWidgets('${frame.name}: runs under the column at the end', (
         tester,
@@ -135,7 +135,7 @@ void main() {
       await pump(tester, _probe(), padding: const EdgeInsets.only(right: 100));
       expect(rect(tester, _bled).right, 1000);
       expect(rect(tester, _sibling).right, 1000 - 72);
-      // SafeArea clears the column and the rest of the inset; DockInset puts
+      // SafeArea clears the column and the rest of the inset; DuoInset puts
       // its child back beside the column, where the body was.
       expect(rect(tester, _safe).right, 1000 - 100);
       expect(rect(tester, _inset).right, 1000 - 72);
@@ -148,7 +148,7 @@ void main() {
         tester,
         _probe(),
         padding: const EdgeInsets.only(right: 100),
-        data: const DockNavigationData(columnInset: DockColumnInset.safeArea),
+        data: const DuoNavigationData(columnInset: DuoColumnInset.safeArea),
       );
       expect(rect(tester, _bled).right, 1000);
       expect(rect(tester, _sibling).right, 1000 - 172);
@@ -158,12 +158,12 @@ void main() {
     testWidgets('runs under the compact bar', (tester) async {
       await pump(
         tester,
-        const DockBleed(child: SizedBox.expand(key: _bled)),
-        mode: DockLayoutMode.compact,
+        const DuoBleed(child: SizedBox.expand(key: _bled)),
+        mode: DuoLayoutMode.compact,
         size: const Size(400, 800),
       );
       expect(rect(tester, _bled).bottom, 800);
-      expect(rect(tester, DockKeys.bar).top, lessThan(800));
+      expect(rect(tester, DuoKeys.bar).top, lessThan(800));
     });
 
     testWidgets('edges can be turned off', (tester) async {
@@ -180,7 +180,7 @@ void main() {
         await pump(
           tester,
           _probe(),
-          data: const DockNavigationData(bodyMode: DockBodyMode.overlay),
+          data: const DuoNavigationData(bodyMode: DuoBodyMode.overlay),
         );
         await expectNoBleed(tester);
       });
@@ -198,12 +198,12 @@ void main() {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: DockBleed(
+                child: DuoBleed(
                   child: Center(
                     child: SizedBox(
                       width: 100,
                       height: 100,
-                      child: DockBleed(child: SizedBox.expand(key: _bled)),
+                      child: DuoBleed(child: SizedBox.expand(key: _bled)),
                     ),
                   ),
                 ),
@@ -225,7 +225,7 @@ void main() {
                 child: SizedBox(
                   width: 100,
                   height: 100,
-                  child: DockBleed(child: SizedBox.expand(key: _bled)),
+                  child: DuoBleed(child: SizedBox.expand(key: _bled)),
                 ),
               ),
             ),
@@ -238,7 +238,7 @@ void main() {
     testWidgets('keeps the child State across a mode switch', (tester) async {
       await pump(
         tester,
-        const DockBleed(child: Material(child: TextField())),
+        const DuoBleed(child: Material(child: TextField())),
         size: const Size(1000, 700),
       );
       await tester.enterText(find.byType(TextField), 'kept');
@@ -257,11 +257,11 @@ void main() {
         tester,
         Builder(
           builder: (context) {
-            outside = DockBleed.insetOf(context);
-            return DockBleed(
+            outside = DuoBleed.insetOf(context);
+            return DuoBleed(
               child: Builder(
                 builder: (context) {
-                  inside = DockBleed.insetOf(context);
+                  inside = DuoBleed.insetOf(context);
                   return const SizedBox.expand();
                 },
               ),
@@ -280,7 +280,7 @@ void main() {
         Column(
           children: [
             Expanded(
-              child: DockBleed(
+              child: DuoBleed(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () => taps++,
@@ -301,8 +301,8 @@ void main() {
 
     testWidgets('adds no layer', (tester) async {
       await pump(tester, _probe());
-      // The first render object of a DockBleed is the bleed's own box.
-      final bleed = tester.renderObject(find.byType(DockBleed).first);
+      // The first render object of a DuoBleed is the bleed's own box.
+      final bleed = tester.renderObject(find.byType(DuoBleed).first);
       expect(bleed.isRepaintBoundary, isFalse);
       expect(bleed.debugLayer, isNull);
     });
@@ -319,12 +319,10 @@ void main() {
           // flutter_test checks that debugPrint is restored when the body ends.
           debugPrint = previous;
         }
-        return printed
-            .where((m) => m.contains('DockBleed is clipped'))
-            .toList();
+        return printed.where((m) => m.contains('DuoBleed is clipped')).toList();
       }
 
-      const bleed = DockBleed(child: SizedBox.expand());
+      const bleed = DuoBleed(child: SizedBox.expand());
       Widget navigator({Clip clip = Clip.hardEdge}) => Navigator(
         clipBehavior: clip,
         onGenerateRoute: (_) => MaterialPageRoute<void>(builder: (_) => bleed),
@@ -348,7 +346,7 @@ void main() {
         expect(
           await messages(
             tester,
-            DockTabNavigator(
+            DuoTabNavigator(
               onGenerateRoute: (_) =>
                   MaterialPageRoute<void>(builder: (_) => bleed),
             ),
@@ -369,10 +367,10 @@ void main() {
         'header', (tester) async {
       await pump(
         tester,
-        DockBleed(
+        DuoBleed(
           child: ListView(
-            children: DockInset.wrapAll([
-              const DockBleedItem(child: SizedBox(key: _bled, height: 100)),
+            children: DuoInset.wrapAll([
+              const DuoBleedItem(child: SizedBox(key: _bled, height: 100)),
               const SizedBox(key: _inset, height: 40),
             ]),
           ),
@@ -440,7 +438,7 @@ void main() {
           onGenerateRoute: (_) => MaterialPageRoute<void>(
             builder: (context) {
               root = context;
-              return const DockPage<Object?, Object?>(body: SizedBox.expand());
+              return const DuoPage<Object?, Object?>(body: SizedBox.expand());
             },
           ),
         ),
@@ -450,7 +448,7 @@ void main() {
 
       Navigator.of(root).push(
         MaterialPageRoute<void>(
-          builder: (_) => const DockPage<Object?, Object?>(
+          builder: (_) => const DuoPage<Object?, Object?>(
             backdrop: SizedBox.expand(key: Key('page backdrop')),
             body: SizedBox.expand(),
           ),

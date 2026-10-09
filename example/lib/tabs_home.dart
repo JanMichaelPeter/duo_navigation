@@ -14,32 +14,32 @@ class TabAccent {
   final Color color;
 }
 
-const tabs = <DockTab<TabAccent>>[
-  DockTab(
+const tabs = <DuoTab<TabAccent>>[
+  DuoTab(
     id: 'items',
-    icon: DockIcon(Icons.list_alt_outlined),
-    selectedIcon: DockIcon(Icons.list_alt),
+    icon: DuoIcon(Icons.list_alt_outlined),
+    selectedIcon: DuoIcon(Icons.list_alt),
     label: 'Items',
-    badge: DockBadge.count(3),
+    badge: DuoBadge.count(3),
     payload: TabAccent(Colors.indigo),
   ),
-  DockTab(
+  DuoTab(
     id: 'map',
-    icon: DockIcon(Icons.map_outlined),
-    selectedIcon: DockIcon(Icons.map),
+    icon: DuoIcon(Icons.map_outlined),
+    selectedIcon: DuoIcon(Icons.map),
     label: 'Map',
     payload: TabAccent(Colors.teal),
   ),
-  DockTab(
+  DuoTab(
     id: 'profile',
-    icon: DockIcon(Icons.person_outline),
-    selectedIcon: DockIcon(Icons.person),
+    icon: DuoIcon(Icons.person_outline),
+    selectedIcon: DuoIcon(Icons.person),
     label: 'Profile',
     payload: TabAccent(Colors.deepOrange),
   ),
 ];
 
-/// One DockTabNavigator per tab in a DockTabStack. With go_router, see
+/// One DuoTabNavigator per tab in a DuoTabStack. With go_router, see
 /// `main_go_router.dart`.
 class TabsHome extends StatefulWidget {
   const TabsHome({super.key});
@@ -55,7 +55,7 @@ class _TabsHomeState extends State<TabsHome> {
 
   @override
   Widget build(BuildContext context) {
-    return DockShell<TabAccent, Object?, Object?>(
+    return DuoShell<TabAccent, Object?, Object?>(
       tabs: tabs,
       currentIndex: _index,
       onTabSelected: (i) => setState(() => _index = i),
@@ -64,7 +64,7 @@ class _TabsHomeState extends State<TabsHome> {
           _keys[i].currentState?.popUntil((route) => route.isFirst),
       // Builders for this shell only, typed for its tabs: the selected tab
       // shows its accent color. Everything else comes from the app's style.
-      builders: DockBuilders<TabAccent, Object?, Object?>(
+      builders: DuoBuilders<TabAccent, Object?, Object?>(
         tabItem: (context, data) => CustomStyle.tabItem(
           context,
           data,
@@ -72,13 +72,13 @@ class _TabsHomeState extends State<TabsHome> {
         ),
       ),
       // Keeps every tab's navigator alive and the inactive ones inert.
-      child: DockTabStack(
+      child: DuoTabStack(
         index: _index,
         children: [
           for (var i = 0; i < tabs.length; i++)
             // Doesn't clip (the map page bleeds under the bar and column) and
             // handles Android's system back for the shown tab.
-            DockTabNavigator(
+            DuoTabNavigator(
               navigatorKey: _keys[i],
               onGenerateRoute: (settings) => MaterialPageRoute<void>(
                   settings: settings, builder: (_) => _roots[i]),

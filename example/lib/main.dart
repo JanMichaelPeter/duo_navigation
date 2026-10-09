@@ -33,15 +33,17 @@ class _ExampleAppState extends State<ExampleApp> {
       darkTheme: ThemeData(
           colorSchemeSeed: Colors.indigo, brightness: Brightness.dark),
       // Above the root Navigator, so root-level modals get the config too.
-      builder: (context, child) => DockNavigation(
-        // CustomStyle is optional: `builders: const DockMaterialBuilders()`
+      builder: (context, child) => DuoNavigation(
+        // CustomStyle is optional: `builders: const DuoMaterialBuilders()`
         // (package:duo_navigation/material.dart) gives the Material defaults. See
         // style/custom_style.dart.
         builders: CustomStyle.builders,
-        data: CustomStyle.data(DockNavigationData(
-          // 466 also gives foldables in their narrow unfolded posture the
-          // wide layout.
-          layoutPolicy: const DockLayoutPolicy.breakpoint(466),
+        data: CustomStyle.data(DuoNavigationData(
+          // The demo shows the column as often as it can: by window width, so
+          // phones in landscape and foldables in their narrow unfolded
+          // posture get it too. The default, shortestSide(600), keeps phones
+          // in the bottom-bar layout.
+          layoutPolicy: const DuoLayoutPolicy.breakpoint(466),
           windowEdgesSource: _windowEdges,
         )),
         child: child ?? const SizedBox.shrink(),
