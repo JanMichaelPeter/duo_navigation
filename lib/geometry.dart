@@ -4,6 +4,7 @@
 library;
 
 export 'src/bleed/bleed.dart' show DuoBleed, DuoBleedItem, DuoInset;
+export 'src/geometry/bar_region_source.dart';
 export 'src/geometry/body_mode.dart';
 export 'src/geometry/dock_geometry.dart' show DuoGeometry, DuoGeometryAspect;
 export 'src/geometry/layout_mode.dart';

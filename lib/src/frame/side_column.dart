@@ -16,6 +16,7 @@ class SideColumn extends StatelessWidget {
     required this.rail,
     required this.columnOnRight,
     required this.columnInset,
+    this.top,
     required this.buildChip,
   });
 
@@ -25,6 +26,10 @@ class SideColumn extends StatelessWidget {
   final Widget? rail;
   final bool columnOnRight;
   final DuoColumnInset columnInset;
+
+  /// Where the column's content starts, below the status icons on its edge;
+  /// null: the safe area's top.
+  final double? top;
 
   /// Builds one action chip with the frame's typed action builder.
   final Widget Function(BuildContext context, DuoAction<Object?> action)
@@ -39,10 +44,14 @@ class SideColumn extends StatelessWidget {
     // The status bar and home indicator stay padded either way; the opposite
     // edge is not the column's concern.
     final overlap = columnInset == DuoColumnInset.overlap;
-    return MediaQuery.removePadding(
-      context: context,
+    final media = MediaQuery.of(context).removePadding(
       removeLeft: overlap && !columnOnRight,
       removeRight: overlap && columnOnRight,
+    );
+    return MediaQuery(
+      data: top == null
+          ? media
+          : media.copyWith(padding: media.padding.copyWith(top: top)),
       child: SafeArea(
         left: !columnOnRight,
         right: columnOnRight,

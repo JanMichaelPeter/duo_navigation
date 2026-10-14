@@ -15,3 +15,4 @@ library;
 export 'duo_navigation.dart';
 export 'src/material/app_bar.dart';
 export 'src/material/defaults.dart';
+export 'src/material/title_bar_padding.dart';

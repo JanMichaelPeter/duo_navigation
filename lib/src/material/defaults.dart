@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../builders/builders.dart';
 import 'app_bar.dart';
+import 'title_bar_padding.dart';
+import '../config/action_alignment.dart';
 import '../config/navigation.dart';
 import '../frame/side_column_layout.dart';
 import '../tabs/tab_item.dart';
@@ -238,15 +240,22 @@ abstract final class DuoMaterial {
   /// A [Scaffold] with a [DuoAppBar]. When the side column is at the start
   /// edge, the bar's actions move to the start too, so everything sits on
   /// one side.
+  ///
+  /// With a `DuoNavigationData.barRegionSource`, the bar sits on the top
+  /// edge beside the status icons ([DuoTitleBarPadding]), for example in the
+  /// top safe-area band of an unfolded iPhone Duo in portrait.
   static Widget page(
     BuildContext context,
     DuoBarData<Object?, Object?> bar,
     Widget body,
   ) {
-    return Scaffold(appBar: const DuoAppBar(), body: body);
+    return DuoTitleBarPadding(
+      child: Scaffold(appBar: const DuoAppBar(), body: body),
+    );
   }
 
-  /// Actions fill the top and anchor to the bottom, with the rail below them.
+  /// Actions fill the space above the rail, anchored at its top or bottom
+  /// (`DuoNavigationData.actionAlignment`).
   /// The rail gets its height first ([DuoSideColumnLayout]).
   static Widget sideColumn(
     BuildContext context,
@@ -260,18 +269,21 @@ abstract final class DuoMaterial {
     );
   }
 
-  /// Chips grow from the bottom while fading and scaling in.
+  /// Chips grow from the stack's anchor (`DuoNavigationData.actionAlignment`)
+  /// while fading and scaling in.
   static Widget actionTransition(
     BuildContext context,
     Animation<double> animation,
     Widget child,
   ) {
-    // Height grows from the bottom, so the chips above glide into place.
+    // Height grows from the anchor, so the chips beyond glide into place.
+    final top =
+        DuoNavigation.of(context).actionAlignment == DuoActionAlignment.top;
     return ClipRect(
       child: AnimatedBuilder(
         animation: animation,
         builder: (context, child) => Align(
-          alignment: Alignment.bottomCenter,
+          alignment: top ? Alignment.topCenter : Alignment.bottomCenter,
           heightFactor: animation.value.clamp(0.0, 1.0),
           child: child,
         ),

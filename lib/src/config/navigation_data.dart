@@ -1,7 +1,9 @@
 import 'package:flutter/widgets.dart';
 
 import '../actions/tap_guard.dart';
+import '../geometry/bar_region_source.dart';
 import '../geometry/body_mode.dart';
+import 'action_alignment.dart';
 import 'column_inset.dart';
 import 'keyboard.dart';
 import '../models/action.dart';
@@ -28,12 +30,14 @@ class DuoNavigationData {
     this.layoutPolicy = const DuoLayoutPolicy.shortestSide(600),
     this.side = DuoSide.end,
     this.windowEdgesSource,
+    this.barRegionSource,
     this.bodyMode = DuoBodyMode.inset,
     this.hoisting = DuoHoisting.iconActions,
     this.modalLeading = const DuoModalLeading(),
     this.keyboard = const DuoKeyboard(),
     this.sideColumnWidth = 72,
     this.columnInset = DuoColumnInset.overlap,
+    this.actionAlignment = DuoActionAlignment.top,
     this.columnTextScaleLimit = 1.5,
     this.sideItemExtent = 56,
     this.actionSpacing = 8,
@@ -61,6 +65,15 @@ class DuoNavigationData {
   /// every other case (fullscreen, floating, unknown) [side] is used. Null: no
   /// detection, always [side].
   final DuoWindowEdgesSource? windowEdgesSource;
+
+  /// Where bars may sit beside the system's status icons.
+  ///
+  /// With a source, the side column's actions start below the status icons
+  /// when they share its edge (iPhone Duo), instead of below the whole safe
+  /// area, and the default page's title bar sits on the top edge beside the
+  /// icons (see `DuoNavigation.titleBarPaddingOf`). Null, or where the
+  /// source has no answer: the safe area.
+  final DuoBarRegionSource? barRegionSource;
 
   /// How frames lay out their body: beside the bar and column
   /// ([DuoBodyMode.inset], the default) or under them
@@ -90,6 +103,11 @@ class DuoNavigationData {
   /// ([DuoColumnInset.overlap], the default: at the window edge) or after it
   /// ([DuoColumnInset.safeArea]: clear of cutouts and system buttons).
   final DuoColumnInset columnInset;
+
+  /// Where the side column's actions are anchored: at the top, below the
+  /// safe area or the status icons ([DuoActionAlignment.top], the default),
+  /// or at the bottom, above the rail ([DuoActionAlignment.bottom]).
+  final DuoActionAlignment actionAlignment;
 
   /// How far the column grows with the text scale: its width is
   /// [sideColumnWidth] times the text scale, at most this factor.
@@ -121,17 +139,19 @@ class DuoNavigationData {
   final DuoTapGuard tapGuard;
 
   /// A copy with the given fields replaced. Pass null for [windowEdgesSource]
-  /// to remove it.
+  /// or [barRegionSource] to remove it.
   DuoNavigationData copyWith({
     DuoLayoutPolicy? layoutPolicy,
     DuoSide? side,
     Object? windowEdgesSource = _unset,
+    Object? barRegionSource = _unset,
     DuoBodyMode? bodyMode,
     DuoHoisting? hoisting,
     DuoModalLeading? modalLeading,
     DuoKeyboard? keyboard,
     double? sideColumnWidth,
     DuoColumnInset? columnInset,
+    DuoActionAlignment? actionAlignment,
     double? columnTextScaleLimit,
     double? sideItemExtent,
     double? actionSpacing,
@@ -147,12 +167,16 @@ class DuoNavigationData {
       windowEdgesSource: identical(windowEdgesSource, _unset)
           ? this.windowEdgesSource
           : windowEdgesSource as DuoWindowEdgesSource?,
+      barRegionSource: identical(barRegionSource, _unset)
+          ? this.barRegionSource
+          : barRegionSource as DuoBarRegionSource?,
       bodyMode: bodyMode ?? this.bodyMode,
       hoisting: hoisting ?? this.hoisting,
       modalLeading: modalLeading ?? this.modalLeading,
       keyboard: keyboard ?? this.keyboard,
       sideColumnWidth: sideColumnWidth ?? this.sideColumnWidth,
       columnInset: columnInset ?? this.columnInset,
+      actionAlignment: actionAlignment ?? this.actionAlignment,
       columnTextScaleLimit: columnTextScaleLimit ?? this.columnTextScaleLimit,
       sideItemExtent: sideItemExtent ?? this.sideItemExtent,
       actionSpacing: actionSpacing ?? this.actionSpacing,
@@ -171,12 +195,14 @@ class DuoNavigationData {
       other.layoutPolicy == layoutPolicy &&
       other.side == side &&
       other.windowEdgesSource == windowEdgesSource &&
+      other.barRegionSource == barRegionSource &&
       other.bodyMode == bodyMode &&
       other.hoisting == hoisting &&
       other.modalLeading == modalLeading &&
       other.keyboard == keyboard &&
       other.sideColumnWidth == sideColumnWidth &&
       other.columnInset == columnInset &&
+      other.actionAlignment == actionAlignment &&
       other.columnTextScaleLimit == columnTextScaleLimit &&
       other.sideItemExtent == sideItemExtent &&
       other.actionSpacing == actionSpacing &&
@@ -191,12 +217,14 @@ class DuoNavigationData {
     layoutPolicy,
     side,
     windowEdgesSource,
+    barRegionSource,
     bodyMode,
     hoisting,
     modalLeading,
     keyboard,
     sideColumnWidth,
     columnInset,
+    actionAlignment,
     columnTextScaleLimit,
     sideItemExtent,
     actionSpacing,
