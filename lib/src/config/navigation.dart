@@ -3,6 +3,10 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 
 import '../builders/builders.dart';
+import '../frame/frame.dart' show DuoScope;
+import '../geometry/bar_region_source.dart';
+import '../geometry/bar_regions.dart';
+import '../geometry/dock_geometry.dart';
 import '../geometry/layout_mode.dart';
 import '../geometry/side.dart';
 import '../geometry/window_edges.dart';
@@ -14,7 +18,9 @@ import 'navigation_data.dart';
 /// navigator see it too.
 ///
 /// It also listens to [DuoNavigationData.windowEdgesSource], once for the
-/// whole app, and moves the side column to the edge the window touches.
+/// whole app, and moves the side column to the edge the window touches; and
+/// it asks [DuoNavigationData.barRegionSource] where bars fit beside the
+/// status icons ([barRegionOf]).
 class DuoNavigation extends StatefulWidget {
   /// Provides [data] and [builders] to [child].
   const DuoNavigation({
@@ -102,6 +108,52 @@ class DuoNavigation extends StatefulWidget {
         preferRight;
   }
 
+  /// Where the system lets a bar [extent] thick sit along [edge], in window
+  /// coordinates, from [DuoNavigationData.barRegionSource]; see
+  /// [DuoBarRegionSource]. Null without a source, where it can't tell, and
+  /// until its first answer for the current window arrives ([context] then
+  /// rebuilds).
+  static Rect? barRegionOf(
+    BuildContext context,
+    DuoScreenEdge edge,
+    double extent,
+  ) => BarRegionsScope.of(context, edge, extent);
+
+  /// The padding for a page's title bar [extent] high at the top of the
+  /// nearest frame's body, so the bar sits on the window's top edge beside
+  /// the status icons rather than below them.
+  ///
+  /// Like `MediaQuery.paddingOf`, with two changes from
+  /// [DuoNavigationData.barRegionSource]: the top is as small as the top bar
+  /// region allows (in the top safe-area band beside the icons, for example
+  /// an unfolded iPhone Duo in portrait), and the side where the icons cut
+  /// into the top edge is padded so the title and the bar's actions end
+  /// before them. The Material `DuoAppBar` and `DuoTitleBarPadding` apply
+  /// it; custom title bars can too.
+  ///
+  /// Null where it doesn't apply: no source or no answer yet, outside a
+  /// frame, or a frame that doesn't fill the window (a sheet). Use
+  /// `MediaQuery.paddingOf` then.
+  static EdgeInsets? titleBarPaddingOf(BuildContext context, double extent) {
+    final region = barRegionOf(context, DuoScreenEdge.top, extent);
+    if (region == null) return null;
+    final scope = DuoScope.maybeOf(context);
+    final geometry = DuoGeometry.maybeOf(
+      context,
+      aspect: DuoGeometryAspect.chrome,
+    );
+    if (scope == null || !scope.fillsWindow || geometry == null) return null;
+    final size = MediaQuery.sizeOf(context);
+    final strip = geometry.strip;
+    return titleBarPaddingFromRegion(
+      region: region,
+      origin: Offset(strip.left, strip.top),
+      bodyWidth: size.width - strip.horizontal,
+      size: size,
+      padding: MediaQuery.paddingOf(context),
+    );
+  }
+
   static _DuoNavigationScope _scopeOf(BuildContext context, _Aspect aspect) {
     of(context); // Fails with the explanation above when there is none.
     return InheritedModel.inheritFrom<_DuoNavigationScope>(
@@ -117,6 +169,7 @@ class DuoNavigation extends StatefulWidget {
 class _DuoNavigationState extends State<DuoNavigation> {
   StreamSubscription<DuoWindowEdges?>? _subscription;
   DuoWindowEdges? _edges;
+  final BarRegionCache _regions = BarRegionCache();
 
   @override
   void initState() {
@@ -142,15 +195,24 @@ class _DuoNavigationState extends State<DuoNavigation> {
   @override
   void dispose() {
     _subscription?.cancel();
+    _regions.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    _regions.update(
+      widget.data.barRegionSource,
+      MediaQuery.maybeSizeOf(context) ?? Size.zero,
+      MediaQuery.maybeViewPaddingOf(context) ?? EdgeInsets.zero,
+    );
     return _DuoNavigationScope(
       data: widget.data,
       edges: _edges,
-      child: DuoBuildersScope(builders: widget.builders, child: widget.child),
+      child: BarRegionsScope(
+        cache: _regions,
+        child: DuoBuildersScope(builders: widget.builders, child: widget.child),
+      ),
     );
   }
 }

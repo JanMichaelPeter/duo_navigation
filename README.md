@@ -17,7 +17,7 @@ One navigation code path, two layouts:
 | | Compact (phones) | Wide (tablets, unfolded foldables) |
 |---|---|---|
 | Tabs | bottom tab bar | vertical rail at the bottom of the side column |
-| Leading (back/close) | title bar | chip right above the rail (a text one like "Cancel" stays in the title bar) |
+| Leading (back/close) | title bar | first chip at the top of the column (a text one like "Cancel" stays in the title bar) |
 | Trailing icon actions | title bar | chips stacked above the leading chip |
 | Trailing text actions | title bar | stay in the title bar, on the column's side |
 | Modal pages | no tab bar | side column with actions, no rail |
@@ -143,7 +143,7 @@ GoRoute(
 
 ## Pages and actions
 
-**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. `impliedLeading: DuoImpliedLeading.close` on a `DuoModalScope` or a page asks for close on any other route (a custom modal route, a sheet-like page). Pass `leading` to change it, for example a text-only `DuoAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the title bar, after the other actions: the close button at the top right of an iOS-style sheet. In wide mode it is still the lowest chip in the column. For every modal at once, `DuoNavigationData(modalLeading: DuoModalLeading(implied: DuoImpliedLeading.close, atEnd: true))` applies both to each modal start (a `DuoModalScope`'s first page, a full-screen dialog, a sheet; not a plain page pushed on the root navigator); a `DuoModalScope` or a page overrides it.
+**The leading action is implied**: back for pushed pages, close for `fullscreenDialog`. `impliedLeading: DuoImpliedLeading.close` on a `DuoModalScope` or a page asks for close on any other route (a custom modal route, a sheet-like page). Pass `leading` to change it, for example a text-only `DuoAction.back(icon: null, label: 'Cancel')`, which stays in the title bar in every mode. `leadingAtEnd: true` puts the leading action at the end of the title bar, after the other actions: the close button at the top right of an iOS-style sheet. In wide mode it is still the chip next to the column's anchor. For every modal at once, `DuoNavigationData(modalLeading: DuoModalLeading(implied: DuoImpliedLeading.close, atEnd: true))` applies both to each modal start (a `DuoModalScope`'s first page, a full-screen dialog, a sheet; not a plain page pushed on the root navigator); a `DuoModalScope` or a page overrides it.
 
 **An action** has an `id` (`find.byKey(DuoKeys.action(id))` finds it), an icon as `DuoIcon` (`DuoIcon.back` and `DuoIcon.close` follow the platform) and/or a `label`, and optionally:
 
@@ -151,7 +151,7 @@ GoRoute(
 |---|---|
 | `role` | `back`, `close`, `primary`, `secondary`, `destructive`, `overflow`; builders style by it |
 | `enabled`, `badge`, `tooltip`, `semanticLabel`, `key` | |
-| `order` | position in the column: higher sits higher; the leading action is always lowest |
+| `order` | position in the column: higher sits further from the anchor (the top, or the rail with `DuoActionAlignment.bottom`); the leading action is always next to it |
 | `hoist: DuoHoist.never` | stays in the title bar in wide mode |
 | `cooldown`, `guarded` | tap guard per action (see below) |
 | `payload` | typed app data for custom builders |
@@ -177,7 +177,7 @@ DuoPageScope(
 
 **Which page owns the column.** Each page registers with the nearest frame (shell or modal). It counts as shown while its route is current, or only dialogs, sheets or menus are above it, and while its subtree is ticking; the most recently shown one owns the column. No router coupling. A dialog over a page leaves its chips in place; their taps wait until it closes.
 
-**Action identity and animation.** Back and close (and any action with `shared: true`) are matched by `id` across pages: the chip keeps its place going four levels deep and back, and back ↔ close morphs. Every other action belongs to its page and animates out while the next page's animate in. The column is anchored to the bottom with back lowest, so the most-used chip never moves; leaving chips fade out where they were, without taking taps.
+**Action identity and animation.** Back and close (and any action with `shared: true`) are matched by `id` across pages: the chip keeps its place going four levels deep and back, and back ↔ close morphs. Every other action belongs to its page and animates out while the next page's animate in. The column's actions are anchored at the top with back first (`DuoNavigationData.actionAlignment`; `DuoActionAlignment.bottom` anchors them above the rail with back lowest), so the most-used chip never moves; leaving chips fade out where they were, without taking taps.
 
 **Tap guard.** An action fires only when its page is the one shown, its route isn't in a transition or a back swipe, and the same action hasn't fired within its cooldown (350 ms). Tapping back three times pops one page; different actions don't block each other. `DuoNavigationData(tapGuard: DuoTapGuard(cooldown: ..., onRejected: (action, reason) => ...))` configures it; per action, `cooldown` overrides it and `guarded: false` opts out.
 
@@ -277,6 +277,20 @@ DuoNavigationData(windowEdgesSource: windowEdges)
 | unknown, or no source | | `side` |
 
 Title-bar actions follow the column (`DuoBarData.trailingAtStart`, handled by `DuoAppBar` and `DuoBarLayout`). `DuoWindowEdgesSource` is a small interface (`value` and a `changes` stream), so an app that knows its window geometry another way can implement it; `DuoWindowEdgesSource.fixed(...)` pins the edges.
+
+### Status icons beside the column (iPhone Duo)
+
+On the iPhone Duo the status icons sit in a column at the right edge (folded, and unfolded in landscape) or in a band at the top (unfolded in portrait). The safe area gives up that whole column or band. Give `DuoNavigation` a bar-region source, and it asks the system where bars fit beside the icons (iOS 27.1+, through window_placement):
+
+```dart
+final placement = WindowPlacementEdgesSource(); // create once, dispose with the app
+
+DuoNavigationData(windowEdgesSource: placement, barRegionSource: placement)
+```
+
+* The side column's actions start below the icons when they share its edge, not below the whole safe area.
+* The title bar sits on the top edge beside the icons, in the band in portrait, and its title and actions end before them. The default page does this; for a page with its own `Scaffold` and `DuoAppBar`, wrap the `Scaffold` in a `DuoTitleBarPadding`.
+* Without an answer (older iOS, Android) the safe area applies, as before.
 
 ## Accessibility
 

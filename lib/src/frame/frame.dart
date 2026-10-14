@@ -3,6 +3,7 @@
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
@@ -36,6 +37,7 @@ class DuoScope extends InheritedWidget {
     required this.route,
     required this.impliedLeading,
     required this.leadingAtEnd,
+    required this.fillsWindow,
     required super.child,
   });
 
@@ -67,6 +69,10 @@ class DuoScope extends InheritedWidget {
   /// Whether the modal's first page has its leading action at the end.
   final bool leadingAtEnd;
 
+  /// Whether the frame covers the whole window, so its body's position in
+  /// the window is known (bar regions are in window coordinates).
+  final bool fillsWindow;
+
   /// The nearest scope, or null outside any shell or modal frame.
   static DuoScope? maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<DuoScope>();
@@ -84,7 +90,8 @@ class DuoScope extends InheritedWidget {
       hoisting != oldWidget.hoisting ||
       route != oldWidget.route ||
       impliedLeading != oldWidget.impliedLeading ||
-      leadingAtEnd != oldWidget.leadingAtEnd;
+      leadingAtEnd != oldWidget.leadingAtEnd ||
+      fillsWindow != oldWidget.fillsWindow;
 }
 
 /// Decides whether a tab may be selected; see `DuoShell.canSelectTab`.
@@ -394,6 +401,12 @@ class _DuoFrameState<T, A, B> extends State<DuoFrame<T, A, B>>
         // routes change above it.
         final route = widget.isModal ? ModalRoute.of(context) : null;
         final modalStart = _isModalStart(route);
+        final fillsWindow =
+            (constraints.biggest - window as Offset).distanceSquared <
+            precisionErrorTolerance;
+        final columnWidth =
+            config.sideColumnWidth *
+            textScale.clamp(1.0, config.columnTextScaleLimit);
         return DuoScope._(
           mode: mode,
           host: _host,
@@ -406,6 +419,7 @@ class _DuoFrameState<T, A, B> extends State<DuoFrame<T, A, B>>
               (modalStart ? config.modalLeading.implied : null),
           leadingAtEnd:
               widget.leadingAtEnd ?? (modalStart && config.modalLeading.atEnd),
+          fillsWindow: fillsWindow,
           // Focus and semantics order, the same in both modes: the page
           // first, then the chrome (the column's actions above its rail, or
           // the tab bar).
@@ -415,9 +429,7 @@ class _DuoFrameState<T, A, B> extends State<DuoFrame<T, A, B>>
               mode: mode,
               side: side,
               columnOnRight: columnOnRight,
-              columnWidth:
-                  config.sideColumnWidth *
-                  textScale.clamp(1.0, config.columnTextScaleLimit),
+              columnWidth: columnWidth,
               columnInset: config.columnInset,
               bodyMode: widget.bodyMode ?? config.bodyMode,
               systemPadding: padding,
@@ -483,6 +495,8 @@ class _DuoFrameState<T, A, B> extends State<DuoFrame<T, A, B>>
                           ),
                     columnOnRight: columnOnRight,
                     columnInset: config.columnInset,
+                    columnWidth: columnWidth,
+                    fillsWindow: fillsWindow,
                     buildChip: (context, action) =>
                         _chip(context, builders, action),
                   ),

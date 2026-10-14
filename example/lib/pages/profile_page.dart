@@ -35,38 +35,42 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
       ),
-      child: Scaffold(
-        backgroundColor: Colors.transparent,
-        appBar: const DuoAppBar(backgroundColor: Colors.transparent),
-        body: ListView(
-          children: [
-            const ListTile(
-              leading: CircleAvatar(child: Text('A')),
-              title: Text('Alex Example'),
-              subtitle: Text('Single modal: Edit (in the title bar)'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.settings_outlined),
-              title: const Text('Settings'),
-              subtitle: const Text('A plain Scaffold page with its own AppBar'),
-              onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                  builder: (_) => const SettingsPage())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Camera'),
-              subtitle: const Text('Immersive: the navigation hides'),
-              onTap: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const CameraPage())),
-            ),
-            ListTile(
-              leading: const Icon(Icons.auto_awesome_outlined),
-              title: const Text('Run setup flow'),
-              subtitle:
-                  const Text('Modal with its own navigator: close → back'),
-              onTap: () => presentModally(context, const SetupFlow()),
-            ),
-          ],
+      // Moves the bar up beside the status icons, like the default page
+      // (iPhone Duo unfolded in portrait).
+      child: DuoTitleBarPadding(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          appBar: const DuoAppBar(backgroundColor: Colors.transparent),
+          body: ListView(
+            children: [
+              const ListTile(
+                leading: CircleAvatar(child: Text('A')),
+                title: Text('Alex Example'),
+                subtitle: Text('Single modal: Edit (in the title bar)'),
+              ),
+              ListTile(
+                leading: const Icon(Icons.settings_outlined),
+                title: const Text('Settings'),
+                subtitle: const Text('A plain Scaffold page with its own AppBar'),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (_) => const SettingsPage())),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: const Text('Camera'),
+                subtitle: const Text('Immersive: the navigation hides'),
+                onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(builder: (_) => const CameraPage())),
+              ),
+              ListTile(
+                leading: const Icon(Icons.auto_awesome_outlined),
+                title: const Text('Run setup flow'),
+                subtitle:
+                    const Text('Modal with its own navigator: close → back'),
+                onTap: () => presentModally(context, const SetupFlow()),
+              ),
+            ],
+          ),
         ),
       ),
     );

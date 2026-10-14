@@ -4,6 +4,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../builders/builders.dart';
+import '../config/action_alignment.dart';
 import '../config/navigation.dart';
 import '../models/action.dart';
 import '../keys.dart';
@@ -38,9 +39,10 @@ class _Item {
   final bool animateIn;
 }
 
-/// The animated action stack inside the side column. Anchored to the bottom,
-/// so the back button (always last) sits right above the rail and never moves
-/// when trailing actions above it change.
+/// The animated action stack inside the side column, anchored by
+/// `DuoNavigationData.actionAlignment`. The back button (always the last
+/// action) sits next to the anchor, at the top or right above the rail, so it
+/// never moves when the other actions change.
 class DuoActionColumn extends StatefulWidget {
   const DuoActionColumn({
     super.key,
@@ -137,14 +139,17 @@ class _DuoActionColumnState extends State<DuoActionColumn> {
   Widget build(BuildContext context) {
     final config = DuoNavigation.of(context);
     final builders = DuoBuilders.of<Object?, Object?, Object?>(context);
+    final top = config.actionAlignment == DuoActionAlignment.top;
     return Align(
-      alignment: Alignment.bottomCenter,
+      alignment: top ? Alignment.topCenter : Alignment.bottomCenter,
       child: SingleChildScrollView(
-        reverse: true,
+        reverse: !top,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            for (final item in _items)
+            // At the top, the order flips, so the last action (back) is the
+            // one next to the anchor either way.
+            for (final item in top ? _items.reversed : _items)
               ActionPresence(
                 key: ValueKey<Object>(item.key),
                 visible: item.visible,

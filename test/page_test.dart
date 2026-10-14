@@ -351,12 +351,23 @@ void main() {
       expect(tester.getRect(find.text('Sheet')).left, lessThan(share.left));
     });
 
-    testWidgets('wide: it is still the lowest chip in the column', (
+    testWidgets('wide: it is still the chip next to the anchor', (
       tester,
     ) async {
       await pump(tester, shellWithPushed(sheet()));
-      final close = tester.getRect(_inColumn(_action(DuoAction.backId)));
-      final share = tester.getRect(_inColumn(_action('share')));
+      var close = tester.getRect(_inColumn(_action(DuoAction.backId)));
+      var share = tester.getRect(_inColumn(_action('share')));
+      expect(close.top, lessThan(share.top));
+
+      await pump(
+        tester,
+        shellWithPushed(sheet()),
+        data: const DuoNavigationData(
+          actionAlignment: DuoActionAlignment.bottom,
+        ),
+      );
+      close = tester.getRect(_inColumn(_action(DuoAction.backId)));
+      share = tester.getRect(_inColumn(_action('share')));
       expect(close.top, greaterThan(share.top));
     });
   });
