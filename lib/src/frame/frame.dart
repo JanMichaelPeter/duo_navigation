@@ -12,7 +12,10 @@ import '../actions/action_host.dart';
 import '../builders/builders.dart';
 import '../config/navigation.dart';
 import '../config/keyboard.dart';
+import '../config/column_inset.dart';
 import '../config/navigation_data.dart';
+import '../geometry/bar_region_source.dart';
+import '../geometry/bar_regions.dart';
 import '../geometry/body_mode.dart';
 import '../geometry/layout_mode.dart';
 import '../geometry/side.dart';
@@ -407,6 +410,24 @@ class _DuoFrameState<T, A, B> extends State<DuoFrame<T, A, B>>
         final columnWidth =
             config.sideColumnWidth *
             textScale.clamp(1.0, config.columnTextScaleLimit);
+        // Over the status icons (a column of them on its edge, iPhone Duo),
+        // the column centres on them and starts below them.
+        final placement =
+            mode == DuoLayoutMode.wide &&
+                fillsWindow &&
+                config.columnInset == DuoColumnInset.overlap
+            ? columnPlacementFromRegion(
+                region: DuoNavigation.barRegionOf(
+                  context,
+                  columnOnRight ? DuoScreenEdge.right : DuoScreenEdge.left,
+                  columnWidth,
+                ),
+                onRight: columnOnRight,
+                width: columnWidth,
+                size: window,
+                padding: padding,
+              )
+            : null;
         return DuoScope._(
           mode: mode,
           host: _host,
@@ -430,6 +451,7 @@ class _DuoFrameState<T, A, B> extends State<DuoFrame<T, A, B>>
               side: side,
               columnOnRight: columnOnRight,
               columnWidth: columnWidth,
+              columnOffset: placement?.offset ?? 0,
               columnInset: config.columnInset,
               bodyMode: widget.bodyMode ?? config.bodyMode,
               systemPadding: padding,
@@ -495,8 +517,7 @@ class _DuoFrameState<T, A, B> extends State<DuoFrame<T, A, B>>
                           ),
                     columnOnRight: columnOnRight,
                     columnInset: config.columnInset,
-                    columnWidth: columnWidth,
-                    fillsWindow: fillsWindow,
+                    top: placement?.top,
                     buildChip: (context, action) =>
                         _chip(context, builders, action),
                   ),

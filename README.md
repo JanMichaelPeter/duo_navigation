@@ -288,7 +288,7 @@ final placement = WindowPlacementEdgesSource(); // create once, dispose with the
 DuoNavigationData(windowEdgesSource: placement, barRegionSource: placement)
 ```
 
-* The side column's actions start below the icons when they share its edge, not below the whole safe area.
+* When the icons share the side column's edge, the column is centred on them and its actions start below them, not below the whole safe area.
 * The title bar sits on the top edge beside the icons, in the band in portrait, and its title and actions end before them. The default page does this; for a page with its own `Scaffold` and `DuoAppBar`, wrap the `Scaffold` in a `DuoTitleBarPadding`.
 * Without an answer (older iOS, Android) the safe area applies, as before.
 

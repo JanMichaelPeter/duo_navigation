@@ -71,16 +71,34 @@ class BarRegionsScope extends InheritedNotifier<BarRegionCache> {
           ?.lookup(edge, extent);
 }
 
-/// The top padding for a side column of [width] on the right or left edge
-/// of a window of [size] with [padding], or null to keep the safe area.
+/// Where a side column of [width] sits beside the status icons on its edge.
+@immutable
+class ColumnPlacement {
+  /// A placement with [top] and [offset].
+  const ColumnPlacement({required this.top, required this.offset});
+
+  /// Where the column's content starts: below the icons. Null: the safe
+  /// area's top.
+  final double? top;
+
+  /// The gap between the window edge and the column, so the column is
+  /// centred on the icons.
+  final double offset;
+}
+
+/// Where a side column of [width] on the right or left edge of a window of
+/// [size] with [padding] goes, given the bar [region] for that edge; null to
+/// keep the column at the edge with the safe area.
 ///
 /// Only when the status icons share the column's edge: that edge has a
 /// system inset, and the bar region hugs the edge (closer to it than the
 /// inset, so it is not the safe-area fallback for a column too wide to fit
-/// beside the icons). The column's actions then start below the icons.
-double? columnTopFromRegion({
+/// beside the icons). The column's content then starts below the icons, and
+/// the column is centred on the region's centre line, which is the icons'.
+ColumnPlacement? columnPlacementFromRegion({
   required Rect? region,
   required bool onRight,
+  required double width,
   required Size size,
   required EdgeInsets padding,
 }) {
@@ -88,7 +106,11 @@ double? columnTopFromRegion({
   final inset = onRight ? padding.right : padding.left;
   final margin = onRight ? size.width - region.right : region.left;
   if (inset <= 0 || margin >= inset) return null;
-  return region.top > padding.top ? region.top : null;
+  final centre = onRight ? size.width - region.center.dx : region.center.dx;
+  return ColumnPlacement(
+    top: region.top > padding.top ? region.top : null,
+    offset: math.max(0.0, centre - width / 2),
+  );
 }
 
 /// The padding for a title bar in a body at [origin] (in window coordinates)

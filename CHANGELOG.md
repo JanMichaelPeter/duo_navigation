@@ -6,7 +6,8 @@
   below the whole safe area, and the title bar sits on the top edge beside
   the icons (in the top safe-area band in portrait) and ends before them.
   `WindowPlacementEdgesSource` from `duo_navigation_window_placement`
-  provides it. New `DuoNavigation.barRegionOf` and
+  provides it. The column is also centred on the icons rather than flush
+  with the window edge. New `DuoNavigation.barRegionOf` and
   `DuoNavigation.titleBarPaddingOf`.
 * `DuoTitleBarPadding`: moves the title bar of a page's own `Scaffold` up
   beside the status icons, as the default page does.

@@ -64,28 +64,42 @@ Widget _app({
 }
 
 void main() {
-  group('columnTopFromRegion', () {
+  group('columnPlacementFromRegion', () {
     const folded = Size(466, 678);
     const icons = EdgeInsets.only(right: 84, bottom: 34);
 
-    test('starts below the status icons on their edge', () {
-      expect(
-        columnTopFromRegion(
-          region: const Rect.fromLTWH(386, 170, 64, 474),
-          onRight: true,
-          size: folded,
-          padding: icons,
-        ),
-        170,
-      );
+    test('starts below the status icons and centres on them', () {
+      final placement = columnPlacementFromRegion(
+        region: const Rect.fromLTWH(386, 170, 64, 474),
+        onRight: true,
+        width: 72,
+        size: folded,
+        padding: icons,
+      )!;
+      expect(placement.top, 170);
+      // The icons' centre line is 48 from the edge: 12 + 72 / 2.
+      expect(placement.offset, 12);
+    });
+
+    test('on the left edge, the offset counts from the left', () {
+      final placement = columnPlacementFromRegion(
+        region: const Rect.fromLTWH(16, 120, 64, 515),
+        onRight: false,
+        width: 80,
+        size: const Size(951, 669),
+        padding: const EdgeInsets.only(left: 84, bottom: 34),
+      )!;
+      expect(placement.top, 120);
+      expect(placement.offset, 8);
     });
 
     test('keeps the safe area on an edge without icons', () {
       // Split screen, app on the left: no inset on its right edge.
       expect(
-        columnTopFromRegion(
+        columnPlacementFromRegion(
           region: const Rect.fromLTWH(377, 16, 88, 619),
           onRight: true,
+          width: 88,
           size: const Size(469, 669),
           padding: const EdgeInsets.only(bottom: 34),
         ),
@@ -96,9 +110,10 @@ void main() {
     test('keeps the safe area when the column is too wide for the icons', () {
       // 120 wide: iOS falls back to a region inside the safe area.
       expect(
-        columnTopFromRegion(
+        columnPlacementFromRegion(
           region: const Rect.fromLTWH(262, 17.3, 120, 626.7),
           onRight: true,
+          width: 120,
           size: folded,
           padding: icons,
         ),
@@ -189,7 +204,15 @@ void main() {
       of: column,
       matching: find.byType(SafeArea),
     );
-    expect(tester.getRect(column).top, 0);
+    // The column is centred on the icons' centre line, 48 from the edge,
+    // and the body ends where it starts.
+    final columnRect = tester.getRect(column);
+    expect(columnRect.top, 0);
+    expect(columnRect.center.dx, 466 - 48);
+    expect(
+      tester.getRect(find.byType(DuoBarLayout)).right,
+      lessThanOrEqualTo(columnRect.left),
+    );
     // The column's content starts below the icons.
     final content = find.descendant(
       of: safeArea.first,
