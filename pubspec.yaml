@@ -35,11 +35,3 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-
-# Temporary: window_placement 0.0.3 (getBarRegion) is not published yet.
-# Remove once it is.
-dependency_overrides:
-  window_placement:
-    git:
-      url: https://github.com/JanMichaelPeter/window_placement.git
-      ref: bar-region
