@@ -51,7 +51,8 @@ class ProfilePage extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.settings_outlined),
                 title: const Text('Settings'),
-                subtitle: const Text('A plain Scaffold page with its own AppBar'),
+                subtitle:
+                    const Text('A plain Scaffold page with its own AppBar'),
                 onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
                     builder: (_) => const SettingsPage())),
               ),
@@ -59,8 +60,8 @@ class ProfilePage extends StatelessWidget {
                 leading: const Icon(Icons.camera_alt_outlined),
                 title: const Text('Camera'),
                 subtitle: const Text('Immersive: the navigation hides'),
-                onTap: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(builder: (_) => const CameraPage())),
+                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(
+                    builder: (_) => const CameraPage())),
               ),
               ListTile(
                 leading: const Icon(Icons.auto_awesome_outlined),
