@@ -463,8 +463,9 @@ enum DuoHoisting { iconActions, none }
 - **Hoisting.** In wide mode an action moves into the column when hoisting is `iconActions` (app, shell or modal scope;
   nearest wins), the action has an icon and `hoist` is `auto`. With `none`, `DuoBarData` is identical in compact and
   wide mode, leading action included, and the column holds only the rail.
-- **Column order**, bottom to top: the leading action right above the rail, then the hoisted trailing actions by
-  `order`, then by declaration order. The leading chip never moves when trailing actions change.
+- **Column order**, from the anchor (`DuoNavigationData.actionAlignment`: the top by default, or right above the rail):
+  the leading action first, then the hoisted trailing actions by `order`, then by declaration order. The leading chip
+  never moves when trailing actions change.
 - Actions that leave animate out in place (`mergeOrder`, kept from 0.0.1). The package owns presence timing, and
   builders own the visuals.
 - The icon morph is keyed by `DuoIcon.identity`. For a widget icon, the identity defaults to the widget's key.

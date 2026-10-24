@@ -1,3 +1,28 @@
+## 0.2.0
+
+* `DuoNavigationData.barRegionSource` (`DuoBarRegionSource`): where bars fit
+  beside the status icons. On the iPhone Duo (iOS 27.1+), the side column's
+  actions start below the status icons when they share its edge, instead of
+  below the whole safe area, and the title bar sits on the top edge beside
+  the icons (in the top safe-area band in portrait) and ends before them.
+  `WindowPlacementEdgesSource` from `duo_navigation_window_placement`
+  provides it. The column is also centred on the icons rather than flush
+  with the window edge. New `DuoNavigation.barRegionOf` and
+  `DuoNavigation.titleBarPaddingOf`.
+* `DuoTitleBarPadding`: moves the title bar of a page's own `Scaffold` up
+  beside the status icons, as the default page does.
+* `DuoNavigationData.actionAlignment` (`DuoActionAlignment`): anchors the
+  side column's actions at the top or at the bottom, above the rail. The back
+  button stays next to the anchor; `DuoAction.order` counts from it.
+* In debug mode, an action without any label (no `semanticLabel`,
+  `tooltip`, `label` or `DuoBuilders.actionLabel`) is reported once, naming
+  the fix: assistive technology reads it only as "button". Builder sets that
+  replace every builder lose the localized "Back" / "Close" unless they set
+  `actionLabel: DuoMaterial.actionLabel`.
+* **Behavior change** The side column's actions now start at the top by
+  default (`DuoActionAlignment.top`), with the back button first. Pass
+  `actionAlignment: DuoActionAlignment.bottom` for the 0.1.0 layout.
+
 ## 0.1.0
 
 A redesign of nav_dock, under a new name. Upgrading: see the

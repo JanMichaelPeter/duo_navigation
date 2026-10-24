@@ -45,6 +45,9 @@ class _ExampleAppState extends State<ExampleApp> {
           // in the bottom-bar layout.
           layoutPolicy: const DuoLayoutPolicy.breakpoint(466),
           windowEdgesSource: _windowEdges,
+          // The same source knows where bars fit beside the status icons
+          // (iPhone Duo, iOS 27.1+).
+          barRegionSource: _windowEdges,
         )),
         child: child ?? const SizedBox.shrink(),
       ),

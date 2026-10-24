@@ -222,9 +222,10 @@ class DuoAction<A> {
   /// action inside `DuoKeys.action(id)`.
   final Key? key;
 
-  /// Position among the page's actions in the column: lower values sit lower,
-  /// closer to the rail. Equal values keep the declaration order. The leading
-  /// action is always the lowest.
+  /// Position among the page's actions in the column: lower values sit
+  /// closer to the stack's anchor (the top, or the rail with
+  /// `DuoActionAlignment.bottom`). Equal values keep the declaration order.
+  /// The leading action is always the closest.
   final int order;
 
   /// Whether the action may move into the side column in wide mode.

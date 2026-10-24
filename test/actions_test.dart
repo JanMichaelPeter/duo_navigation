@@ -30,10 +30,12 @@ void main() {
     DuoTapGuard tapGuard = const DuoTapGuard(clock: DuoClock.frameTime),
     DuoBuilders<Object?, Object?, Object?>? builders =
         const DuoMaterialBuilders(),
+    DuoActionAlignment actionAlignment = DuoActionAlignment.top,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
         builder: (context, child) => DuoTestHarness(
+          data: DuoNavigationData(actionAlignment: actionAlignment),
           builders: builders,
           mode: mode,
           tapGuard: tapGuard,
@@ -358,42 +360,47 @@ void main() {
       expect(_inColumn(_action('free')), findsOneWidget);
     });
 
-    testWidgets('order sorts the column, the leading action stays lowest', (
-      tester,
-    ) async {
-      late BuildContext pageContext;
-      await pump(
-        tester,
-        shell(
-          Builder(
-            builder: (context) {
-              pageContext = context;
-              return const SizedBox.expand();
-            },
+    for (final alignment in DuoActionAlignment.values) {
+      testWidgets('actions at the ${alignment.name}: order sorts the column, '
+          'the leading action stays next to the anchor', (tester) async {
+        late BuildContext pageContext;
+        await pump(
+          tester,
+          actionAlignment: alignment,
+          shell(
+            Builder(
+              builder: (context) {
+                pageContext = context;
+                return const SizedBox.expand();
+              },
+            ),
           ),
-        ),
-      );
-      Navigator.of(pageContext).push(
-        MaterialPageRoute<void>(
-          builder: (_) => DuoPage<Object?, Object?>(
-            trailing: [
-              icon('a'),
-              icon('b', order: 1),
-              icon('c'),
-              icon('d', order: -1),
-            ],
-            body: const SizedBox.expand(),
+        );
+        Navigator.of(pageContext).push(
+          MaterialPageRoute<void>(
+            builder: (_) => DuoPage<Object?, Object?>(
+              trailing: [
+                icon('a'),
+                icon('b', order: 1),
+                icon('c'),
+                icon('d', order: -1),
+              ],
+              body: const SizedBox.expand(),
+            ),
           ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      double y(Object id) => tester.getCenter(_inColumn(_action(id))).dy;
-      // Top to bottom: b (1), a and c (0, declaration order), d (-1), back.
-      expect(y('b'), lessThan(y('a')));
-      expect(y('a'), lessThan(y('c')));
-      expect(y('c'), lessThan(y('d')));
-      expect(y('d'), lessThan(y(DuoAction.backId)));
-    });
+        );
+        await tester.pumpAndSettle();
+        double y(Object id) => tester.getCenter(_inColumn(_action(id))).dy;
+        // From the anchor: back, d (-1), a and c (0, declaration order), b (1).
+        final fromAnchor = [DuoAction.backId, 'd', 'c', 'a', 'b'];
+        final topDown = alignment == DuoActionAlignment.top
+            ? fromAnchor
+            : fromAnchor.reversed.toList();
+        for (var i = 1; i < topDown.length; i++) {
+          expect(y(topDown[i - 1]), lessThan(y(topDown[i])));
+        }
+      });
+    }
 
     testWidgets('the implied back action gets the Material tooltip', (
       tester,

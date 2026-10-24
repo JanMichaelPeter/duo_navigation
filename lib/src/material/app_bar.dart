@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../config/navigation.dart';
 import '../models/bar_data.dart';
 import '../models/enums.dart';
 import '../page/bar_layout.dart';
@@ -21,6 +22,11 @@ import '../page/bar_layout.dart';
 /// Colors, elevation and text styles come from the [AppBarTheme] unless set
 /// here; the parameters are [AppBar]'s. When the side column is at the start
 /// edge, the bar's actions move to the start too.
+///
+/// Where the status icons cut into the top edge
+/// ([DuoNavigation.titleBarPaddingOf]), the title and actions end before
+/// them. To also move the bar up beside them, wrap the `Scaffold` in a
+/// `DuoTitleBarPadding`, as the default page does.
 class DuoAppBar extends StatelessWidget implements PreferredSizeWidget {
   /// An app bar for the page around it.
   const DuoAppBar({
@@ -91,7 +97,9 @@ class DuoAppBar extends StatelessWidget implements PreferredSizeWidget {
           _ => false,
         };
     final leading = bar.leading;
-    return AppBar(
+    final height = toolbarHeight ?? appBarTheme.toolbarHeight ?? kToolbarHeight;
+    final titleBar = DuoNavigation.titleBarPaddingOf(context, height);
+    final appBar = AppBar(
       automaticallyImplyLeading: false,
       // The whole toolbar is one DuoBarLayout in the title slot.
       titleSpacing: 0,
@@ -118,7 +126,7 @@ class DuoAppBar extends StatelessWidget implements PreferredSizeWidget {
         // The title slot leaves the height open; the layout fills the bar.
         child: SizedBox(
           width: double.infinity,
-          height: toolbarHeight ?? appBarTheme.toolbarHeight ?? kToolbarHeight,
+          height: height,
           child: DuoBarLayout(
             leading: leading == null
                 ? null
@@ -134,6 +142,18 @@ class DuoAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
         ),
       ),
+    );
+    if (titleBar == null) return appBar;
+    // AppBar keeps its toolbar inside the horizontal padding.
+    final media = MediaQuery.of(context);
+    return MediaQuery(
+      data: media.copyWith(
+        padding: media.padding.copyWith(
+          left: titleBar.left,
+          right: titleBar.right,
+        ),
+      ),
+      child: appBar,
     );
   }
 }

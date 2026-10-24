@@ -60,6 +60,7 @@ class DuoFrameLayout
     required this.side,
     required this.columnOnRight,
     required this.columnWidth,
+    this.columnOffset = 0,
     this.columnInset = DuoColumnInset.overlap,
     required this.bodyMode,
     required this.systemPadding,
@@ -85,6 +86,11 @@ class DuoFrameLayout
 
   /// The column's width, not counting the system inset on its edge.
   final double columnWidth;
+
+  /// The gap between the window edge and the column, to centre it on the
+  /// status icons that share its edge (iPhone Duo). It counts towards the
+  /// chrome, so the body still ends at the column.
+  final double columnOffset;
 
   /// Whether the column sits over the system inset on its edge or after it.
   final DuoColumnInset columnInset;
@@ -141,6 +147,7 @@ class DuoFrameLayout
     side: side,
     columnOnRight: columnOnRight,
     columnWidth: columnWidth,
+    columnOffset: columnOffset,
     columnInset: columnInset,
     bodyMode: bodyMode,
     systemPadding: systemPadding,
@@ -158,6 +165,7 @@ class DuoFrameLayout
       ..side = side
       ..columnOnRight = columnOnRight
       ..columnWidth = columnWidth
+      ..columnOffset = columnOffset
       ..columnInset = columnInset
       ..bodyMode = bodyMode
       ..systemPadding = systemPadding
@@ -178,6 +186,7 @@ class RenderDuoFrame extends RenderBox
     required DuoSide side,
     required bool columnOnRight,
     required double columnWidth,
+    double columnOffset = 0,
     DuoColumnInset columnInset = DuoColumnInset.overlap,
     required DuoBodyMode bodyMode,
     required EdgeInsets systemPadding,
@@ -195,6 +204,7 @@ class RenderDuoFrame extends RenderBox
        _side = side,
        _columnOnRight = columnOnRight,
        _columnWidth = columnWidth,
+       _columnOffset = columnOffset,
        _columnInset = columnInset,
        _bodyMode = bodyMode,
        _systemPadding = systemPadding;
@@ -232,6 +242,15 @@ class RenderDuoFrame extends RenderBox
   set columnWidth(double value) {
     if (value == _columnWidth) return;
     _columnWidth = value;
+    markNeedsLayout();
+  }
+
+  /// See [DuoFrameLayout.columnOffset].
+  double get columnOffset => _columnOffset;
+  double _columnOffset;
+  set columnOffset(double value) {
+    if (value == _columnOffset) return;
+    _columnOffset = value;
     markNeedsLayout();
   }
 
@@ -365,11 +384,17 @@ class RenderDuoFrame extends RenderBox
           height: _liftColumn ? size.height - keyboard : size.height,
         ),
       );
-      // Hiding slides the column off its edge.
-      final visible = width * shown;
+      // Hiding slides the column, and the gap before it, off its edge.
+      final total = _columnOffset + width;
+      final visible = total * shown;
       _offset(
         column,
-        Offset(_columnOnRight ? size.width - visible : visible - width, 0),
+        Offset(
+          _columnOnRight
+              ? size.width - visible
+              : visible - total + _columnOffset,
+          0,
+        ),
       );
       chrome = _columnOnRight
           ? EdgeInsets.only(right: visible)
@@ -524,6 +549,7 @@ class RenderDuoFrame extends RenderBox
         ),
       )
       ..add(DoubleProperty('columnWidth', _columnWidth))
+      ..add(DoubleProperty('columnOffset', _columnOffset, defaultValue: 0))
       ..add(EnumProperty<DuoColumnInset>('columnInset', _columnInset))
       ..add(DiagnosticsProperty<EdgeInsets>('systemPadding', _systemPadding))
       ..add(DoubleProperty('visibility', _shown))

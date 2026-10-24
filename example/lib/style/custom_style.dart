@@ -29,6 +29,9 @@ abstract final class CustomStyle {
     sideColumn: sideColumn,
     actionTransition: actionTransition,
     backdrop: DuoMaterial.backdrop, // the strip around the chrome
+    // Localized "Tab 2 of 3" and "Back" / "Close" for assistive technology.
+    tabPosition: DuoMaterial.tabPosition,
+    actionLabel: DuoMaterial.actionLabel,
   );
 
   /// The sizes and timings the custom look is designed for.

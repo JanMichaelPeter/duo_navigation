@@ -61,6 +61,7 @@ void main() {
         const DuoMaterialBuilders(),
     TextDirection? direction,
     bool disableAnimations = false,
+    DuoActionAlignment actionAlignment = DuoActionAlignment.top,
   }) async {
     tester.view.physicalSize = const Size(1000, 700);
     tester.view.devicePixelRatio = 1;
@@ -72,6 +73,7 @@ void main() {
             context,
           ).copyWith(disableAnimations: disableAnimations),
           child: DuoTestHarness(
+            data: DuoNavigationData(actionAlignment: actionAlignment),
             builders: builders,
             mode: mode,
             textDirection: direction,
@@ -231,6 +233,34 @@ void main() {
       handle.dispose();
     });
 
+    testWidgets('an action without any label is reported once', (tester) async {
+      final printed = <String>[];
+      final previous = debugPrint;
+      debugPrint = (message, {wrapWidth}) => printed.add(message ?? '');
+      try {
+        // Every builder replaced, without actionLabel: the implied back action
+        // has no label of its own.
+        const builders = DuoBuilders<Object?, Object?, Object?>(
+          tabItem: DuoMaterial.tabItem,
+          tabBar: DuoMaterial.tabBar,
+          rail: DuoMaterial.rail,
+          action: DuoMaterial.action,
+          page: DuoMaterial.page,
+          sideColumn: DuoMaterial.sideColumn,
+          actionTransition: DuoMaterial.actionTransition,
+        );
+        await pump(tester, builders: builders);
+        await pump(tester, builders: builders, mode: DuoLayoutMode.compact);
+      } finally {
+        // flutter_test checks that debugPrint is restored when the body ends.
+        debugPrint = previous;
+      }
+      final reports = printed.where((m) => m.contains('has no label'));
+      expect(reports, hasLength(1));
+      expect(reports.single, contains('${DuoAction.backId}'));
+      expect(reports.single, contains('DuoMaterial.actionLabel'));
+    });
+
     for (final mode in DuoLayoutMode.values) {
       testWidgets('${mode.name}: meets the tap target guidelines', (
         tester,
@@ -245,16 +275,23 @@ void main() {
   });
 
   group('order', () {
-    for (final direction in TextDirection.values) {
-      testWidgets('${direction.name}: the page comes first, then the column '
-          'actions, then the rail', (tester) async {
+    for (final (direction, alignment) in [
+      for (final d in TextDirection.values)
+        for (final a in DuoActionAlignment.values) (d, a),
+    ]) {
+      testWidgets('${direction.name}, actions at the ${alignment.name}: the '
+          'page comes first, then the column actions top to bottom, then the '
+          'rail', (tester) async {
         final handle = tester.ensureSemantics();
-        await pump(tester, direction: direction);
+        await pump(tester, direction: direction, actionAlignment: alignment);
         final labels = _labelsInOrder(tester);
         int at(String label) => labels.indexWhere((l) => l.contains(label));
-        expect(at('Body button'), lessThan(at('Share')));
-        expect(at('Share'), lessThan(at('Back')));
-        expect(at('Back'), lessThan(at('Home')));
+        final (first, second) = alignment == DuoActionAlignment.top
+            ? ('Back', 'Share')
+            : ('Share', 'Back');
+        expect(at('Body button'), lessThan(at(first)));
+        expect(at(first), lessThan(at(second)));
+        expect(at(second), lessThan(at('Home')));
 
         // Keyboard traversal follows the same order.
         await tester.sendKeyEvent(LogicalKeyboardKey.tab);
