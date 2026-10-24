@@ -28,6 +28,10 @@ class DuoActionItem extends StatelessWidget {
         DuoBuilders.of<Object?, Object?, Object?>(
           context,
         ).actionLabel?.call(context, action);
+    assert(() {
+      if (label == null) _debugReportUnlabeled(action);
+      return true;
+    }());
     return DuoFocusMarker(
       id: ('action', action.id),
       child: DuoSemantics.action(
@@ -36,6 +40,19 @@ class DuoActionItem extends StatelessWidget {
         onTap: action.onPressed,
         child: appKey == null ? child : KeyedSubtree(key: appKey, child: child),
       ),
+    );
+  }
+
+  // The ids of the unlabeled actions already reported, so each is named once.
+  static final Set<Object> _debugReportedUnlabeled = {};
+
+  static void _debugReportUnlabeled(DuoAction<Object?> action) {
+    if (!_debugReportedUnlabeled.add(action.id)) return;
+    debugPrint(
+      'duo_navigation: action ${action.id} has no label, so assistive '
+      'technology reads it only as "button". Give it a semanticLabel, tooltip '
+      'or label, or set DuoBuilders.actionLabel (DuoMaterial.actionLabel names '
+      'back and close).',
     );
   }
 }
