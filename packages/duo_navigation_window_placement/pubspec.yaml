@@ -3,7 +3,7 @@ description: >-
   Window-edge and bar-region source for duo_navigation backed by the
   window_placement plugin: the side column follows the window to the screen
   edge in split screen and keeps clear of the status icons.
-version: 0.1.0
+version: 0.2.0
 repository: https://github.com/JanMichaelPeter/duo_navigation/tree/main/packages/duo_navigation_window_placement
 
 environment:
@@ -15,7 +15,7 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  duo_navigation: ^0.1.0
+  duo_navigation: ^0.2.0
   window_placement: ^0.0.3
 
 dev_dependencies:

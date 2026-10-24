@@ -1,4 +1,4 @@
-## Unreleased
+## 0.2.0
 
 * `DuoNavigationData.barRegionSource` (`DuoBarRegionSource`): where bars fit
   beside the status icons. On the iPhone Duo (iOS 27.1+), the side column's
