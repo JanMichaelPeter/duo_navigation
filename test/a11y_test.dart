@@ -233,6 +233,34 @@ void main() {
       handle.dispose();
     });
 
+    testWidgets('an action without any label is reported once', (tester) async {
+      final printed = <String>[];
+      final previous = debugPrint;
+      debugPrint = (message, {wrapWidth}) => printed.add(message ?? '');
+      try {
+        // Every builder replaced, without actionLabel: the implied back action
+        // has no label of its own.
+        const builders = DuoBuilders<Object?, Object?, Object?>(
+          tabItem: DuoMaterial.tabItem,
+          tabBar: DuoMaterial.tabBar,
+          rail: DuoMaterial.rail,
+          action: DuoMaterial.action,
+          page: DuoMaterial.page,
+          sideColumn: DuoMaterial.sideColumn,
+          actionTransition: DuoMaterial.actionTransition,
+        );
+        await pump(tester, builders: builders);
+        await pump(tester, builders: builders, mode: DuoLayoutMode.compact);
+      } finally {
+        // flutter_test checks that debugPrint is restored when the body ends.
+        debugPrint = previous;
+      }
+      final reports = printed.where((m) => m.contains('has no label'));
+      expect(reports, hasLength(1));
+      expect(reports.single, contains('${DuoAction.backId}'));
+      expect(reports.single, contains('DuoMaterial.actionLabel'));
+    });
+
     for (final mode in DuoLayoutMode.values) {
       testWidgets('${mode.name}: meets the tap target guidelines', (
         tester,

@@ -14,6 +14,11 @@
 * `DuoNavigationData.actionAlignment` (`DuoActionAlignment`): anchors the
   side column's actions at the top or at the bottom, above the rail. The back
   button stays next to the anchor; `DuoAction.order` counts from it.
+* In debug mode, an action without any label (no `semanticLabel`,
+  `tooltip`, `label` or `DuoBuilders.actionLabel`) is reported once, naming
+  the fix: assistive technology reads it only as "button". Builder sets that
+  replace every builder lose the localized "Back" / "Close" unless they set
+  `actionLabel: DuoMaterial.actionLabel`.
 * **Behavior change** The side column's actions now start at the top by
   default (`DuoActionAlignment.top`), with the back button first. Pass
   `actionAlignment: DuoActionAlignment.bottom` for the 0.1.0 layout.
