@@ -28,6 +28,32 @@ abstract class DuoLayoutPolicy {
   /// also gives foldables in their narrow unfolded posture the wide layout.
   const factory DuoLayoutPolicy.breakpoint(double width) = _BreakpointPolicy;
 
+  /// Wide while the window is inside every bound given, compact outside.
+  ///
+  /// A min bound is reached at its value, a max bound only below it: a window
+  /// exactly [maxHeight] tall is compact. Bounds left `null` don't apply.
+  /// [minAspectRatio] and [maxAspectRatio] compare width / height, so 1
+  /// separates portrait from landscape.
+  ///
+  /// Wide in landscape only, from foldable widths up:
+  ///
+  /// ```dart
+  /// const DuoLayoutPolicy.band(minWidth: 466, minAspectRatio: 1)
+  /// ```
+  ///
+  /// The unfolded iPhone Duo then gets the bottom tab bar in portrait
+  /// (669 × 951) and the side column in landscape (951 × 669); so does an
+  /// iPad. `band(minWidth: 466, maxHeight: 900)` draws the same line by
+  /// height instead.
+  const factory DuoLayoutPolicy.band({
+    double? minWidth,
+    double? maxWidth,
+    double? minHeight,
+    double? maxHeight,
+    double? minAspectRatio,
+    double? maxAspectRatio,
+  }) = _BandPolicy;
+
   /// Always [mode], whatever the size. For tests and single-layout products.
   const factory DuoLayoutPolicy.fixed(DuoLayoutMode mode) = _FixedPolicy;
 
@@ -73,6 +99,75 @@ class _BreakpointPolicy extends DuoLayoutPolicy {
 
   @override
   String toString() => 'DuoLayoutPolicy.breakpoint($width)';
+}
+
+class _BandPolicy extends DuoLayoutPolicy {
+  const _BandPolicy({
+    this.minWidth,
+    this.maxWidth,
+    this.minHeight,
+    this.maxHeight,
+    this.minAspectRatio,
+    this.maxAspectRatio,
+  }) : assert(minWidth == null || maxWidth == null || minWidth < maxWidth),
+       assert(minHeight == null || maxHeight == null || minHeight < maxHeight),
+       assert(
+         minAspectRatio == null ||
+             maxAspectRatio == null ||
+             minAspectRatio < maxAspectRatio,
+       );
+
+  final double? minWidth;
+  final double? maxWidth;
+  final double? minHeight;
+  final double? maxHeight;
+  final double? minAspectRatio;
+  final double? maxAspectRatio;
+
+  @override
+  DuoLayoutMode resolve({required Size window, required Size frame}) =>
+      _within(window.width, minWidth, maxWidth) &&
+          _within(window.height, minHeight, maxHeight) &&
+          _within(window.aspectRatio, minAspectRatio, maxAspectRatio)
+      ? DuoLayoutMode.wide
+      : DuoLayoutMode.compact;
+
+  static bool _within(double value, double? min, double? max) =>
+      (min == null || value >= min) && (max == null || value < max);
+
+  @override
+  bool operator ==(Object other) =>
+      other is _BandPolicy &&
+      other.minWidth == minWidth &&
+      other.maxWidth == maxWidth &&
+      other.minHeight == minHeight &&
+      other.maxHeight == maxHeight &&
+      other.minAspectRatio == minAspectRatio &&
+      other.maxAspectRatio == maxAspectRatio;
+
+  @override
+  int get hashCode => Object.hash(
+    minWidth,
+    maxWidth,
+    minHeight,
+    maxHeight,
+    minAspectRatio,
+    maxAspectRatio,
+  );
+
+  @override
+  String toString() {
+    final bounds = {
+      'minWidth': minWidth,
+      'maxWidth': maxWidth,
+      'minHeight': minHeight,
+      'maxHeight': maxHeight,
+      'minAspectRatio': minAspectRatio,
+      'maxAspectRatio': maxAspectRatio,
+    }.entries.where((e) => e.value != null);
+    return 'DuoLayoutPolicy.band('
+        '${bounds.map((e) => '${e.key}: ${e.value}').join(', ')})';
+  }
 }
 
 class _FixedPolicy extends DuoLayoutPolicy {

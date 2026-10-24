@@ -98,6 +98,8 @@ abstract class DuoLayoutPolicy {
   const DuoLayoutPolicy();
   const factory DuoLayoutPolicy.shortestSide(double size) = _ShortestSidePolicy; // default: 600
   const factory DuoLayoutPolicy.breakpoint(double width) = _BreakpointPolicy;
+  const factory DuoLayoutPolicy.band({double? minWidth, double? maxWidth, double? minHeight, double? maxHeight,
+      double? minAspectRatio, double? maxAspectRatio}) = _BandPolicy; // min inclusive, max exclusive
   const factory DuoLayoutPolicy.fixed(DuoLayoutMode mode) = _FixedPolicy;
   DuoLayoutMode resolve({required Size window, required Size frame});
 }

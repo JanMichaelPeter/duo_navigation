@@ -19,6 +19,10 @@
   the fix: assistive technology reads it only as "button". Builder sets that
   replace every builder lose the localized "Back" / "Close" unless they set
   `actionLabel: DuoMaterial.actionLabel`.
+* `DuoLayoutPolicy.band`: wide while the window is inside a range of width,
+  height and aspect ratio. `band(minWidth: 466, minAspectRatio: 1)` gives an
+  unfolded foldable the bottom tab bar in portrait and the side column in
+  landscape.
 * **Behavior change** The side column's actions now start at the top by
   default (`DuoActionAlignment.top`), with the back button first. Pass
   `actionAlignment: DuoActionAlignment.bottom` for the 0.1.0 layout.

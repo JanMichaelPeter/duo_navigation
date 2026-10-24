@@ -176,6 +176,70 @@ void main() {
       );
     });
 
+    test('band by aspect ratio: Duo portrait is compact, landscape wide', () {
+      const policy = DuoLayoutPolicy.band(minWidth: 466, minAspectRatio: 1);
+      DuoLayoutMode at(double width, double height) => policy.resolve(
+        window: Size(width, height),
+        frame: Size(width, height),
+      );
+      expect(at(669, 951), DuoLayoutMode.compact); // Duo, portrait
+      expect(at(951, 669), DuoLayoutMode.wide); // Duo, landscape
+      expect(at(820, 1180), DuoLayoutMode.compact); // iPad, portrait
+      expect(at(1180, 820), DuoLayoutMode.wide); // iPad, landscape
+      expect(at(844, 390), DuoLayoutMode.wide); // phone, landscape
+      expect(at(465, 300), DuoLayoutMode.compact); // under minWidth
+      expect(at(700, 700), DuoLayoutMode.wide); // square: min is inclusive
+    });
+
+    test('band by height', () {
+      const policy = DuoLayoutPolicy.band(minWidth: 466, maxHeight: 900);
+      DuoLayoutMode at(double width, double height) => policy.resolve(
+        window: Size(width, height),
+        frame: Size(width, height),
+      );
+      expect(at(669, 951), DuoLayoutMode.compact); // Duo, portrait
+      expect(at(951, 669), DuoLayoutMode.wide); // Duo, landscape
+      expect(at(800, 899), DuoLayoutMode.wide);
+      expect(at(800, 900), DuoLayoutMode.compact); // max is exclusive
+    });
+
+    test('band uses the window, not the frame', () {
+      const policy = DuoLayoutPolicy.band(maxWidth: 600);
+      expect(
+        policy.resolve(window: const Size(599, 900), frame: const Size(1, 1)),
+        DuoLayoutMode.wide,
+      );
+      expect(
+        policy.resolve(window: const Size(600, 900), frame: const Size(1, 1)),
+        DuoLayoutMode.compact,
+      );
+    });
+
+    test('band without bounds is always wide', () {
+      expect(
+        const DuoLayoutPolicy.band().resolve(
+          window: const Size(100, 100),
+          frame: const Size(100, 100),
+        ),
+        DuoLayoutMode.wide,
+      );
+    });
+
+    test('band rejects an empty range', () {
+      expect(
+        // ignore: prefer_const_constructors
+        () => DuoLayoutPolicy.band(minHeight: 900, maxHeight: 900),
+        throwsAssertionError,
+      );
+    });
+
+    test('band lists its bounds', () {
+      expect(
+        const DuoLayoutPolicy.band(minWidth: 466, maxHeight: 900).toString(),
+        'DuoLayoutPolicy.band(minWidth: 466.0, maxHeight: 900.0)',
+      );
+    });
+
     test('fixed ignores the size', () {
       const policy = DuoLayoutPolicy.fixed(DuoLayoutMode.compact);
       expect(
@@ -196,6 +260,20 @@ void main() {
       expect(
         const DuoLayoutPolicy.breakpoint(466),
         isNot(const DuoLayoutPolicy.breakpoint(600)),
+      );
+      expect(
+        const DuoLayoutPolicy.band(minWidth: 466, maxHeight: 900),
+        // ignore: prefer_const_constructors
+        DuoLayoutPolicy.band(minWidth: 466, maxHeight: 900),
+      );
+      expect(
+        const DuoLayoutPolicy.band(minWidth: 466, maxHeight: 900).hashCode,
+        // ignore: prefer_const_constructors
+        DuoLayoutPolicy.band(minWidth: 466, maxHeight: 900).hashCode,
+      );
+      expect(
+        const DuoLayoutPolicy.band(minWidth: 466),
+        isNot(const DuoLayoutPolicy.band(maxWidth: 466)),
       );
       expect(
         const DuoLayoutPolicy.fixed(DuoLayoutMode.wide),
